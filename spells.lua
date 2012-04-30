@@ -59,22 +59,23 @@ end,
 [200033] = function(player)
   local idxs = player:get_follower_idxs()
   local reduced_atk, reduced_sta, debuff, buff = 0, 0, Buff(player), Buff(player)
+  local buff_stats = {sta={"+",0}, atk={"+",0}, size={"+",0}}
   for _,idx in ipairs(idxs) do
-    debuff.field[player][idx] = {}
+    local card = player.field[idx]
+    local debuff_stats = {sta={"-", card.sta-1}, size={"-", card.size-1}}
+    debuff.field[player][idx] = debuff_stats
     if player.field[idx].atk > 0 then
-      debuff.field[player][idx].atk = {"-", player.field[idx].atk - 1}
-      reduced_atk = reduced_atk + debuff.field[player][idx].atk[2]
+      debuff_stats.atk = {"-", player.field[idx].atk - 1}
     end
-    debuff.field[player][idx].sta = {"-", player.field[idx].sta - 1}
-    reduced_sta = reduced_sta + debuff.field[player][idx].sta[2]
+    for k,v in pairs(debuff_stats) do
+      buff_stats[k][2] = buff_stats[k][2] + debuff_stats[k][2]
+    end
   end
   debuff:apply()
   local target_idx = player:field_idxs_with_least_and_preds(
     pred.size, {pred.follower, pred.faction.D})[1]
   if target_idx then
-    buff.field[player][target_idx] = {}
-    buff.field[player][target_idx].atk = {"+", reduced_atk}
-    buff.field[player][target_idx].sta = {"+", reduced_sta}
+    buff.field[player][target_idx] = buff_stats
     buff:apply()
   end
 end,
