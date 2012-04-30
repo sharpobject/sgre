@@ -1,0 +1,2 @@
+Vampiric Rites reads "All allied followers get size=1 and atk=1/sta=1...", but does not increase the atk of followers with less than 1 atk.  It does not specify that the first of the smallest darklore followers is the one chosen for the buff.
+Entry denied reads "One allied follower is deactivated."  It does not specify that the first follower is chosen.
