@@ -67,5 +67,31 @@ end,
     buff:apply()
   end
 end,
+
+--private maid, true caring
+[1011] = function(player)
+  local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower}))
+  if target_idx then
+    local buff = Buff(player)
+    buff.field[player.opponent][target_idx] = {atk={"-",1}}
+    buff:apply()
+  end
+end,
+
+--senpai maid, i'll try my best
+[1012] = function(player, my_idx)
+  local buff = Buff(player)
+  buff.field[player][my_idx] = {atk={"+",1}, sta={"+",2}}
+  buff:apply()
+end,
+
+--striker, fireball!
+[1013] = function(player, my_idx, my_card, other_idx)
+  local buff = Buff(player)
+  buff.field[player.opponent][other_idx] = {sta={"-",1}}
+  buff:apply()
+end,
+
 }
+
 setmetatable(skill_func, {__index = function() return function() end end})
