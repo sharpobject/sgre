@@ -1,3 +1,5 @@
+local max = math.max
+
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
     for k,v in pairs(id_to_canonical_card[id]) do
@@ -113,9 +115,15 @@ end
 -- discards the card at index n
 function Player:hand_to_grave(n)
   self.grave[#self.grave + 1] = self.hand[n]
+  self.grave[#self.grave]:reset()
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
+end
+
+function Player:field_to_bottom_deck(n)
+  self:to_bottom_deck(self.field[n])
+  self.field[n] = nil
 end
 
 function Player:field_to_grave(n)
@@ -139,7 +147,20 @@ function Player:field_size()
   return ret
 end
 
+function Player:ncards_in_field()
+  local ret = 0
+  for i=1,5 do
+    if self.field[i] then
+      ret = ret + 1
+    end
+  end
+  return ret
+end
+
 function Player:hand_idxs_with_preds(preds)
+  if type(preds) ~= "table" then
+    preds = {preds}
+  end
   local ret = {}
   for i=1,5 do
     if self.hand[i] then
@@ -405,17 +426,28 @@ end
 }
 
 function Game:apply_buff(buff)
+  local anything_happened = false
   for _,zone in ipairs({"field", "hand", "deck"}) do
     for player,idx_to_effect in pairs(buff[zone]) do
       for idx,effects in pairs(idx_to_effect) do
         for stat,effect in pairs(effects) do
+          anything_happened = true
           local which, howmuch = unpack(effect)
+          if which == "-" and stat == "size" then
+            howmux = max(player[zone][idx].size-1, howmuch)
+          end
+          if which == "=" and stat == "size" then
+            howmuch = max(1,howmuch)
+          end
           buff_effects[which](player[zone][idx],stat,howmuch)
         end
       end
     end
   end
-  self:clean_dead_followers()
+  if anything_happened then
+    -- TODO: animation
+    self:clean_dead_followers()
+  end
 end
 
 function Game:run()

@@ -30,7 +30,7 @@ skill_func = {
 [1007] = function(player)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.maid,pred.follower}))
   if target_idx then
-    local buff = Buff(player)
+    local buff = GlobalBuff(player)
     buff.field[player][target_idx] = {atk={"+",1}, sta={"+",1}}
     buff:apply()
   end
@@ -41,7 +41,7 @@ end,
   local spell_idx = player:hand_idxs_with_preds({pred.spell})[1]
   if spell_idx then
     player:hand_to_grave(spell_idx)
-    local buff = Buff(player)
+    local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"+",2}}
     buff:apply()
   end
@@ -49,7 +49,7 @@ end,
 
 -- mop maid, mop slash
 [1009] = function(player, my_idx)
-  local buff = Buff(player)
+  local buff = GlobalBuff(player)
   local idxs = player:field_idxs_with_preds({pred.follower})
   for _,idx in ipairs(idxs) do
     if math.abs(my_idx - idx) <= 1 then
@@ -62,7 +62,7 @@ end,
 -- aristocrat girl, noblesse
 [1010] = function(player, my_idx, my_card, other_idx, other_card)
   if other_card.def >= 2 then
-    local buff = Buff(player)
+    local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {sta={"-",3}}
     buff:apply()
   end
@@ -72,7 +72,7 @@ end,
 [1011] = function(player)
   local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower}))
   if target_idx then
-    local buff = Buff(player)
+    local buff = GlobalBuff(player)
     buff.field[player.opponent][target_idx] = {atk={"-",1}}
     buff:apply()
   end
@@ -80,14 +80,14 @@ end,
 
 --senpai maid, i'll try my best
 [1012] = function(player, my_idx)
-  local buff = Buff(player)
+  local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"+",1}, sta={"+",2}}
   buff:apply()
 end,
 
 --striker, fireball!
 [1013] = function(player, my_idx, my_card, other_idx)
-  local buff = Buff(player)
+  local buff = GlobalBuff(player)
   buff.field[player.opponent][other_idx] = {sta={"-",1}}
   buff:apply()
 end,
