@@ -158,6 +158,14 @@ function shuffle(tab)
   return tab
 end
 
+function reverse(tab)
+  local n = #tab
+  for i=1,n/2 do
+    tab[i],tab[n+1-i] = tab[n+1-i],tab[i]
+  end
+  return tab
+end
+
 function shallowcpy(tab)
   local ret = {}
   for k,v in pairs(tab) do

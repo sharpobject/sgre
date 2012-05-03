@@ -43,6 +43,7 @@ Player = class(function(self, side, deck)
     self.field = {}
     self.field[0] = self.character
     self.grave = {}
+    self.exile = {}
     self.shuffles = 2
   end)
 
@@ -105,6 +106,10 @@ function Player:attempt_shuffle()
   end
 end
 
+function Player:grave_to_exile(n)
+  self.exile[#self.exile+1]=table.remove(self.grave,n)
+end
+
 function Player:hand_to_bottom_deck(n)
   self.to_bottom_deck(self.hand[n])
   for i=n,5 do
@@ -157,6 +162,23 @@ function Player:ncards_in_field()
   return ret
 end
 
+function Player:grave_idxs_with_preds(preds)
+  if type(pred) ~= "table" then
+    preds = {preds}
+  end
+  local ret = {}
+  for i=1,#self.grave do
+    local incl = true
+    for j=1,#preds do
+      incl = incl and preds[j](self.grave[i])
+    end
+    if incl then
+      ret[#ret+1] = i
+    end
+  end
+  return ret
+end
+
 function Player:hand_idxs_with_preds(preds)
   if type(preds) ~= "table" then
     preds = {preds}
@@ -177,6 +199,9 @@ function Player:hand_idxs_with_preds(preds)
 end
 
 function Player:field_idxs_with_preds(preds)
+  if type(pred) ~= "table" then
+    preds = {preds}
+  end
   local ret = {}
   for i=1,5 do
     if self.field[i] then
@@ -359,7 +384,7 @@ function Player:combat_round()
     card.active = false
   else
     self.send_spell_to_grave = true
-    spell_func[card.id](self, idx, card)
+    spell_func[card.id](self, self.opponent, idx, card)
     if self.send_spell_to_grave then
       self:field_to_grave(idx)
     end
