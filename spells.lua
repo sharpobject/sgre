@@ -414,8 +414,8 @@ end,
 -- sacrifice
 [200035] = function(player, opponent)
   local buff = GlobalBuff()
-  buff[player][0] = {life={"-",1}}
-  buff[opponent][0] = {life={"-",4}}
+  buff.field[player][0] = {life={"-",1}}
+  buff.field[opponent][0] = {life={"-",4}}
   buff:apply()
 end,
 

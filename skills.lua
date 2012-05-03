@@ -26,6 +26,58 @@ setmetatable(skill_id_to_type, {__index = function() return "start" end})
 local refresh_id = 1076
 
 skill_func = {
+-- untested
+-- new cook club student, may i see?
+[1001] = function(player)
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.cook_club,pred.follower}))
+  if target_idx then
+    local buff = GlobalBuff(player)
+    buff.field[player][target_idx] = {atk={"+",1}, sta={"+",1}}
+    buff:apply()
+  end
+end,
+
+-- cook club katie, best taste ever!
+[1002] = function(player, my_idx, my_card)
+  if my_card.sta > 1 then
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {atk={"+",1}, sta={"-"},1}
+    buff:apply()
+  end
+end,
+
+-- cook club sylphie, 25 assistant asmis, crescent elder riesling, best attack
+[1003] = function(player, my_idx)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"+",1}}
+  buff:apply()
+end,
+
+-- prefect layna, proper behavior
+[1004] = function(player, my_idx)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {sta={"+",#player.hand + 1}}
+  buff:apply()
+end,
+
+-- lib. serie, wrath of the book!
+[1005] = function(player, my_idx)
+  local libs = #player:hand_idxs_with_preds({pred.lib})
+  if libs > 0 then
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {atk={"+",libs}}
+    buff:apply()
+  end
+end,
+
+-- lib vernika, sita's friend rosie, 25 agent nine, seeker luthera, lost doll, best defense
+[1006] = function(player, my_idx)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {def={"+",2}}
+  buff:apply()
+end,
+
+-- tested
 -- guard maid, maid cross
 [1007] = function(player)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.maid,pred.follower}))
@@ -92,6 +144,71 @@ end,
   buff:apply()
 end,
 
+-- untested
+-- flag knight frett, flag return
+[1014] = function(player)
+  if 3 in player:get_follower_idxs() then
+    local buff = GlobalBuff(player)
+    buff.field[player][3] = {atk={"+",1}, sta={"+",1}}
+    buff:apply()
+  end
+end,
+
+-- knight adjt. sarisen, sisters in arms
+[1015] = function(player, my_idx)
+  local idxs = player:field_idxs_with_preds({pred.knight,pred.follower})
+  if #idxs > 1 then
+    buff = OnePlayerBuff(player)
+    for _,idx in ipairs(idxs) do
+      if idx ~= my_idx then
+        buff[idx] = {atk={"+",1}, sta={"+",1}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
+-- crux knight pintail, contract witch, surprise!
+[1016] = function(player, my_idx, my_card, other_idx, other_card)
+  if other_card.size < my_card.size then
+    buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {atk={"+",1}, sta={"+",1}}
+    buff:apply()
+  end
+end,
+
+-- priestess, healing prayer
+[1017] = function(player)
+  local buff = OnePlayerBuff(player)
+  buff[0] = {life={"+",1}}
+  buff:apply()
+end,
+
+-- seeker amethystar, holy heal
+[1018] = function(player, my_idx)
+  if player.game.turn % 2 == 1 then
+    OneBuff(player, my_idx, {sta={"+",3}}):apply()
+  end
+end,
+
+-- seeker lydia, cross
+[1019] = function(player, my_idx, my_card, other_idx)
+  if #player.field_idxs_with_preds({pred.faction.C}) >= 2 then
+    OneBuff(player.opponent, other_idx, {atk={"-",1}, def={"-",2}, sta={"-",1}}):apply()
+  end
+end,
+
+-- acolyte, holy peace
+[1020] = function(player)
+  if player.game.turn % 2 == 0 then
+    idxs = player:field_idxs_with_preds({pred.faction.C, pred.follower})
+    buff = OnePlayerBuff(player)
+    for _,idx in ipairs(idxs) do
+      buff[idx] = {atk={"+",2}, sta={"+",2}}
+    end
+    buff:apply()
+  end
+end,
 }
 
 setmetatable(skill_func, {__index = function() return function() end end})
