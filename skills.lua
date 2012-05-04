@@ -147,7 +147,7 @@ end,
 -- untested
 -- flag knight frett, flag return
 [1014] = function(player)
-  if 3 in player:get_follower_idxs() then
+  if player.field[3] and player.field[3].type == "follower" then
     local buff = GlobalBuff(player)
     buff.field[player][3] = {atk={"+",1}, sta={"+",1}}
     buff:apply()
@@ -158,7 +158,7 @@ end,
 [1015] = function(player, my_idx)
   local idxs = player:field_idxs_with_preds({pred.knight,pred.follower})
   if #idxs > 1 then
-    buff = OnePlayerBuff(player)
+    local buff = OnePlayerBuff(player)
     for _,idx in ipairs(idxs) do
       if idx ~= my_idx then
         buff[idx] = {atk={"+",1}, sta={"+",1}}
@@ -171,7 +171,7 @@ end,
 -- crux knight pintail, contract witch, surprise!
 [1016] = function(player, my_idx, my_card, other_idx, other_card)
   if other_card.size < my_card.size then
-    buff = GlobalBuff(player)
+    local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"+",1}, sta={"+",1}}
     buff:apply()
   end
@@ -201,14 +201,84 @@ end,
 -- acolyte, holy peace
 [1020] = function(player)
   if player.game.turn % 2 == 0 then
-    idxs = player:field_idxs_with_preds({pred.faction.C, pred.follower})
-    buff = OnePlayerBuff(player)
-    for _,idx in ipairs(idxs) do
+    local target_idxs = player:field_idxs_with_preds({pred.faction.C, pred.follower})
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(target_idxs) do
       buff[idx] = {atk={"+",2}, sta={"+",2}}
     end
     buff:apply()
   end
 end,
+
+-- scardel sion flina, sion attack!
+[1021] = function(player)
+  local target_idxs = player:field_idxs_with_preds({pred.sion_rion, pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {atk={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- scardel rion flina, rion defense!
+[1022] = function(player)
+  local target_idxs = player:field_idxs_with_preds({pred.sion_rion, pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- moondancer kata flina, moonlight dancer!
+[1023] = function(player)
+  local target_idxs = shuffle(player.opponent:field_idxs_with_preds({pred.follower}))
+  if #target_idxs >= 1 then
+    local buff = OnePlayerBuff(player.opponent)
+    for i=1,min(2,#target_idxs) do
+      buff[target_idxs[i]] = {atk={"-",1}, sta={"-",1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- scardel shiraz, night's place
+[1024] = function(player)
+  if #player:field_idxs_with_preds({pred.faction.D,pred.follower}) then
+    local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower}))
+    OneBuff(player.opponent, target_idx, {sta={"-",2}}):apply()
+  end
+end,
+
+-- master luna flina, moon guardian
+[1025] = function(player, my_idx)
+  local new_def = #player:hand_idxs_with_preds({pred.faction.D, pred.follower})
+  OneBuff(player, my_idx, {def={"=",new_def}, sta={"+",new_def}}):apply()
+end,
+
+-- red moon aka flina, cook club ace, silent maid, seeker director, lantern witch,
+-- coin lady, reverse defense
+-- ambiguous, determine what it actually does
+[1026] = function(player, my_idx, my_card, other_idx, other_card)
+  local diff = abs(other_card.def)
+  OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
+end,
+
+-- blue moon beecky flina, chilly blood
+[1027] = function(player, my_idx)
+  local target_idxs = shuffle(player.field_idxs_with_preds({pred.follower}))
+  local buff = OnePlayerBuff(player)
+  buff[my_idx] = {atk={"+",1}, sta={"+",1}}
+  if #target_idxs >= 2 then
+    if target_idxs[1] == my_idx then
+      buff[target_idxs[2]] = {atk={"+",1}, sta={"+",1}}
+    else
+      buff[target_idxs[1]] = {atk={"+",1}, sta={"+",1}}
+    end
+  end
+  buff.apply()
+end,
+    
 }
 
 setmetatable(skill_func, {__index = function() return function() end end})
