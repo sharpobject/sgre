@@ -258,7 +258,6 @@ end,
 
 -- red moon aka flina, cook club ace, silent maid, seeker director, lantern witch,
 -- coin lady, reverse defense
--- ambiguous, determine what it actually does
 [1026] = function(player, my_idx, my_card, other_idx, other_card)
   local diff = abs(other_card.def)
   OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
@@ -266,7 +265,7 @@ end,
 
 -- blue moon beecky flina, chilly blood
 [1027] = function(player, my_idx)
-  local target_idxs = shuffle(player.field_idxs_with_preds({pred.follower}))
+  local target_idxs = shuffle(player:get_follower_idxs())
   local buff = OnePlayerBuff(player)
   buff[my_idx] = {atk={"+",1}, sta={"+",1}}
   if #target_idxs >= 2 then
@@ -278,7 +277,220 @@ end,
   end
   buff.apply()
 end,
-    
+-- end episode 1 follower skill
+
+-- lib. milka, book return
+[1028] = function(player)
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.lib, pred.follower}))
+  if target_idx then
+    OneBuff(player, target_idx, {sta={"+",2}}):apply()
+  end
+end,
+
+-- council casey, fanatic sarah, seeker irene, reading witch, valor strike!
+[1029] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, {atk={"+",2}}):apply()
+  my_card:remove_skill(1029)
+end,
+
+-- council treas. amy, budget time!
+[1030] = function(player, my_idx, my_card)
+  local buff = OnePlayerBuff(player)
+  local target_idxs = player:field_idxs_with_preds({pred.council, pred.follower})
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {sta={"+",2}}
+  end
+  buff:apply()
+  my_card:remove_skill(1030)
+end,
+
+-- council pres. celine, presidential power
+[1031] = function(player, my_idx)
+  local target_idx = uniformly(player:hand_idxs_with_preds({pred.council}))
+  if target_idx then
+    player:hand_to_top_deck(target_idx)
+    OneBuff(player, my_idx, {atk={"+",1}, sta={"+",2}}):apply()
+  end
+end,
+
+-- insomniac nanasid, insomnia
+[1033] = function(player, my_idx, my_card, other_idx)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"+",2}, def={"-", 1}}
+  buff.field[player.opponent][other_idx] = {atk={"-",2}}
+  buff:apply()
+  my_card:remove_skill(1033)
+end,
+
+-- traumatized hilde, sad memory
+[1034] = function(player, my_idx, my_card)
+  local target_idxs = shuffle(player:get_follower_idxs())
+  local buff = OnePlayerBuff(player)
+  if my_card.atk > 0 then
+    buff[my_idx] = {atk={"-",1}}
+  end
+  for i=1,math.min(2, #target_idxs) do
+    if buff[i] then
+      buff[i][sta] = {"+",2}
+    else
+      buff[i] = {sta={"+",2}}
+    end
+  end
+  buff:apply()
+end,
+
+-- stigma flint, stigma
+[1035] = function(player)
+  local ally_target_idx = uniformly(player:get_field_idxs_with_preds({pred.stig_wit_fel, pred.follower}))
+  local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
+  if ally_target_idx then
+    player:field_to_exile(ally_target_idx)
+    player.opponent:destroy(opp_target_idx)
+  end
+end,
+
+-- fated rival seven, brilliant idea
+[1036] = function(player)
+  local grave_target_idxs = shuffle(player:grave_idxs_with_preds({pred.A}))
+  if #grave_target_idxs > 0 then
+    local opp_target_idxs = shuffle(player.opponent:get_follower_idxs())
+    local buff = OnePlayerBuff(player.opponent)
+    for i=1,math.min(2,#grave_target_idxs) do
+      player:grave_to_exile(grave_target_idxs[i])
+    end
+    for i=1,math.min(2,opp_target_idxs) do
+      buff[opp_target_idxs[i]] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- stigma witness felicia, proof of stigma
+[1037] = function(player)
+  local target_idxs = player:field_idxs_with_preds({pred.stig_flint, pred.follower})
+  if #target_idxs > 0 then
+    local buffsize = #player:field_idxs_with_preds({pred.A, pred.follower})
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(target_idxs) do
+      buff[idx] = {atk={"-",buffsize}, sta={"-",buffsize}}
+    end
+    buff:apply()
+  end
+end,
+
+-- seeker lucia, take cover!
+[1038] = function(player, my_idx, my_card)
+  local buffsize = math.min(#player:field_idxs_with_preds({pred.seeker}) + #player:hand_idxs_with_preds({pred.seeker}), my_card.sta - 1)
+  OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"-",buffsize}}):apply()
+end,
+
+-- seeker melissa, research results
+[1039] = function(player, my_idx, my_card)
+  local target_idxs = shuffle(player:field_idxs_with_preds({pred.seeker, pred.follower}))
+  local buff = OnePlayerBuff(player)
+  for i=1,math.min(2,#target_idxs) do
+    buff[target_idxs[i]] = {atk={"+",2}, sta={"+",2}}
+  end
+  buff:apply()
+  my_card:remove_skill(1039)
+end,
+
+-- crux knight sinclair, grace of the goddess
+[1040] = function(player, my_idx)
+  local grave_idxs = shuffle(player:grave_idxs_with_preds({pred.C}))
+  if #grave_idxs > 0 then
+    local target_idxs = player:get_follower_idxs()
+    for i=1,math.min(2,#grave_idxs) do
+      player:grave_to_exile(grave_idxs[i])
+    end
+    local buff = OnePlayerBuff(player)
+    buff[my_idx] = {atk={"+",2}, sta={"+",2}}
+    if target_idxs[1] ~= my_idx then
+      buff[target_idxs[1]] = {atk={"+",1}, sta={"+",1}}
+    else
+      buff[target_idxs[2]] = {atk={"+",1}, sta={"+",1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- cauldron witch, cauldron!
+[1041] = function(player, my_idx, my_card, other_idx, other_card)
+  if #player:field_idxs_with_preds({pred.follower, pred.D}) > 1 then
+    local buffsize = math.ceil(other_card.atk / 2)
+    OneBuff(player, my_idx, {sta={"+",buffsize}}):apply()
+    my_card:remove_skill(1041)
+  end
+end,
+
+-- tea party witch, pumpkin!
+[1042] = function(player)
+  local target_idxs = player:field_idxs_with_preds({pred.witch, pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- heart stone witch, magic of the heart
+[1043] = function(player, my_idx, my_card)
+  local target_idxs = player:field_idxs_with_preds({pred.witch, pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {atk={"+",2}, sta={"+",2}}
+  end
+  buff:apply()
+  my_card:remove_skill(1043)
+end,
+
+-- undertaker, undertaker
+[1044] = function(player, my_idx)
+  local buffsize = 0
+  if player.grave[1] then
+    player:grave_to_exile(1)
+    buffsize = buffsize + 1
+  end
+  if player.opponent.grave[1] then
+    player.opponent:grave_to_exile(1)
+    buffsize = buffsize + 1
+  end
+  if buffsize > 0 then
+    OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"+",buffsize}}):apply()
+  end
+end,
+
+-- visitor ophelia, first visit
+[1045] = function(player, my_idx)
+  OneBuff(player, my_idx, {size={"-",1}}):apply()
+end,
+
+-- visitor ophelia, academic curiosity
+[1046] = function(player, my_idx, my_card, other_idx)
+  local buff = GlobalBuff(player)
+  local buffsize = math.min(math.abs(my_card.size - (my_card.def - 1)),5)
+  buff.field[player][my_idx] = {def={"-",1}}
+  buff.field[player.opponent][other_idx] = {atk={"-",buffsize}, def={"-",buffsize}, sta={"-",buffsize}}
+  buff:apply()
+end,
+
+-- genius student nanai, great power!
+[1047] = function(player, my_idx, my_card, other_idx, other_card)
+  local player_grave_idxs = player:grave_idxs_with_size(other_card.size)
+  local opp_grave_idxs = player.opponent:grave_idxs_with_size(other_card.size)
+  local buffsize = 0
+  for _,idx in ipairs(player_grave_idxs) do
+    player:grave_to_exile(idx)
+    buffsize = buffsize + 1
+  end
+  for _,idx in ipairs(opp_grave_idxs) do
+    player.opponent:grave_to_exile(idx)
+    buffsize = buffsize + 1
+  end
+  if buffsize > 0 then
+    OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
+  end
+end,
 }
 
 setmetatable(skill_func, {__index = function() return function() end end})

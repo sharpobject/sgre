@@ -82,6 +82,10 @@ groups.vampire = arr_to_set({100004, 100143, 110076, 110077, 110078, 110079,
 
 groups.sion_rion = arr_to_set({300057, 300058, 300195, 300196})
 
+groups.stig_wit_fel = arr_to_set({300090})
+
+groups.stig_flint = arr_to_set({300087})
+
 pred = {}
 pred.faction = {}
 for _,v in ipairs({"V","A","D","C","N"}) do
