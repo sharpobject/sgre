@@ -20,12 +20,33 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
                     [1108]=1,[1109]=1,[1110]=3,[1111]=3,[1112]=2,[1113]=1,
                     [1114]=2,[1115]=1,[1116]=3,[1117]=2,[1118]=1,[1119]=2,
                     [1120]=1,[1121]=3,[1122]=2,[1123]=1,[1174]=1,[1218]=1,
-                    [1219]=2,[1314]=1,[1315]=1,[1316]=2,})
+                    [1219]=2,[1314]=1,[1315]=1,[1316]=2,[1076]=3,["refresh"]=3})
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
-local refresh_id = 1076
+local refresh = function(player, my_idx, my_card)
+  my_card:refresh()
+end
+
+local esprit = function(player, my_idx, my_card, other_idx, other_card)
+  if other_card.skills then
+    local removed = false
+    for _,skill in ipairs(other_card.skills) do
+      if skill then
+        other_card:remove_skill(skill)
+        removed = true
+      end
+    end
+    if removed then
+      OneBuff(player, my_idx, {atk={"+",1}, def={"+",1}, sta={"+",1}}):apply()
+    end
+  end
+end
 
 skill_func = {
+["refresh"] = refresh,
+
+-- episode 1 follower skills
+
 -- untested
 -- new cook club student, may i see?
 [1001] = function(player)
@@ -277,7 +298,8 @@ end,
   end
   buff.apply()
 end,
--- end episode 1 follower skill
+
+-- episode 2 follower skills
 
 -- lib. milka, book return
 [1028] = function(player)
@@ -474,6 +496,8 @@ end,
   buff:apply()
 end,
 
+-- episode 3 follower skills
+
 -- genius student nanai, great power!
 [1047] = function(player, my_idx, my_card, other_idx, other_card)
   local player_grave_idxs = player:grave_idxs_with_size(other_card.size)
@@ -491,6 +515,92 @@ end,
     OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
   end
 end,
+
+-- lib. daisy, agent maid, arcana i magician, crescent maze, null defense!
+[1048] = function(player, my_idx, my_card, other_idx, other_card)
+  if other_card.def >= 1 then
+    OneBuff(player.opponent, other_idx, {def={"=",0}}):apply()
+    my_card:remove_skill_until_refresh(1048)
+  end
+end,
+
+-- lib. manager lotte, cultist maid, seeker ruth, dollmaster elfin rune, amnesia
+[1049] = function(player, my_idx, my_card, other_idx, other_card)
+  if other_card.skills then
+    local removed = false
+    for _,skill in ipairs(other_card.skills) do
+      if skill then
+        other_card:remove_skill(skill)
+        removed = true
+      end
+    end
+    if removed then
+      my_card:remove_skill(1049)
+    end
+  end
+end,
+
+-- mediator cabernet, two and one
+[1050] = function(player)
+  local target_idxs = player:field_idxs_with_preds(pred.D, pred.follower)
+  if target_idxs then
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(target_idxs) do
+      buff[idx] = {atk={"+",2}, sta={"+",2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- linia pacifica, master's command
+[1051] = function(player, my_idx, my_card)
+  local buffsize = math.ceil(my_card.size / 2)
+  local target_idxs = player:field_idxs_with_preds(pred.A, pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    if math.abs(idx - my_idx) <= 1 then
+      buff[idx] = {atk={"+",buffsize}, sta={"+",buffsize}}
+    end
+  end
+  buff:apply()
+end,
+
+-- vanguard knight, orders from above
+[1052] = function(player, my_idx)
+  local buffsize = #player:hand_idxs_with_preds(pred.C)
+  OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"+",buffsize}}):apply()
+end,
+
+-- lib. ace, book's wisdom
+[1053] = function(player, my_idx, my_card)
+  local buffsize = my_card.size
+  local target_idxs = player:field_idxs_with_preds(pred.V, pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {atk={"+",buffsize}, sta={"+",buffsize}}
+  end
+  buff:apply()
+end,
+
+-- sage esprit, hidden truth
+[1054] = esprit,
+
+-- guide rio, best attack
+[1218] = function(player, my_idx)
+  buffsize = uniformly({1,2,3})
+  OneBuff(player, my_idx, {atk={"+",buffsize}}):apply()
+end,
+
+-- sage esprit, coin lady, hidden truth
+[1057] = esprit,
+
+-- episode EX1 follower skills
+
+
+
+[1076] = refresh,
+
+
 }
 
 setmetatable(skill_func, {__index = function() return function() end end})

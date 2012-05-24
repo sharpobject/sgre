@@ -10,11 +10,33 @@ Card = class(function(self, id, upgrade_lvl)
   end)
 
 function Card:remove_skill(skill_id)
-  for id,skill in self.skills do
-    if skill == skill_id then
-      self.skills[id] = nil
+  for idx,id in ipairs(self.skills) do
+    if id == skill_id then
+      self.skills[idx] = nil
     end
   end
+end
+
+function Card:remove_skill_until_refresh(skill_id)
+  for idx, id in ipairs(self.skills) do
+    if id == skill_id then
+      self.skills[idx] = "refresh"
+      if self.refresh_skill then
+        self.refresh_skill[idx] = skill_id
+      else
+        self.refresh_skill = {[idx] = skill_id}
+      end
+    end
+  end
+end
+
+function Card:refresh()
+  for idx,id in ipairs(self.skills) do
+    if id == "refresh" then
+      self.skill[idx] = self.refresh_skill[idx]
+    end
+  end
+  self.refresh_skill = nil
 end
 
 function Card:reset()
