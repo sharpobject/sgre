@@ -9,6 +9,36 @@ Card = class(function(self, id, upgrade_lvl)
     --TODO: apply upgrade
   end)
 
+function Card:remove_skill(skill_id)
+  for idx,id in ipairs(self.skills) do
+    if id == skill_id then
+      self.skills[idx] = nil
+    end
+  end
+end
+
+function Card:remove_skill_until_refresh(skill_id)
+  for idx, id in ipairs(self.skills) do
+    if id == skill_id then
+      self.skills[idx] = "refresh"
+      if self.refresh_skill then
+        self.refresh_skill[idx] = skill_id
+      else
+        self.refresh_skill = {[idx] = skill_id}
+      end
+    end
+  end
+end
+
+function Card:refresh()
+  for idx,id in ipairs(self.skills) do
+    if id == "refresh" then
+      self.skill[idx] = self.refresh_skill[idx]
+    end
+  end
+  self.refresh_skill = nil
+end
+
 function Card:reset()
   for k,v in pairs(id_to_canonical_card[self.id]) do
     self[k] = deepcpy(v)
@@ -92,6 +122,10 @@ function Player:to_bottom_deck(card)
   table.insert(self.deck, 1, card)
 end
 
+function Player:to_top_deck(card)
+  self.deck[#self.deck + 1] = card
+end
+
 function Player:attempt_shuffle()
   if self.shuffles > 0 then
     self.shuffles = self.shuffles - 1
@@ -111,7 +145,14 @@ function Player:grave_to_exile(n)
 end
 
 function Player:hand_to_bottom_deck(n)
-  self.to_bottom_deck(self.hand[n])
+  self:to_bottom_deck(self.hand[n])
+  for i=n,5 do
+    self.hand[i] = self.hand[i+1]
+  end
+end
+
+function Player:hand_to_top_deck(n)
+  self:to_top_deck(self.hand[n])
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
@@ -145,6 +186,12 @@ function Player:field_to_grave(n)
   self.field[n] = nil
 end
 
+function Player:field_to_exile(n)
+  self.exile[#self.exile + 1] = self.field[n]
+  self.exile[#self.exile]:reset()
+  self.field[n] = nil
+end
+
 function Player:destroy(n)
   if self.field[n].type == "follower" then
     self.character.life = self.character.life - self.field[n].size
@@ -173,7 +220,7 @@ function Player:ncards_in_field()
 end
 
 function Player:grave_idxs_with_preds(preds)
-  if type(pred) ~= "table" then
+  if type(preds) ~= "table" then
     preds = {preds}
   end
   local ret = {}
@@ -183,6 +230,16 @@ function Player:grave_idxs_with_preds(preds)
       incl = incl and preds[j](self.grave[i])
     end
     if incl then
+      ret[#ret+1] = i
+    end
+  end
+  return ret
+end
+
+function Player:grave_idxs_with_size(n)
+  local ret = {}
+  for i=1,#self.grave do
+    if self.grave[i].size == n then
       ret[#ret+1] = i
     end
   end
@@ -209,7 +266,7 @@ function Player:hand_idxs_with_preds(preds)
 end
 
 function Player:field_idxs_with_preds(preds)
-  if type(pred) ~= "table" then
+  if type(preds) ~= "table" then
     preds = {preds}
   end
   local ret = {}
@@ -469,7 +526,7 @@ function Game:apply_buff(buff)
           anything_happened = true
           local which, howmuch = unpack(effect)
           if which == "-" and stat == "size" then
-            howmux = max(player[zone][idx].size-1, howmuch)
+            howmuch = max(player[zone][idx].size-1, howmuch)
           end
           if which == "=" and stat == "size" then
             howmuch = max(1,howmuch)
