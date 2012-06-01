@@ -258,7 +258,6 @@ end,
 
 -- red moon aka flina, cook club ace, silent maid, seeker director, lantern witch,
 -- coin lady, reverse defense
--- ambiguous, determine what it actually does
 [1026] = function(player, my_idx, my_card, other_idx, other_card)
   local diff = abs(other_card.def)
   OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
@@ -278,7 +277,7 @@ end,
   end
   buff.apply()
 end,
-    
+
 }
 
 setmetatable(skill_func, {__index = function() return function() end end})

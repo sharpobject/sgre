@@ -117,6 +117,14 @@ function Player:hand_to_bottom_deck(n)
   end
 end
 
+function Player:remove_from_hand(n)
+  local ret = self.hand[n]
+  for i=n,5 do
+    self.hand[i] = self.hand[i+1]
+  end
+  return ret
+end
+
 -- discards the card at index n
 function Player:hand_to_grave(n)
   self.grave[#self.grave + 1] = self.hand[n]
@@ -138,7 +146,9 @@ function Player:field_to_grave(n)
 end
 
 function Player:destroy(n)
-  self.character.life = self.character.life - self.field[n].size
+  if self.field[n].type == "follower" then
+    self.character.life = self.character.life - self.field[n].size
+  end
   self:field_to_grave(n)
 end
 

@@ -3,3 +3,5 @@ Balance does not specify whether it rounds life up or down.  It rounds up.  It a
 Rumored Order does not specify which largest follower it targets.
 Vampiric Rites reads "All allied followers get size=1 and atk=1/sta=1...", but does not increase the atk of followers with less than 1 atk.  It does not specify that the first of the smallest darklore followers is the one chosen for the buff.
 Entry denied reads "One allied follower is deactivated."  It does not specify that the first follower is chosen.
+Quick Service does not specify which follower in hand is chosen.  I don't really know whether it is random or the first valid one...
+Can Strega Blade increase the atk of your witch?
