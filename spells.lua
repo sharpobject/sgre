@@ -12,6 +12,21 @@ local new_student_orientation = function(player, opponent, my_idx, my_card)
   buff:apply()
 end
 
+local court_jester = function(group_pred)
+  local function inner_court_trickser(player, opponend, my_idx, my_card)
+    local target_idxs = shuffle(player:field_idxs_with_preds(pred.faction[my_card.faction]))
+    local group_idxs = player:field_idxs_with_preds({pred.faction[my_card.faction],
+        group_pred})
+    if #group_idx ~= 0 and #group_idxs ~= #target_idxs then
+      local buff = OnePlayerBuff(player)
+      for i=1,2 do
+        buff[target_idxs[i]] = {atk={"+",3},sta={"+",3}}
+      end
+      buff:apply()
+    end
+  end
+end
+
 spell_func = {
 -- heartless blow
 [200001] = function(player, opponent)
@@ -888,5 +903,39 @@ end,
   end
   buff:apply()
 end,
+
+-- cord ball
+[200072] = function(player, opponent, idx)
+  if #player.grave >= 6 then
+    local ncards = #player.hand
+    local nfollowers = #player:hand_idxs_with_preds(pred.follower)
+    while #player.hand ~= 0 do
+      player:hand_to_bottom_deck(1)
+    end
+    if ncards >= 3 and nfollowers >= 1 and #player.grave > 0 then
+      player:grave_to_bottom_deck(math.random(#player.grave))
+    end
+  end
+  player:field_to_exile(idx)
+end,
+
+-- troubleshooting
+[200073] = function(player, opponent)
+  local sta_amt = 3
+  if #player.deck <= 10 then
+    sta_amt = 5
+  end
+  local idxs = player:field_idxs_with_preds({pred.faction.V, pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(idxs) do
+    buff[idx] = {sta={"+",sta_amt}}
+  end
+  buff:apply()
+end,
+
+-- court jester
+[200074] = court_jester(pred.council),
+
+
 }
 setmetatable(spell_func, {__index = function()return function() end end})
