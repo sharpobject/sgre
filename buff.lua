@@ -127,6 +127,7 @@ for v in pairs(groups) do
   pred[v] = function(card) return groups[name][card.id] end
 end
 pred.active = function(card) return card.active end
+pred.skill = function(card) return #card.skills ~= 0 end
 
 pred.t = function() return true end
 pred.f = function() return false end

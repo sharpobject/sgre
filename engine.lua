@@ -170,6 +170,10 @@ function Player:field_to_bottom_deck(n)
   self.field[n] = nil
 end
 
+function Player:deck_to_grave(n)
+  self.grave[#self.grave + 1] = table.remove(self.deck, n)
+end
+
 function Player:field_to_grave(n)
   self.grave[#self.grave + 1] = self.field[n]
   self.grave[#self.grave]:reset()
@@ -294,11 +298,21 @@ function Player:field_idxs_with_most_and_preds(func, preds)
   return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
 end
 
-function Player:first_empty_slot()
+function Player:first_empty_field_slot()
   for i=1,5 do
     if not self.field[i] then return i end
   end
   return nil
+end
+
+function Player:squish_hand()
+  local newhand = {}
+  for i=1,5 do
+    newhand[#newhand+1] = self.hand[i]
+  end
+  for i=1,5 do
+    self.hand[i] = newhand[i]
+  end
 end
 
 function Player:has_active_cards()

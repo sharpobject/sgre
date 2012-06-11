@@ -2,7 +2,8 @@ local floor,ceil,min,max = math.floor, math.ceil, math.min, math.max
 local abs = math.abs
 
 local new_student_orientation = function(player, opponent, my_idx, my_card)
-  local target_idxs = shuffle(player:field_idxs_with_preds({pred.faction[my_card.faction]}))
+  local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
+      pred.faction[my_card.faction]}))
   local buff = OnePlayerBuff(player)
   for i=1,2 do
     if target_idxs[i] then
@@ -14,9 +15,10 @@ end
 
 local court_jester = function(group_pred)
   local function inner_court_trickser(player, opponend, my_idx, my_card)
-    local target_idxs = shuffle(player:field_idxs_with_preds(pred.faction[my_card.faction]))
-    local group_idxs = player:field_idxs_with_preds({pred.faction[my_card.faction],
-        group_pred})
+    local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
+        pred.faction[my_card.faction]}))
+    local group_idxs = player:field_idxs_with_preds({pred.follower,
+        pred.faction[my_card.faction], group_pred})
     if #group_idx ~= 0 and #group_idxs ~= #target_idxs then
       local buff = OnePlayerBuff(player)
       for i=1,2 do
@@ -305,7 +307,7 @@ end,
 -- sky surprise
 [200025] = function(player, opponent)
   local old_idx = player:get_follower_idxs()[1]
-  local new_idx = opponent:first_empty_slot()
+  local new_idx = opponent:first_empty_field_slot()
   if old_idx and new_idx then
     local card = player.field[old_idx]
     opponent.field[new_idx] = card
@@ -526,7 +528,7 @@ end,
 [200043] = function(player, opponent)
   local nlibrarians = #player:field_idxs_with_preds({pred.follower, pred.lib})
   local spells = #opponent:field_idxs_with_preds(pred.spell)
-  local new_idx = player:first_empty_slot()
+  local new_idx = player:first_empty_field_slot()
   if nlibrarians > #spells and new_idx then
     local old_idx = uniformly(spells)
     player.field[new_idx] = opponent.field[old_idx]
@@ -691,7 +693,7 @@ end,
 [200056] = function(player, opponent)
   local old_idx = uniformly(opponent:field_idxs_with_preds(
     function(card) return card.faction ~= opponent.character.faction end))
-  local new_idx = player:first_empty_slot()
+  local new_idx = player:first_empty_field_slot()
   if old_idx and new_idx then
     player.field[new_idx] = opponent.field[old_idx]
     opponent.field[old_idx] = nil
@@ -935,6 +937,88 @@ end,
 
 -- court jester
 [200074] = court_jester(pred.council),
+
+-- sage's sermon
+[200075] = function(player, opponent)
+  local target_idx = uniformly(opponent:field_idxs_with_preds({pred.follower, pred.skill}))
+  if target_idx then
+    while #target.skills ~= 0 do
+      opponent.field[target_idx]:remove_skill(1)
+    end
+  end
+end,
+
+-- shameless ambition
+[200076] = function(player, opponent)
+  local nvita = 0
+  for i=1,3 do
+    if #player.deck ~= 0 then
+      local card = player.deck[#player.deck]
+      if pred.faction.V(card) and pred.follower(card) then
+        nvita = nvita + 1
+      end
+      player:deck_to_grave(#player.deck)
+    end
+  end
+  OneBuff(player,0,{life={"+",3*nvita}}):apply()
+end,
+
+-- night's beckoning
+[200077] = function(player, opponent, idx, card)
+  local nfollowers = #player:grave_idxs_with_preds(pred.follower)
+  local nvita = #player:grave_idxs_with_preds({pred.follower, pred.faction.V})
+  if nvita ~= 0 and nvita ~= nfollowers then
+    local target_idxs = opponent:field_idxs_with_preds(pred.spell)
+    if #target_idxs ~= 0 then
+      for _,idx in ipairs(target_idxs) do
+        opponent:field_to_grave(idx)
+      end
+    else
+      card.active = false
+      player.send_spell_to_grave = false
+    end
+  end
+end,
+
+-- visitor
+[200078] = function(player, opponent)
+  local target_idx = player:hand_idxs_with_preds({pred.follower, pred.faction.V})[1]
+  local new_idx = player:fiest_empty_field_slot()
+  if new_idx and target_idx then
+    player.field[new_idx] = player.hand[target_idx]
+    player.hand[target_idx] = nil
+    player:squish_hand()
+    -- TODO: does it always give the same atk and sta??
+    local stabuff = math.random(3,5)
+    OneBuff(player, new_idx, {size={"=",math.random(1,2)},
+        atk={"+",stabuff},sta={"+",stabuff}}):apply()
+  end
+end,
+
+-- black magic plot
+[200079] = function(player, opponent, my_idx, my_card)
+  local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.A}))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs[i] then
+      buff[target_idxs[i]] = {atk={"+",4},sta={"-",1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- unmasked lie
+[200080] = function(player, opponent, my_idx, my_card)
+  local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
+  local amt = #opponent:hand_idxs_with_preds(pred.spell)
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs[i] then
+      buff[target_idxs[i]] = {def={"-",amt}}
+    end
+  end
+  buff:apply()
+end,
 
 
 }
