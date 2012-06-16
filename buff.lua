@@ -108,6 +108,8 @@ groups.stig_wit_fel = arr_to_set({300090})
 
 groups.stig_flint = arr_to_set({300087})
 
+groups.dressup = arr_to_set({200101, 300143, 300157, 300181, 300191})
+
 pred = {}
 pred.faction = {}
 for _,v in ipairs({"V","A","D","C","N"}) do
