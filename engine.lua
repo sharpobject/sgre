@@ -185,6 +185,11 @@ function Player:field_to_bottom_deck(n)
   self.field[n] = nil
 end
 
+function Player:field_to_top_deck(n)
+  self:to_top_deck(self.field[n])
+  self.field[n] = nil
+end
+
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
 end
@@ -253,16 +258,6 @@ function Player:grave_idxs_with_preds(preds)
       incl = incl and preds[j](self.grave[i])
     end
     if incl then
-      ret[#ret+1] = i
-    end
-  end
-  return ret
-end
-
-function Player:grave_idxs_with_size(n)
-  local ret = {}
-  for i=1,#self.grave do
-    if self.grave[i].size == n then
       ret[#ret+1] = i
     end
   end

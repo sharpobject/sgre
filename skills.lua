@@ -545,7 +545,8 @@ end,
 
 -- genius student nanai, great power!
 [1047] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local player_grave_idxs = player:grave_idxs_with_size(other_card.size)
+  local player_grave_idxs = player:grave_idxs_with_preds(function(card)
+    return card.size == other_card.size end)
   local opp_grave_idxs = player.opponent:grave_idxs_with_size(other_card.size)
   local buffsize = 0
   for _,idx in ipairs(player_grave_idxs) do
@@ -748,7 +749,42 @@ end,
 end,
 
 -- scardel elder barbera, elder scroll
--- [1071] = function(player, my_idx, my_card, skill_idx)
+-- todo: test this
+[1071] = function(player, my_idx, my_card, skill_idx)
+  if my_card.faction = player.character.faction then
+    local target_idx = player:grave_idxs_with_most_and_preds(
+      pred.size, {pred.follower, pred.faction.D})[1]
+    if target_idx then
+      local target_card = player.grave[target_idx]
+      player:grave_to_exile(target_idx)
+      local field_idx = player:first_empty_field_slot()
+      if field_idx then
+        player.field[field_idx] = deepcpy(target_card)
+        local buff_size = my_card.def
+        OneBuff(player, field_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
+      end
+    end
+    my_card.remove_skill(skill_idx)
+  end
+end,
+
+-- sweet lady isfeldt, energy supplement
+[1072] = function(player, my_idx)
+  OneBuff(player, my_idx, {sta={"+",2}}):apply()
+end,
+
+-- sweet lady isfeldt, sweet spell
+[1073] = function(player, my_idx, my_card, skill_idx)
+  my_card.skills[skill_idx] = 1074
+end,
+
+-- sweet lady isfeldt, sweet count
+[1074] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card.size <= my_card.size then
+    player.opponent:field_to_top_deck(other_idx)
+    my_card.skills[skill_idx] = 1073
+  end
+end,
 
 [1076] = refresh,
 
