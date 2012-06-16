@@ -24,6 +24,12 @@ function Card:remove_skill_until_refresh(skill_idx)
   self.skills[skill_idx] = "refresh"
 end
 
+function Card:gain_skill(skill_id)
+  if #self.skills < 3 then
+    self.skills[#self.skills+1] = skill_id
+  end
+end
+
 function Card:reset()
   for k,v in pairs(id_to_canonical_card[self.id]) do
     self[k] = deepcpy(v)
@@ -59,7 +65,7 @@ Player = class(function(self, side, deck)
     self.field[0] = self.character
     self.grave = {}
     self.exile = {}
-    self.shuffles = 2
+    self.shuffles = 9000
   end)
 
 function Player:untap_phase()
@@ -174,6 +180,15 @@ function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
 end
 
+function Player:deck_to_field(n)
+  local card = table.remove(self.deck, n)
+  self.field[self:first_empty_field_idx()] = card
+end
+
+function Player:has_follower()
+  return #self:field_idxs_with_preds(pred.follower) ~= 0
+end
+
 function Player:field_to_grave(n)
   self.grave[#self.grave + 1] = self.field[n]
   self.grave[#self.grave]:reset()
@@ -278,11 +293,31 @@ function Player:field_idxs_with_preds(preds)
   return ret
 end
 
+function Player:deck_idxs_with_preds(preds)
+  if type(preds) ~= "table" then
+    preds = {preds}
+  end
+  local ret = {}
+  for i=#self.deck,1,-1 do
+    if self.deck[i] then
+      local incl = true
+      for j=1,#preds do
+        incl = incl and preds[j](self.field[i])
+      end
+      if incl then
+        ret[#ret+1] = i
+      end
+    end
+  end
+  return ret
+end
+
 function Player:field_idxs_with_least_and_preds(func, preds)
   local idxs = self:field_idxs_with_preds(preds)
   local best = 99999
   local ret = {}
   for i=1,#idxs do
+    local card = self.field[idxs[i]]
     local score = func(card)
     if score < best then
       ret = {idxs[i]}
@@ -326,12 +361,12 @@ end
 
 function Player:can_play_card(n)
   return self.hand[n] and (self:field_size() + self.hand[n].size <= 10) and
-    self:first_empty_slot()
+    self:first_empty_field_slot()
 end
 
 function Player:play_card(n)
   self.hand[n].active = true
-  self.field[self:first_empty_slot()] = self.hand[n]
+  self.field[self:first_empty_field_slot()] = self.hand[n]
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end

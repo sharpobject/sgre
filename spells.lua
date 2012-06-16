@@ -14,7 +14,7 @@ local new_student_orientation = function(player, opponent, my_idx, my_card)
 end
 
 local court_jester = function(group_pred)
-  local function inner_court_trickser(player, opponend, my_idx, my_card)
+  local function inner_court_jester(player, opponend, my_idx, my_card)
     local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
         pred.faction[my_card.faction]}))
     local group_idxs = player:field_idxs_with_preds({pred.follower,
@@ -27,6 +27,7 @@ local court_jester = function(group_pred)
       buff:apply()
     end
   end
+  return inner_court_jester
 end
 
 spell_func = {
@@ -38,7 +39,7 @@ spell_func = {
   end
   if pred.sita(player.character) then
     if target_idxs[2] then
-      target_idxs[1] = target_idxs[1]
+      target_idxs[1] = target_idxs[2]
     end
     if opponent.field[target_idxs[1]] then
       OneBuff(opponent, target_idxs[1], {sta={"-",2}}):apply()
@@ -407,9 +408,9 @@ end,
       buff_stats[k][2] = buff_stats[k][2] + debuff_stats[k][2]
     end
   end
-  debuff:apply()
   local target_idx = player:field_idxs_with_least_and_preds(
     pred.size, {pred.follower, pred.faction.D})[1]
+  debuff:apply()
   if target_idx then
     buff.field[player][target_idx] = buff_stats
     buff:apply()
@@ -942,9 +943,7 @@ end,
 [200075] = function(player, opponent)
   local target_idx = uniformly(opponent:field_idxs_with_preds({pred.follower, pred.skill}))
   if target_idx then
-    while #target.skills ~= 0 do
-      opponent.field[target_idx]:remove_skill(1)
-    end
+    opponent.field[target_idx].skills = {}
   end
 end,
 
@@ -1020,6 +1019,340 @@ end,
   buff:apply()
 end,
 
+-- bargaining table
+[200081] = function(player, opponent, my_idx, my_card)
+  local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower}))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs[i] then
+      buff[target_idxs[i]] = {sta={"+",player.field[target_idxs[i]].size}}
+    end
+  end
+  buff:apply()
+end,
 
+-- maid revolution
+[200082] = court_jester(pred.maid),
+
+-- suicide mission
+[200083] = function(player, opponent)
+  local spell_target = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  local hand_target = player:hand_idxs_with_preds({pred.faction.A, pred.follower})[1]
+  if spell_target and hand_target then
+    player:hand_to_bottom_deck(hand_target)
+    opponent:field_to_grave(spell_target)
+  end
+end,
+
+-- linia's tastes
+[200084] = function(player, opponent, my_idx, my_card)
+  local my_follower = player:field_idxs_with_preds(pred.follower)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_follower and target then
+    opponent:field_to_grave(target)
+    if my_card.size > 1 then
+      local slot = opponent:first_empty_field_slot()
+      opponent.field[slot] = deepcpy(my_card)
+      opponent.field[slot].size = opponent.field[slot].size - 1
+    end
+    player.field_to_exile(my_idx)
+  end
+end,
+
+-- say no evil
+[200085] = function(player, opponent)
+  local acad = player:hand_idxs_with_preds(pred.faction.A)[1]
+  if acad then
+    while acad do
+      player.hand[acad].size = max(player.hand[acad].size-1, 1)
+      player:hand_to_bottom_deck(acad)
+      acad = player:hand_idxs_with_preds(pred.faction.A)[1]
+    end
+    for i=1,5 do
+      if opponent.field[i] then
+        opponent.field[i].active = false
+      end
+    end
+    local target = opponent:hand_idxs_with_preds(pred.spell)
+    if target then
+      player.hand[#player.hand+1] = opponent.hand[target]
+      opponent.hand[target] = nil
+      opponent:squish_hand()
+    end
+  end
+end,
+
+-- chrono clock
+[200086] = function(player, opponent)
+  local target = uniformly(player:field_idxs_with_preds({pred.faction.C, pred.follower}))
+  if target then
+    OneBuff(player, target, {size={"-",math.random(1,3)},
+        atk={"+",math.random(1,3)}}):apply()
+  end
+end,
+
+-- power control
+[200087] = court_jester(pred.seeker),
+
+-- undercover work
+[200088] = function(player)
+  local ncrux = #player:grave_idxs_with_preds(pred.faction.C)
+  local target = uniformly(player:field_idxs_with_preds({pred.faction.C, pred.follower}))
+  if ncrux >= 6 and target then
+    OneBuff(player, target, {sta={"+",6}}):apply()
+  end
+end,
+
+-- conversion
+[200089] = function(player, opponent)
+  local my_guy = player:field_idxs_with_preds(pred.follower)[1]
+  if my_guy then
+    local size_cap = my_guy.size
+    local target = uniformly(opponent:field_idxs_with_preds({pred.follower,
+        function(card) return card.size < size_cap end}))
+    local new_slot = player:first_empty_field_slot()
+    if target and new_slot then
+      player.field[new_slot] = opponent.field[target]
+      player.field[new_slot].active = false
+      opponent.field[target] = nil
+      player.field[new_slot]:gain_skill(1056)
+    end
+  end
+end,
+
+-- recluse
+[200090] = function(player, opponent)
+  local my_follower = player:field_idxs_with_preds(pred.follower)
+  if #my_follower == 1 then
+    my_follower = my_follower[1]
+    local buff = GlobalBuff()
+    buff.field[player][my_follower] = {atk={"=",0},def={"=",0}}
+    local debuff_amt = floor(player.field[my_follower].atk +
+        player.field[my_follower].def)
+    local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
+    for i=1,2 do
+      buff.field[opponent][targets[i]] = {atl={"-",debuff_amt}}
+    end
+    buff:apply()
+  end
+end,
+
+-- arrest
+[200091] = function(player, opponent)
+  local ncards = #player.hand
+  local target = uniformly(opponent:field_idxs_with_preds({pred.follower,
+      function(card) return card.size >= 4 end}))
+  while player.hand[1] do
+    player.hand_to_bottom_deck(1)
+  end
+  if ncards >= 2 and target then
+    opponent:field_to_bottom_deck(target)
+  end
+end,
+
+-- crux command
+[200092] = function(player, opponent)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  local teh_buff = {def={"+",2},sta={"+",1}}
+  if #player.deck < 10 then
+    teh_buff = {size={"+",1},atk={"+",6},sta={"+",6}}
+  end
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    buff[targets[i]] = teh_buff
+  end
+  buff:apply()
+end,
+
+-- dollmaster
+[200093] = function(player, opponent)
+  if opponent.field[3] and pred.follower(opponent.field[3]) then
+    local debuff_amt = opponent.field[3].size
+    OneBuff(opponent, 3, {atk={"-",debuff_amt},sta={"-",debuff_amt}}):apply()
+  end
+end,
+
+-- bad apple
+[200094] = court_jester(pred.witch),
+
+-- midnight doll show
+[200095] = function(player, opponent)
+  local ncards = #player:grave_idxs_with_preds({pred.follower,pred.faction.D})
+  if ncards >= 7 then
+    local buff = OnePlayerBuff(opponent)
+    for i=1,5 do
+      if opponent.field[i] then
+        buff[i] = {def={"-",2},sta={"-",2}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
+-- misfortune
+[200096] = function(player, opponent)
+  local cards = shuffle(player.grave_idxs_with_preds(pred.spell))
+  if #cards >= 6 then
+    for i=1,6 do
+      local card = uniformly(player.grave_idxs_with_preds(pred.spell))
+      player:grave_to_exile(card)
+    end
+    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(opponent, target, {size={"+",3}}):apply()
+    end
+  end
+end,
+
+-- alluring whisper
+[200097] = function(player, opponent)
+  local ndebuff = 0
+  for i=1,3 do
+    if #player.deck > 0 then
+      local card = player.deck[#player.deck]
+      if pred.faction.D(card) and pred.follower(card) then
+        ndebuff = ndebuff + 1
+      end
+      player:deck_to_grave(#player.deck)
+    end
+  end
+  local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,ndebuff do
+    buff[targets[i]] = {atk={"-",1},def={"-",1},sta={"-",1}}
+  end
+  buff:apply()
+end,
+
+-- impulse
+[200098] = function(player, opponent)
+  if pred.faction.D(player.character) then
+    local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
+    if target_idxs[1] then
+      OneBuff(opponent, target_idxs[1], {sta={"-",5}}):apply()
+    end
+    if #player.deck >= 8 then
+      if target_idxs[2] then
+        target_idxs[1] = target_idxs[2]
+      end
+      if opponent.field[target_idxs[1]] then
+        OneBuff(opponent, target_idxs[1], {sta={"-",5}}):apply()
+      end
+      for i=1,2 do
+        local spell = uniformly(player:grave_idxs_with_preds(pred.spell))
+        if spell then
+          player:grave_to_exile(spell)
+        end
+      end
+    end
+  end
+end,
+
+-- vernika's world
+[200099] = function(player, opponent)
+  local myspells = player:hand_idxs_with_preds(pred.spell)
+  local opspells = opponent:hand_idxs_with_preds(pred.spell)
+  local debuff_amt = #myspells + #opspells
+  local buff = OnePlayerBuff(opponent)
+  for i=1,5 do
+    if opponent.field[i] and pred.follower(opponent.field[i]) then
+      buff[i] = {atk={"-",debuff_amt},sta={"-",debuff_amt}}
+    end
+  end
+  buff:apply()
+  if myspells[1] then
+    player:hand_to_grave(myspells[1])
+  end
+  if opspells[1] then
+    opponent:hand_to_grave(opspells[1])
+  end
+  local target = opponent:field_idxs_with_preds(pred.spell)[1]
+  if target then
+    opponent:field_to_grave(target)
+  end
+end,
+
+-- uniform tweak
+[200100] = function(player, opponent, my_idx, my_card)
+  local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.V}))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs[i] then
+      local def = player.field[target_idxs[i]].def
+      buff[target_idxs[i]] = {atk={"+",def*2},sta={"-",math.floor(def/2)}}
+    end
+  end
+  buff:apply()
+end,
+
+-- dress up change
+[200101] = function(player, opponent)
+  local map = {[300142]=300143,[300156]=300157}
+  local target = player:field_idxs_with_preds(
+      function(card) return map[card.id] end)[1]
+  if target then
+    local dressup_id = map[player.field[target].id]
+    player:field_to_grave(target)
+    local deck_target = player:deck_idxs_with_preds(
+        function(card) return card.id == dressup_id end)[1]
+    if deck_target then
+      player:deck_to_field(deck_target)
+    end
+  end
+end,
+
+-- wall climb
+[200102] = function(player, opponent)
+  local target = player:field_idxs_with_preds({pred.follower, pred.faction.V})[1]
+  if target and not player.field[5] then
+    player.field[5] = player.field[target]
+    player.field[target] = nil
+    local buff_amt = 0
+    if player.field[2] then buff_amt = buff_amt + player.field[2].size end
+    if player.field[4] then buff_amt = buff_amt + player.field[4].size end
+    OneBuff(player, 5, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
+  end
+end,
+
+-- unionize
+[200103] = function(player, opponent, my_idx, my_card)
+  local sz = 5 - #player.hand + my_card.size
+  local target = opponent.field_idxs_with_preds(
+      function(card) return card.size == sz end)[1]
+  if target then
+    opponent:field_to_bottom_deck(target)
+  end
+end,
+
+-- tea time
+[200104] = function(player)
+  local targets = shuffle(player:field_idxs_with_preds({pred.faction.A,pred.follower}))
+  if #targets >= 2 then
+    local buff_amt = math.abs(player.field[targets[1]].size - player.field[targets[2]].size)
+    local buff = OnePlayerBuff(player)
+    for i=1,2 do
+      buff[target_idxs[i]] = {atk={"+",buff_amt},sta={"+",buff_amt}}
+    end
+    buff:apply()
+  end
+end,
+
+-- adjustment
+[200105] = function(player, opponent, my_idx)
+  if player:has_follower() then
+    if #player.hand > 0 then
+      player:hand_to_grave(1)
+    end
+    local n = #player.hand
+    for i=1,n do
+      opponent:hand_to_grave(1)
+    end
+    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(opponent, target, {atk={"-",n}}):apply()
+    end
+    player:field_to_exile(my_idx)
+  end
+end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})
