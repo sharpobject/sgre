@@ -44,14 +44,14 @@ end
 
 local dressup_skill = function(dressup_id, player, my_idx)
   local dressup = function(card) return card.id == dressup_id end
-  local dressup_target = player:deck_idxs_with_preds(dressup)[1]
+  local dressup_target = player:deck_idxs_with_preds({dressup})[1]
   if dressup_target then
-    local field_idxs = player:field_idxs_with_preds(dressup)
+    local field_idxs = player:field_idxs_with_preds({dressup})
     for _,idx in ipairs(field_idxs) do
       player:field_to_grave(idx)
     end
     player:deck_to_field(dressup_target)
-    dressup_target = player:field_idxs_with_preds(dressup)
+    dressup_target = player:field_idxs_with_preds({dressup})
     OneBuff(player, dressup_target, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
     player:field_to_grave(my_idx)
   end
@@ -60,19 +60,19 @@ end
 local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type)
   local dressup = function(card) return card.id == dressup_id end
   local buff = false
-  local field_targets = player:field_idxs_with_preds(dressup)
+  local field_targets = player:field_idxs_with_preds({dressup})
   for _,idx in ipairs(field_targets) do
     if idx ~= my_idx then
       player:field_to_grave(idx)
       buff = true
     end
   end
-  local hand_target = player:hand_idxs_with_preds(pred.dressup)[1]
+  local hand_target = player:hand_idxs_with_preds({pred.dressup})[1]
   if hand_target then
     player:hand_to_grave(hand_target)
     buff = true
   end
-  local grave_target = player:grave_idxs_with_preds(pred.dressup)[1]
+  local grave_target = player:grave_idxs_with_preds({pred.dressup})[1]
   if grave_target then
     player:grave_to_exile(grave_target)
     buff = true
@@ -85,7 +85,14 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
     end
   end
 end
-    
+
+local blue_cross_skill = function(player, my_idx, my_card, skill_idx, buff)
+  if #player.hand <=2 then
+    OneBuff(player, my_idx, buff):apply()
+  elseif #player.hand >= 4 then
+    my_card:remove_skill(skill_idx)
+  end
+end,
 
 skill_func = {
 ["refresh"] = refresh,
@@ -545,8 +552,8 @@ end,
 
 -- genius student nanai, great power!
 [1047] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local player_grave_idxs = player:grave_idxs_with_preds(function(card)
-    return card.size == other_card.size end)
+  local player_grave_idxs = player:grave_idxs_with_preds({function(card)
+    return card.size == other_card.size end})
   local opp_grave_idxs = player.opponent:grave_idxs_with_size(other_card.size)
   local buffsize = 0
   for _,idx in ipairs(player_grave_idxs) do
@@ -588,7 +595,7 @@ end,
 
 -- mediator cabernet, two and one
 [1050] = function(player)
-  local target_idxs = player:field_idxs_with_preds(pred.D, pred.follower)
+  local target_idxs = player:field_idxs_with_preds({pred.D, pred.follower})
   if target_idxs then
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(target_idxs) do
@@ -601,7 +608,7 @@ end,
 -- linia pacifica, master's command
 [1051] = function(player, my_idx, my_card)
   local buffsize = math.ceil(my_card.size / 2)
-  local target_idxs = player:field_idxs_with_preds(pred.A, pred.follower)
+  local target_idxs = player:field_idxs_with_preds({pred.A, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     if math.abs(idx - my_idx) <= 1 then
@@ -613,14 +620,14 @@ end,
 
 -- vanguard knight, orders from above
 [1052] = function(player, my_idx)
-  local buffsize = #player:hand_idxs_with_preds(pred.C)
+  local buffsize = #player:hand_idxs_with_preds({pred.C})
   OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"+",buffsize}}):apply()
 end,
 
 -- lib. ace, book's wisdom
 [1053] = function(player, my_idx, my_card)
   local buffsize = my_card.size
-  local target_idxs = player:field_idxs_with_preds(pred.V, pred.follower)
+  local target_idxs = player:field_idxs_with_preds({pred.V, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",buffsize}, sta={"+",buffsize}}
@@ -652,7 +659,7 @@ end,
   
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
-  local grave_targets = shuffle(player:grave_idxs_with_preds(function(card) return true end))
+  local grave_targets = shuffle(player:grave_idxs_with_preds({function(card) return true end}))
   if grave_targets then
     player:grave_to_exile(grave_targets[1])
     if grave_targets[2] then
@@ -664,7 +671,7 @@ end,
 -- sister vermet vilosa, hidden wind slash
 [1061] = function(player, my_idx)
   OneBuff(player, my_idx, {sta={"+",2}}):apply()
-  local target = uniformly(player.opponent:hand_idxs_with_preds(pred.spell))
+  local target = uniformly(player.opponent:hand_idxs_with_preds({pred.spell}))
   if target then
     player.opponent:hand_to_grave(target)
   end
@@ -681,7 +688,7 @@ end,
 -- unlucky lady, value of misfortune
 [1063] = function(player)
   if player.game.turn % 2 == 0 then
-    local targets = player:field_idxs_with_preds(pred.follower, pred.faction.A)
+    local targets = player:field_idxs_with_preds({pred.follower, pred.faction.A})
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(targets) do
       buff[idx] = {atk={"+",2}, sta={"+",2}}
@@ -729,7 +736,7 @@ end,
 -- crux knight fleta, hesistation of justice
 [1069] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
-    local target_idxs = player:field_idxs_with_preds(pred.follower, pred.faction.C)
+    local target_idxs = player:field_idxs_with_preds({pred.follower, pred.faction.C})
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(target_idxs) do
       buff[idx] = {atk={"+",3}, sta={"+"},3}
@@ -741,7 +748,7 @@ end,
 
 -- vampire hunter ire flina, vampire killer
 [1070] = function(player, my_idx)
-  local target_idx = uniformly(player.opponent:hand_idxs_with_preds(pred.follower))
+  local target_idx = uniformly(player.opponent:hand_idxs_with_preds({pred.follower}))
   if target_idx then
     player.opponent:hand_to_grave(target_idx)
   end
@@ -786,9 +793,312 @@ end,
   end
 end,
 
+-- lib. student, dispatch maid, blue cross member, gs recon, heavy burden
+[1075] = function(player, my_idx, my_card, skill_idx, other_idx)
+  OneBuff(player.opponent, other_idx, {size={"+",1}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
 [1076] = refresh,
 
+-- council student, meeting prep!
+[1077] = function(player, my_idx, my_card, skill_idx)
+  local target_idx = player:field_idxs_with_preds({pred.follower, pred.council})[1]
+  if target_idx then
+    OneBuff(player, target_idx, {sta={"+",3}}):apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- sleep club advisor, time for bed
+[1078] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  other_card.active = false
+  my_card:remove_skill(skill_idx)
+end,
+
+-- council weekly help, seize
+[1079] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"=",other_card.atk}}
+  buff.field[player.opponent][other_idx] = {atk={"=",my_card.atk}}
+  buff:apply()
+end,
+
+-- lib. milty, book management?
+[1080] = function(player, my_idx)
+  local sta_buff, atk_buff = #player:hand_idxs_with_preds({pred.lib}), 0
+  if sta_buff >= 3 then
+    atk_buff = 1
+  end
+  OneBuff(player, my_idx, {atk={"+",atk_buff}, sta={"+",sta_buff}}):apply()
+end,
+
+-- council vp tieria, campaign prep
+[1081] = function(player, my_idx, my_card, skill_idx)
+  local buff_size = 1 + #player:field_idxs_with_preds({pred.council})
+  OneBuff(player, my_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- lib. lotte & serie, fruits of friendship!
+[1082] = function(player)
+  if player.character.faction == "V" then
+    if #player.hand >= 2 then
+      for i=1,2 do
+        player:hand_to_bottom_deck(1)
+      end
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+        function(card) return not card.active end})
+      local target2_idx = uniformly(player:get_follower_idxs())
+      player.field[target1_idx].active = true
+      OneBuff(player, target2_idx, {size={"-",1}, atk={"+",1}, def={"+",1}}):apply()
+    end
+  end
+end,
+
+-- peace lady, master's heart
+[1083] = function(player, my_idx)
+  local target_idx = uniformly(player:hand_idxs_with_preds({pred.maid}))
+  if target_idx then
+    player:hand_to_top_deck(target_idx)
+    OneBuff(player, my_idx, {atk={"+",1}, sta={"+",2}}):apply()
+  end
+end,
+
+-- justice lady, dress up rise
+[1084] = function(player, my_idx)
+  local lucerrie = function(card) return card.id == 300181 end
+  local deck_idx = player:deck_idxs_with_preds({lucerrie})
+  local field_idx = player:first_empty_field_slot
+  if deck_idx and field_idx then
+    player:deck_to_field(deck_idx)
+    player:field_to_grave(my_idx)
+    OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",2}}):apply()
+  end
+end,
+
+-- dress up lucerrie, rising attack
+[1085] = function(player, my_idx)
+  local lucerrie = function(card) return card.id == 300181 end
+    local buff = false
+    local field_targets = player:field_idxs_with_preds({lucerrie})
+    for _,idx in ipairs(field_targets) do
+      if idx ~= my_idx then
+        player:field_to_grave(idx)
+        buff = true
+      end
+    end
+    local hand_target = player:hand_idxs_with_preds({pred.dressup})[1]
+    if hand_target then
+      player:hand_to_grave(hand_target)
+      buff = true
+    end
+    local grave_target = player:grave_idxs_with_preds({pred.dressup})[1]
+    if grave_target then
+      player:grave_to_exile(grave_target)
+      buff = true
+    end
+    if buff then
+      local opp_target = math.random(#player.opponent.hand)
+      player.opponent:hand_to_grave(opp_target)
+    end
+  end
+end,
+
+-- meteor call lady, meteor call
+[1086] = function(player, my_idx, my_card, skill_idx)
+  local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
+  local buff_size = 1 + #player:field_idxs_with_preds({pred.lady})
+  OneBuff(player.opponent, opp_target_idx, {sta={"-",buff_size}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- picnic maid, faith and trust
+[1087] = function(player, my_idx, my_card, skill_idx)
+  local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
+  local buff_size = #player:hand_idxs_with_preds({function(card) 
+    return pred.maid(card) or pred.lady(card) end})
+  if buff_size > 0 then
+    OneBuff(player.opponent, opp_target_idx, {sta={"-",buff_size}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- chief & mop maid, proof of obedience
+[1088] = function(player)
+  if player.character.faction == "A" then
+    if #player.hand >= 2 then
+      for i=1,2 do
+        player:hand_to_bottom_deck(1)
+      end
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+        function(card) return not card.active end})
+      local target2_idx = uniformly(player.opponent:get_follower_idxs())
+      player.field[target1_idx].active = true
+      OneBuff(player.opponent, target2_idx, {size={"+",1}, atk={"-",1}, sta={"-",2}}):apply()
+    end
+  end
+end,
+
+-- blue cross sherry, blue cross voucher
+[1089] = function(player, my_idx, my_card, skill_idx)
+  blue_cross_skill(player, my_idx, my_card, skill_idx, {def={"-",2}})
+end,
+
+-- blue cross aurora, blue cross contract
+[1090] = function(player, my_idx, my_card, skill_idx)
+  blue_cross_skill(player, my_idx, my_card, skill_idx, {atk={"-",1}, sta={"-",1}})
+end,
+
+-- blue cross federine, blue cross oath
+[1091] = function(player, my_idx, my_card, skill_idx)
+  blue_cross_skill(player, my_idx, my_card, skill_idx, {sta={"-",2}})
+end,
+
+-- blue cross blue cross memory
+[1092] = function(player, my_idx, my_card, skill_idx)
+  if #player.hand <=2 then
+    for i=1,5 do
+      if i ~= my_idx and player.field[i] then
+        player:field_to_grave(i)
+      end
+    end
+  elseif #player.hand >=4 then
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- seeker sarah, blue cross wisdom
+[1093] = function(player, my_idx, my_card, skill_idx, other_idx)
+  local buff_size = #player:hand_idxs_with_preds({pred.seeker})
+  if buff_size > 0 then
+    OneBuff(player.opponent, other_idx, {def={"-",buff_size}}):apply()
+  end
+end,
+
+-- knight frett & pintail, knight dash
+[1094] = function(player)
+  if player.character.faction == "C" then
+    if #player.hand >= 2 then
+      for i=1,2 do
+        player:hand_to_bottom_deck(1)
+      end
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+        function(card) return not card.active end})
+      local target2_idx = uniformly(player:get_follower_idxs())
+      player.field[target1_idx].active = true
+      OneBuff(player, target2_idx, {size={"-",1}, atk={"+",1}, sta={"+",2}}):apply()
+    end
+  end
+end,
+
+-- sion flina, dress up
+[1095] = function(player, my_idx)
+  local rion_idx = player:deck_idxs_with_preds({function(card)
+    return card.id == 300058 or card.id == 300196 end})[1]
+  local dressup_idx = player:deck_idxs_with_preds({function(card)
+    return card.id == 300198 end})[1]
+  if rion_idx and dressup_idx then
+    player:field_to_grave(my_idx)
+    player:deck_to_grave(rion_idx)
+    local field_idx = player:first_empty_field_slot()
+    player:deck_to_field(dressup_idx)
+    OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+  end
+end,
+
+-- rion flina, dress up
+[1096] = function(player, my_idx)
+  local sion_idx = player:deck_idxs_with_preds({function(card)
+    return card.id == 300057 or card.id == 300195 end})[1]
+  local dressup_idx = player:deck_idxs_with_preds({function(card)
+    return card.id == 300198 end})[1]
+  if sion_idx and dressup_idx then
+    player:field_to_grave(my_idx)
+    player:deck_to_grave(sion_idx)
+    local field_idx = player:first_empty_field_slot()
+    player:deck_to_field(dressup_idx)
+    OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+  end
+end,
+
+-- gs alla marcia, gs march
+[1097] = function(player, my_idx, my_card, skill_idx)
+  local deck_idx = player:deck_idxs_with_preds({function(card)
+    return card.id == 300193 end})[1]
+  if deck_idx then
+    local field_idx = player:first_empty_field_slot()
+    player:deck_to_field(deck_idx)
+    OneBuff(player, field_idx, {atk={"+",2}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- dress up sionrion, twin attack
+[1098] = function(player, my_idx)
+  local field_idxs = player:field_idxs_with_preds({function(card)
+    return card.id == 300198 end})
+  for _,idx in ipairs(field_idxs) do
+    if idx ~= my_idx then
+      player:field_to_grave(idx)
+    end
+  end
+  if #player.hand > 0 then
+    player:hand_to_grave(1)
+    local grave_idx = uniformly(player:grave_idxs_with_preds({pred.sionrion}))
+    if grave_idx then
+      player:grave_to_exile(grave_idx)
+      local buff = GlobalBuff(player)
+      buff.field[player][0] = {life={"+",1}}
+      buff.field[player.opponent][0] = {life={"-",1}}
+      buff.apply()
+    end
+  end
+end,
+
+-- office witch, bean curse
+[1099] = function(player, my_idx, my_card, skill_idx)
+  if #player.opponent:ncards_in_field() % 2 == 0 then
+    if #player.opponent.hand > 0 then
+      player.opponent:hand_to_grave(math.random(#player.opponent.hand))
+    end
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- crescent kris & con., master's love
+[1100] = function(player)
+  if player.character.faction == "D" then
+    if #player.hand >= 2 then
+      for i=1,2 do
+        player:hand_to_bottom_deck(1)
+      end
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+        function(card) return not card.active end})
+      local target2_idx = uniformly(player.opponent:get_follower_idxs())
+      player.field[target1_idx].active = true
+      OneBuff(player.opponent, target2_idx, {size={"+",1}, atk={"-",1}, def={"-",1}}):apply()
+    end
+  end
+end,
+
+-- 1st witness kana.dkd, just give up
+[1101] = function(player, my_idx, my_card)
+  if my_card.def >= 1 then
+    OneBuff(player, my_idx, {def={"-",1}}):apply()
+    if player.deck[#player.deck].faction == player.character.faction and 
+      player:first_empty_field_slot() then
+      player:deck_to_field(#player.deck)
+    end
+  end
+end,
+
+-- 1st witness kana.dkd, just give up
+[1102] = function(player, my_idx)
+  OneBuff(player, my_idx, {def={"=",2}}):apply()
+end,
 
 }
+
 
 setmetatable(skill_func, {__index = function() return function() end end})

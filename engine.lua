@@ -99,7 +99,6 @@ end
 
 function Player:draw_from_bottom_deck()
   self.hand[#self.hand + 1] = table.remove(self.deck, 1)
-  self.hand[#self.hand] = true
 end
 
 function Player:draw_phase()
@@ -198,6 +197,8 @@ function Player:mill(n)
   for i=1,n do
     self.grave[#self.grave + 1] = self.deck[#self.deck]
     self.deck[#self.deck] = nil
+  end
+end
 
 function Player:deck_to_field(n)
   local card = table.remove(self.deck, n)
@@ -340,13 +341,6 @@ end
 
 function Player:field_idxs_with_most_and_preds(func, preds)
   return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
-end
-
-function Player:first_empty_field_slot()
-  for i=1,5 do
-    if not self.field[i] then return i end
-  end
-  return nil
 end
 
 function Player:grave_idxs_with_least_and_preds(func, preds)
