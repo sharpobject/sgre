@@ -85,7 +85,7 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
     end
   end
 end
-    
+
 
 skill_func = {
 ["refresh"] = refresh,
@@ -645,11 +645,11 @@ end,
 -- council maron, dress up!
 [1058] = function(player, my_idx, my_card)
   return dressup_skill(300143, player, my_idx) end,
-  
+
 -- dressup maron, heartful catch!
 [1059] = function(player, my_idx, my_card, skill_idx, other_idx)
   return heartful_catch(300143, player, my_idx, other_idx, "-") end,
-  
+
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
   local grave_targets = shuffle(player:grave_idxs_with_preds(function(card) return true end))
@@ -751,7 +751,7 @@ end,
 -- scardel elder barbera, elder scroll
 -- todo: test this
 [1071] = function(player, my_idx, my_card, skill_idx)
-  if my_card.faction = player.character.faction then
+  if my_card.faction == player.character.faction then
     local target_idx = player:grave_idxs_with_most_and_preds(
       pred.size, {pred.follower, pred.faction.D})[1]
     if target_idx then
