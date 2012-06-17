@@ -97,6 +97,11 @@ function Player:draw_a_card()
   self.deck[#self.deck] = nil
 end
 
+function Player:draw_from_bottom_deck()
+  self.hand[#self.hand + 1] = table.remove(self.deck, 1)
+  self.hand[#self.hand] = true
+end
+
 function Player:draw_phase()
   if #self.hand == 5 then
     self:hand_to_grave(1)
@@ -133,6 +138,10 @@ end
 
 function Player:grave_to_exile(n)
   self.exile[#self.exile+1]=table.remove(self.grave,n)
+end
+
+function Player:grave_to_bottom_deck(n)
+  self:to_bottom_deck(table.remove(self.grave,n))
 end
 
 function Player:field_to_exile(n)
@@ -176,10 +185,20 @@ function Player:field_to_bottom_deck(n)
   self.field[n] = nil
 end
 
+function Player:field_to_top_deck(n)
+  self:to_top_deck(self.field[n])
+  self.field[n] = nil
+end
+
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
   self.grave[#self.grave]:reset()
 end
+
+function Player:mill(n)
+  for i=1,n do
+    self.grave[#self.grave + 1] = self.deck[#self.deck]
+    self.deck[#self.deck] = nil
 
 function Player:deck_to_field(n)
   local card = table.remove(self.deck, n)
@@ -240,16 +259,6 @@ function Player:grave_idxs_with_preds(preds)
       incl = incl and preds[j](self.grave[i])
     end
     if incl then
-      ret[#ret+1] = i
-    end
-  end
-  return ret
-end
-
-function Player:grave_idxs_with_size(n)
-  local ret = {}
-  for i=1,#self.grave do
-    if self.grave[i].size == n then
       ret[#ret+1] = i
     end
   end
@@ -332,6 +341,34 @@ end
 
 function Player:field_idxs_with_most_and_preds(func, preds)
   return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
+end
+
+function Player:first_empty_field_slot()
+  for i=1,5 do
+    if not self.field[i] then return i end
+  end
+  return nil
+end
+
+function Player:grave_idxs_with_least_and_preds(func, preds)
+  local idxs = self:grave_idxs_with_preds(preds)
+  local best = 99999
+  local ret = {}
+  for i=1,#idxs do
+    local card = self.grave[idxs[i]]
+    local score = func(card)
+    if score < best then
+      ret = {idxs[i]}
+      best = score
+    elseif score == best then
+      ret[#ret+1] = idxs[i]
+    end
+  end
+  return ret
+end
+
+function Player:grave_idxs_with_most_and_preds(func, preds)
+  return self:grave_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
 end
 
 function Player:first_empty_field_slot()
