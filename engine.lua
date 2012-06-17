@@ -178,11 +178,12 @@ end
 
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
+  self.grave[#self.grave]:reset()
 end
 
 function Player:deck_to_field(n)
   local card = table.remove(self.deck, n)
-  self.field[self:first_empty_field_idx()] = card
+  self.field[self:first_empty_field_slot()] = card
 end
 
 function Player:has_follower()

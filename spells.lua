@@ -1296,7 +1296,9 @@ end,
     local deck_target = player:deck_idxs_with_preds(
         function(card) return card.id == dressup_id end)[1]
     if deck_target then
+      local idx = player:first_empty_field_slot()
       player:deck_to_field(deck_target)
+      OneBuff(player, idx, {size={"=",5},atk={"+",2},sta={"+",4}}):apply()
     end
   end
 end,
@@ -1353,6 +1355,106 @@ end,
     end
     player:field_to_exile(my_idx)
   end
+end,
+
+-- education results
+[200106] = function(player)
+  local hand_target = player:hand_idxs_with_preds(pred.faction.C)[1]
+  if hand_target then
+    player:hand_to_grave(hand_target)
+    local target = uniformly(player:field_idxs_with({pred.faction.C, pred.follower}))
+    if target then
+      OneBuff(player, target, {atk={"+",4},sta={"+",4}}):apply()
+    end
+  end
+end,
+
+-- brilliant brain
+[200107] = function(player, opponent)
+  if pred.faction.C(player.character) then
+    local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
+    if target then
+      local size = opponent.field[target].size
+      opponent:field_to_bottom_deck(target)
+      local hand_target = player:hand_idxs_with_preds(pred.follower)[1]
+      if hand_target then
+        local buff = GlobalBuff()
+        buff.hand[player][hand_target] = {atk={"+",size},sta={"+",size}}
+        buff:apply()
+      end
+    end
+  end
+end,
+
+-- vivid world of kana
+[200108] = function(player, opponent, my_idx, my_card)
+  for i=1,2 do
+    if #player.deck > 0 then
+      if player.character.faction == player.deck[#player.deck].faction then
+        local idx = player:first_empty_field_slot()
+        if idx then
+          player:deck_to_field(#player.deck)
+          OneBuff(player, idx, {size={"=",my_card.size}}):apply()
+        end
+      else
+        player:deck_to_grave(#player.deck)
+      end
+    end
+  end
+  player:field_to_exile(my_idx)
+end,
+
+-- the crescent enigmas
+[200109] = function(player)
+  local n = #player:hand_idxs_with_preds(pred.faction.D)
+  if n >= 2 then
+    for i=1,2 do
+      local idx = uniformly(player:hand_idxs_with_preds(pred.faction.D))
+      player:hand_to_grave(idx)
+    end
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      local buff_amt = math.abs(player.field[target].atk - player.field[target].sta)
+      OneBuff(player, target, {atk={"+",buff_amt}}):apply()
+    end
+  end
+end,
+
+-- scardel rite
+[200110] = function(player)
+  local dl_in_grave = player:grave_idxs_with_preds({pred.follower, pred.faction.D})
+  if #dl_in_grave ~= 0 then
+    local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
+    -- For the rest of the spell to happen, we need a vampire and an empty slot.
+    local slot = player:first_empty_field_slot()
+    local vampires = player:field_idxs_with_preds(pred.vampire)
+    if slot and #vampires > 0 then
+      player.field[slot] = card
+      local buff_amt = 0
+      local buff = OnePlayerBuff(player)
+      for _,idx in ipairs(vampires) do
+        buff[idx] = {size={"=",1}}
+        buff_amt = buff_amt + player.field[idx].size - 1
+      end
+      buff[slot] = {size={"+",buff_amt},atk={"+",buff_amt},sta={"+",buff_amt}}
+      buff:apply()
+    end
+  end
+end,
+
+-- final answer
+[200111] = function(player, opponent)
+  local target = opponent:field_idxs_with_most_and_preds(
+      function(card) return card.atk + card.sta end, pred.follower)[1]
+  local amt = #player.hand + #opponent.hand
+  if target then
+    OneBuff(opponent, target, {size={"-",amt},atk={"-",amt},sta={"-",amt}}):apply()
+  end
+end,
+
+-- seize
+[200112] = function(player, opponent)
+
 end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})
