@@ -1587,7 +1587,7 @@ end,
 
 -- dress up rise
 [200120] = function(player, opponent)
-  if player:field_idxs_with_preds({pred.follower, pred.dressup})[1] then
+  if player:field_idxs_with_preds({pred.follower, pred.dress_up})[1] then
     local target = uniformly(opponent:field_idxs_with_preds())
     if target then
       opponent:field_to_bottom_deck(target)
@@ -1682,6 +1682,237 @@ end,
   end
 end,
 
+-- fast forward
+[200126] = function(player, opponent, my_idx, my_card)
+  local buff_amt = 0
+  for i=1,5 do
+    while player.hand[i] and pred.C(player.hand[i]) and pred.follower(player.hand[i]) do
+      player:hand_to_grave(i)
+      buff_amt = buff_amt + 2
+    end
+  end
+  local targets = player:field_idxs_with_preds(pred.follower)
+  if target then
+    OneBuff(player, targets[#targets], {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
+  end
+end,
+
+-- cross cut
+[200127] = function(player, opponent, my_idx, my_card)
+  local hand_idxs = player:hand_idxs_with_preds(pred.C)
+  if #hand_idxs >= 2 then
+    player:hand_to_bottom_deck(hand_idxs[#hand_idxs-1])
+    player:hand_to_bottom_deck(hand_idxs[#hand_idxs]-1)
+    local targets = opponent:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(opponent)
+    for i=1,2 do
+      if targets[i] then
+        buff[i] = {sta={"-",2}}
+        opponent.field[i].active = false
+      end
+    end
+    if #player:field_idxs_with_preds(pred.union(pred.knight, pred.blue_cross)) > 0 then
+      buff:apply()
+    end
+  end
+end,
+
+-- planned misfortune
+[200128] = function(player, opponent, my_idx, my_card)
+  local opp_idx = opponent:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
+  if opp_idx then
+    local min_size = opponent.field[opp_idx].size
+    local buff = OnePlayerBuff(player)
+    local targets = player:field_idxs_with_preds(pred.follower,
+        function(card) return card.size >= min_size end)
+    for _,idx in ipairs(targets) do
+      buff[idx] = {atk={"+",1},def={"+",1},sta={"+",1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- azure cross meeting
+[200129] = function(player, opponent, my_idx, my_card)
+  local targets = shuffle(opponent:field_idxs_with_preds(pred.neg(pred.C), pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,2 do
+    if targets[i] then
+      buff[targets[i]] = {atk={"-",2},sta={"-",2}}
+    end
+  end
+  buff:apply()
+  for i=1,min(4-#player.hand, #player.deck) do
+    player:draw_a_card()
+  end
+end,
+
+-- escape
+[200130] = function(player, opponent, my_idx, my_card)
+  if #player:field_idxs_with_preds(pred.follower) > 0 then
+    local ncards = #player.hand
+    while player.hand[1] do
+      player:hand_to_top_deck(1)
+    end
+    OneBuff(player, 0, {life={"+",ceil(ncards*1.5)}}):apply()
+  end
+end,
+
+-- false delivery
+[200131] = function(player, opponent, my_idx, my_card)
+  for _,p in ipairs(player, opponent) do
+    for i=1,5 do
+      while p.hand[i].faction ~= p.character.faction do
+        p:hand_to_grave(i)
+      end
+    end
+  end
+end,
+
+-- comeback
+[200132] = function(player, opponent, my_idx, my_card)
+  if pred.C(player.character) then
+    while #player.hand > 0 and player:first_empty_field_slot() do
+      local slot = player:first_empty_field_slot()
+      player:hand_to_field(1)
+      player.field[slot].size = random(2,3)
+    end
+  end
+end,
+
+-- dark meeting
+[200133] = function(player, opponent, my_idx, my_card)
+  local ncards = #player.hand
+  while player.hand[1] do
+    player:hand_to_grave(1)
+  end
+  local target = opponent:field_idxs_with_most_and_preds(pred.add(pred.atk,pred.sta), pred.follower)[1]
+  if target then
+    OneBuff(opponent, target, {atk={"-",ceil(1.5*ncards)},sta={"-",ceil(1.5*ncards)}}):apply()
+  end
+end,
+
+-- dark convocation
+[200134] = function(player, opponent, my_idx, my_card)
+  local buff = {atk={"+",3},sta={"+",1}}
+  local target = uniformly(player:field_idxs_with_preds(pred.D,pred.follower))
+  if target then
+    if pred.GS(player.field[target]) then
+      buff.sta[2] = 3
+    end
+    OneBuff(player, target, buff):apply()
+  end
+end,
+
+-- pupil becomes master
+[200135] = function(player, opponent, my_idx, my_card)
+  local denom = #opponent:field_idxs_with_preds()
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {sta={"-",floor(player.game.turn/denom)}}
+  end
+  buff:apply()
+end,
+
+-- agent visit
+[200136] = function(player, opponent, my_idx, my_card)
+  local size3 = function(card) return card.size == 3 end
+  if #player:field_idxs_with_preds(pred.follower) > 0 and
+      #player:hand_idxs_with_preds(size3) > 0 then
+    local target = opponent:field_idxs_with_preds(size3)[1]
+    if target then
+      opponent:field_to_grave(target)
+    end
+  end
+end,
+
+-- dress up ride
+[200137] = function(player, opponent, my_idx, my_card)
+  if #player:field_idxs_with_preds(pred.dress_up) > 0 then
+    local target = player:deck_idxs_with_preds(pred.dress_up, pred.follower)[1]
+    local slot = player:first_empty_field_slot()
+    if slot and target then
+      player:deck_to_field(target)
+      OneBuff(player, slot, {size={"=",5},atk={"+",3},sta={"+",3}}):apply()
+    end
+  end
+end,
+
+-- tranquility
+[200138] = function(player, opponent, my_idx, my_card)
+  local opp_spell = opponent:field_idxs_with_preds(pred.spell)
+  local my_spell = player:field_idxs_with_preds(pred.spell)
+  if #player:field_idxs_with_preds(pred.follower) > 0 and
+      #opp_spell > 0 then
+    local nlife = #opp_spell
+    for _,idx in ipairs(opp_spell) do
+      opponent:field_to_grave(idx)
+    end
+    OneBuff(opponent, 0, life={"-",nlife}):apply()
+  elseif opp_spell == 0 then
+    local nlife = #my_spell
+    for _,idx in ipairs(my_spell) do
+      player:field_to_grave(idx)
+    end
+    OneBuff(player, 0, life={"-",nlife}):apply()
+  end
+end,
+
+-- night conqueror
+[200139] = function(player, opponent, my_idx, my_card)
+  if pred.D(player.character) then
+    local targets = opponent:field_idxs_with_preds(
+        function(card) return card.size >= 3 and card.size <= 5 end)
+    for _,idx in ipairs(targets) do
+      opponent:field_to_grave(idx)
+    end
+  end
+end,
+
+-- doubt
+[200140] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200141] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200142] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200143] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200144] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200145] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200146] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200147] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200148] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200149] = function(player, opponent, my_idx, my_card)
+end,
+
+-- doubt
+[200150] = function(player, opponent, my_idx, my_card)
+end,
 
 }
 setmetatable(spell_func, {__index = function()return function() end end})

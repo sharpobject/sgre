@@ -35,6 +35,8 @@ function OneBuff:apply()
   gb:apply()
 end
 
+
+
 local groups = {}
 
 groups.sita = arr_to_set({100001, 100010, 100015, 100020, 100025, 100036,
@@ -108,13 +110,14 @@ groups.stig_wit_fel = arr_to_set({300090})
 
 groups.stig_flint = arr_to_set({300087})
 
-groups.dressup = arr_to_set({200101, 300143, 300157, 300181, 300191})
+groups.dress_up = arr_to_set({200101, 300143, 300157, 300181, 300191})
 
 pred = {}
 pred.faction = {}
 for _,v in ipairs({"V","A","D","C","N"}) do
   local faction = v
   pred.faction[faction] = function(card) print(card.faction.." is a faction")return card.faction == faction end
+  pred[faction] = pred.faction[faction]
 end
 for _,v in ipairs({"follower", "spell"}) do
   local type = v
@@ -131,6 +134,26 @@ end
 pred.active = function(card) return card.active end
 pred.skill = function(card) return #card.skills ~= 0 end
 pred.neg = function(func) return function(card) return not func(card) end end
+pred.union = function(...)
+  local t = {...}
+  return function(card)
+    for _,f in ipairs(t) do
+      if f(card) then
+        return true
+      end
+    end
+  end
+end
+pred.add = function(...)
+  local t = {...}
+  return function(card)
+    local ret = 0
+    for _,f in ipairs(t) do
+      ret = ret + f(card)
+    end
+    return ret
+  end
+end
 
 pred.t = function() return true end
 pred.f = function() return false end

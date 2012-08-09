@@ -252,9 +252,10 @@ function Player:ncards_in_field()
   return ret
 end
 
-function Player:grave_idxs_with_preds(preds)
-  if type(preds) ~= "table" then
-    preds = {preds}
+function Player:grave_idxs_with_preds(...)
+  local preds = {...}
+  if type(preds[1] == "table") then
+    preds = preds[1]
   end
   local ret = {}
   for i=1,#self.grave do
@@ -269,9 +270,10 @@ function Player:grave_idxs_with_preds(preds)
   return ret
 end
 
-function Player:hand_idxs_with_preds(preds)
-  if type(preds) ~= "table" then
-    preds = {preds}
+function Player:hand_idxs_with_preds(...)
+  local preds = {...}
+  if type(preds[1] == "table") then
+    preds = preds[1]
   end
   local ret = {}
   for i=1,5 do
@@ -288,9 +290,10 @@ function Player:hand_idxs_with_preds(preds)
   return ret
 end
 
-function Player:field_idxs_with_preds(preds)
-  if type(preds) ~= "table" then
-    preds = {preds}
+function Player:field_idxs_with_preds(...)
+  local preds = {...}
+  if type(preds[1] == "table") then
+    preds = preds[1]
   end
   local ret = {}
   for i=1,5 do
@@ -307,9 +310,10 @@ function Player:field_idxs_with_preds(preds)
   return ret
 end
 
-function Player:deck_idxs_with_preds(preds)
-  if type(preds) ~= "table" then
-    preds = {preds}
+function Player:deck_idxs_with_preds(...)
+  local preds = {...}
+  if type(preds[1] == "table") then
+    preds = preds[1]
   end
   local ret = {}
   for i=#self.deck,1,-1 do
@@ -326,8 +330,8 @@ function Player:deck_idxs_with_preds(preds)
   return ret
 end
 
-function Player:field_idxs_with_least_and_preds(func, preds)
-  local idxs = self:field_idxs_with_preds(preds)
+function Player:field_idxs_with_least_and_preds(func, ...)
+  local idxs = self:field_idxs_with_preds(...)
   local best = 99999
   local ret = {}
   for i=1,#idxs do
@@ -343,8 +347,8 @@ function Player:field_idxs_with_least_and_preds(func, preds)
   return ret
 end
 
-function Player:field_idxs_with_most_and_preds(func, preds)
-  return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
+function Player:field_idxs_with_most_and_preds(func, ...)
+  return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
 function Player:first_empty_field_slot()
