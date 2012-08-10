@@ -2214,22 +2214,328 @@ end,
 
 -- absolute power
 [200165] = function(player, opponent, my_idx, my_card)
+  if opponent.hand[1] then
+    local teh_buff = {atk={"+",3},def={"-",1}}
+    if pred.spell(opponent.hand[1]) then
+      teh_buff = {def={"-",1},sta={"+",5}}
+    end
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+      buf[idx] = teh_buff
+    end
+    buff:apply()
+  end
 end,
 
--- doubt
+-- misfit
 [200166] = function(player, opponent, my_idx, my_card)
+  local amt = player:field_size()
+  if pred.D(player.character) then
+    amt = floor(amt/2)
+  end
+  local targets = opponent:field_idxs_with_preds(pred.follower,
+      function(card) return card.atk + card.sta >= 22 end)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"=",amt},sta={"=",amt}}
+  end
+  buff:apply()
 end,
 
--- doubt
+-- lago de cisnes
 [200167] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_most_and_preds(
+      pred.add(pred.atk, pred.sta), pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    local card = opponent.field[idx]
+    buff[idx] = {atk={"=",ceil(card.atk/2)},sta={"=",ceil(card.sta/2)}}
+  end
+  buff:apply()
+  if pred.iri(player.character) then
+    for _,idx in ipairs(targets) do
+      local card = opponent.field[idx]
+      buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
+    end
+    buff:apply()
+  end
 end,
 
--- doubt
+-- dream conversation
 [200168] = function(player, opponent, my_idx, my_card)
+  local target = player:field_idxs_with_most_and_preds(pred.size, pred.follower)
+  if target then
+    local size = player.field[idx].size
+    OneBuff(player, target, {size={"=",1},atk={"+",size-1},sta={"+",size-1}}):apply()
+  end
 end,
 
--- doubt
-[200169] = function(player, opponent, my_idx, my_card)
+-- event preparation
+[200172] = function(player, opponent, my_idx, my_card)
+end,
+
+-- victory proclamation
+[200173] = function(player, opponent, my_idx, my_card)
+end,
+
+-- topsy turvy
+[200174] = function(player, opponent, my_idx, my_card)
+end,
+
+-- inhuman creature
+[200175] = function(player, opponent, my_idx, my_card)
+end,
+
+-- preserver of rules
+[200176] = function(player, opponent, my_idx, my_card)
+end,
+
+-- morals crackdown
+[200177] = function(player, opponent, my_idx, my_card)
+end,
+
+-- encounter
+[200178] = function(player, opponent, my_idx, my_card)
+end,
+
+-- pursuit of perfection
+[200179] = function(player, opponent, my_idx, my_card)
+end,
+
+-- black magic preparation
+[200180] = function(player, opponent, my_idx, my_card)
+end,
+
+-- lady's wrath
+[200181] = function(player, opponent, my_idx, my_card)
+end,
+
+-- shoot
+[200182] = function(player, opponent, my_idx, my_card)
+end,
+
+-- servant of clarice
+[200183] = function(player, opponent, my_idx, my_card)
+end,
+
+-- lady's attendant
+[200184] = function(player, opponent, my_idx, my_card)
+end,
+
+-- push forward
+[200185] = function(player, opponent, my_idx, my_card)
+end,
+
+-- supply request
+[200186] = function(player, opponent, my_idx, my_card)
+end,
+
+-- miscalculation
+[200187] = function(player, opponent, my_idx, my_card)
+end,
+
+-- passcode
+[200188] = function(player, opponent, my_idx, my_card)
+end,
+
+-- vacation
+[200189] = function(player, opponent, my_idx, my_card)
+end,
+
+-- warrior's resolve
+[200190] = function(player, opponent, my_idx, my_card)
+end,
+
+-- beach research
+[200191] = function(player, opponent, my_idx, my_card)
+end,
+
+-- shock
+[200192] = function(player, opponent, my_idx, my_card)
+end,
+
+-- crux underground
+[200193] = function(player, opponent, my_idx, my_card)
+end,
+
+-- recruitment ad
+[200194] = function(player, opponent, my_idx, my_card)
+end,
+
+-- marionette
+[200195] = function(player, opponent, my_idx, my_card)
+end,
+
+-- mischief
+[200196] = function(player, opponent, my_idx, my_card)
+end,
+
+-- night is coming
+[200197] = function(player, opponent, my_idx, my_card)
+end,
+
+-- query
+[200198] = function(player, opponent, my_idx, my_card)
+end,
+
+-- showdown
+[200199] = function(player, opponent, my_idx, my_card)
+end,
+
+-- hot item
+[200201] = function(player, opponent, my_idx, my_card)
+end,
+
+-- principal's story
+[200202] = function(player, opponent, my_idx, my_card)
+end,
+
+-- low turnout
+[200203] = function(player, opponent, my_idx, my_card)
+end,
+
+-- broken land
+[200204] = function(player, opponent, my_idx, my_card)
+end,
+
+-- keepsake
+[200205] = function(player, opponent, my_idx, my_card)
+end,
+
+-- everyday discovery
+[200206] = function(player, opponent, my_idx, my_card)
+end,
+
+-- negotiation breakdown
+[200207] = function(player, opponent, my_idx, my_card)
+end,
+
+-- inevitable choice
+[200208] = function(player, opponent, my_idx, my_card)
+end,
+
+-- table manners
+[200209] = function(player, opponent, my_idx, my_card)
+end,
+
+-- royle academy
+[200210] = function(player, opponent, my_idx, my_card)
+end,
+
+-- crux conference
+[200211] = function(player, opponent, my_idx, my_card)
+end,
+
+-- enemy within
+[200212] = function(player, opponent, my_idx, my_card)
+end,
+
+-- commissioned research
+[200213] = function(player, opponent, my_idx, my_card)
+end,
+
+-- supply transfer
+[200214] = function(player, opponent, my_idx, my_card)
+end,
+
+-- relieve post
+[200215] = function(player, opponent, my_idx, my_card)
+end,
+
+-- stakeout
+[200216] = function(player, opponent, my_idx, my_card)
+end,
+
+-- heart barrier
+[200217] = function(player, opponent, my_idx, my_card)
+end,
+
+-- flare
+[200218] = function(player, opponent, my_idx, my_card)
+end,
+
+-- crux in flames
+[200219] = function(player, opponent, my_idx, my_card)
+end,
+
+-- devastation
+[200220] = function(player, opponent, my_idx, my_card)
+end,
+
+-- ruin's end
+[200221] = function(player, opponent, my_idx, my_card)
+end,
+
+-- vernika's nightmare
+[200223] = function(player, opponent, my_idx, my_card)
+end,
+
+-- sita's suit
+[200239] = function(player, opponent, my_idx, my_card)
+end,
+
+-- perky girl
+[200240] = function(player, opponent, my_idx, my_card)
+end,
+
+-- halloween minidevil
+[200241] = function(player, opponent, my_idx, my_card)
+end,
+
+-- cinia's suit
+[200242] = function(player, opponent, my_idx, my_card)
+end,
+
+-- working girl
+[200243] = function(player, opponent, my_idx, my_card)
+end,
+
+-- halloween countess
+[200244] = function(player, opponent, my_idx, my_card)
+end,
+
+-- luthica's suit
+[200245] = function(player, opponent, my_idx, my_card)
+end,
+
+-- the hazing
+[200246] = function(player, opponent, my_idx, my_card)
+end,
+
+-- halloween witch
+[200247] = function(player, opponent, my_idx, my_card)
+end,
+
+-- iri's suit
+[200248] = function(player, opponent, my_idx, my_card)
+end,
+
+-- carefree heart
+[200249] = function(player, opponent, my_idx, my_card)
+end,
+
+-- halloween wolf
+[200250] = function(player, opponent, my_idx, my_card)
+end,
+
+-- double student council kick
+[200251] = function(player, opponent, my_idx, my_card)
+end,
+
+-- comfort room
+[200252] = function(player, opponent, my_idx, my_card)
+end,
+
+-- flash shield
+[200253] = function(player, opponent, my_idx, my_card)
+end,
+
+-- strega think tank
+[200254] = function(player, opponent, my_idx, my_card)
+end,
+
+-- rio's ward
+[200255] = function(player, opponent, my_idx, my_card)
 end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})
