@@ -53,7 +53,70 @@ end,
    end
    local target_idx = target_idxs[math.random(#target_idxs)]
    OneBuff(player,target_idx,{size={"-",1}}):apply()   
+
+   --fix this to use 18:33 sharpobject: local idx = uniformly(player.field_idxs_with_preds(function(card) return card.size >= 2 end))
+   -- 18:33 sharpobject: then idx will be nil if there weren't any cards like that
    
+end,
+
+--Ginger
+[100006] = function(player)
+   local target_idxs = player:field_idxs_with_preds(function(card) return card.size >= player:field_size() end)
+   local buff = OnePlayerBuff(player)
+   for _,idx in ipairs(target_idxs) do
+      buff[idx] = {atk={"+",1}, sta={"+",2}}
+   end
+   buff:apply()
+end,
+
+--Curious Girl Vernika
+[100007] = function(player)
+   local idx = player.opponent:field_idxs_with_most_and_preds(pred.def, pred.follower)[1]
+   OneBuff(player.opponent,idx,{def={"=",0}}):apply()
+end,
+
+--Cannelle
+[100008] = function(player)
+   local max_size = player.opponent.field[player.opponent:field_idxs_with_most_and_preds(pred.size)[1]].size
+   local min_size = player.field[player:field_idxs_with_least_and_preds(pred.size)[1]].size
+   local buff_size = max_size - min_size
+   local target_idxs = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
+   local buff = OnePlayerBuff(player)
+   for _,idx in ipairs(target_idxs) do
+      buff[idx] = {atk={"+",buff_size}, sta={"+",buff_size}}
+   end
+   buff:apply()
+end,
+
+--Gart
+[100009] = function(player)
+   local num_follower = #player.opponent:field_idxs_with_preds(pred.follower)
+   local num_vita = #player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V})
+   local buff = OnePlayerBuff(player.opponent)
+   if num_follower==num_vita then
+      local target_idxs = shuffle(player.opponent:field_idxs_with_preds(pred.follower))
+      for i=1,2 do
+	 if target_idxs[i] then
+	    buff[target_idxs[i]] = {sta={"-",1}}
+	 end
+   else
+      local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V}))
+      buff[target_idx] = {atk={"-",2},sta={"-",2}}
+   end
+   buff:apply()
+end,
+
+--Dress Sita
+[100010] = function(player)
+   local followers = player.opponent:field_idxs_with_preds(pred.follower)
+   local buff = OnePlayerBuff(player.opponent)
+   if #followers > 1 then
+      local target_idx = player.opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
+      buff[target_idx] = {atk={"-",2},def={"-",1},sta={"-",2}}
+   elseif #followers == 1 then
+      buff[followers[1]] = {sta={"-",2}}
+   end
+   buff:apply()
 end,
 
 }
