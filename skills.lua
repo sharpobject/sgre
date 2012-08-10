@@ -67,12 +67,12 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
       buff = true
     end
   end
-  local hand_target = player:hand_idxs_with_preds(pred.dressup)[1]
+  local hand_target = player:hand_idxs_with_preds(pred.dress_up)[1]
   if hand_target then
     player:hand_to_grave(hand_target)
     buff = true
   end
-  local grave_target = player:grave_idxs_with_preds(pred.dressup)[1]
+  local grave_target = player:grave_idxs_with_preds(pred.dress_up)[1]
   if grave_target then
     player:grave_to_exile(grave_target)
     buff = true
