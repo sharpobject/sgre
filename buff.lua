@@ -14,7 +14,7 @@ OnePlayerBuff = class(function(self, player)
   end)
 
 function OnePlayerBuff:apply()
-  local gb = GlobalBuff()
+  local gb = GlobalBuff(self.player)
   for k,v in pairs(self) do
     if k~= "player" then
       gb.field[self.player][k]=v
@@ -30,7 +30,7 @@ OneBuff = class(function(self, player, idx, buff)
   end)
 
 function OneBuff:apply()
-  local gb = GlobalBuff()
+  local gb = GlobalBuff(self.player)
   gb.field[self.player][self.idx] = self.buff
   gb:apply()
 end
