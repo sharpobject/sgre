@@ -43,7 +43,7 @@ function groups_init()
     print(group)
     pred[group] = function(card)
       local t = {}
-      for k,v in ids do
+      for k,v in ipairs(ids) do
         t[v+0]=true
       end
       pred[group] = function(card) return t[card.id] end
