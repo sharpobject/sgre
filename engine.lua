@@ -38,7 +38,7 @@ function Card:reset()
   return self
 end
 
-local grave_mt = {__newindex=function(table, key, value) table[key] = value:reset() end}
+local grave_mt = {__newindex=function(table, key, value) rawset(table, key, value:reset()) end}
 
 Player = class(function(self, side, deck)
     deck = shallowcpy(deck)
