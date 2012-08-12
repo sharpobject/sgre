@@ -324,7 +324,7 @@ function Player:deck_idxs_with_preds(...)
     if self.deck[i] then
       local incl = true
       for j=1,#preds do
-        incl = incl and preds[j](self.field[i])
+        incl = incl and preds[j](self.deck[i])
       end
       if incl then
         ret[#ret+1] = i
