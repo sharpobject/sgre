@@ -28,12 +28,10 @@ local refresh = function(player, my_idx, my_card)
 end
 
 local esprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card.skills then
-    local removed = pred.skill(other_card)
-    other_card.skills = {}
-    if removed then
-      OneBuff(player, my_idx, {atk={"+",1}, def={"+",1}, sta={"+",1}}):apply()
-    end
+  local removed = pred.skill(other_card)
+  other_card.skills = {}
+  if removed then
+    OneBuff(player, my_idx, {atk={"+",1}, def={"+",1}, sta={"+",1}}):apply()
   end
 end
 
@@ -576,17 +574,9 @@ end,
 
 -- lib. manager lotte, cultist maid, seeker ruth, dollmaster elfin rune, amnesia
 [1049] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if #other_card.skills then
-    local removed = false
-    for idxx,skill in ipairs(other_card.skills) do
-      if skill then
-        other_card:remove_skill(idxx)
-        removed = true
-      end
-    end
-    if removed then
-      my_card:remove_skill(skill_idx)
-    end
+  if pred.skill(other_card) then
+    other_card.skills = {}
+    my_card:remove_skill(skill_idx)
   end
 end,
 
@@ -711,8 +701,8 @@ end,
         player:grave_to_exile(math.random(#player.grave))
       end
       OneBuff(player.opponent, other_idx, {atk={"-"},math.ceil(sent/2)}):apply()
-      my_card:remove_skill(skill_idx)
     end
+    my_card:remove_skill(skill_idx)
   end
 end,
 
@@ -844,7 +834,7 @@ end,
       for i=1,2 do
         player:hand_to_bottom_deck(1)
       end
-      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
         function(card) return not card.active end})
       local target2_idx = uniformly(player:get_follower_idxs())
       player.field[target1_idx].active = true
@@ -913,7 +903,7 @@ end,
 -- picnic maid, faith and trust
 [1087] = function(player, my_idx, my_card, skill_idx)
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
-  local buff_size = #player:hand_idxs_with_preds({function(card) 
+  local buff_size = #player:hand_idxs_with_preds({function(card)
     return pred.maid(card) or pred.lady(card) end})
   if buff_size > 0 then
     OneBuff(player.opponent, opp_target_idx, {sta={"-",buff_size}}):apply()
@@ -928,7 +918,7 @@ end,
       for i=1,2 do
         player:hand_to_bottom_deck(1)
       end
-      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
         function(card) return not card.active end})
       local target2_idx = uniformly(player.opponent:get_follower_idxs())
       player.field[target1_idx].active = true
@@ -980,7 +970,7 @@ end,
       for i=1,2 do
         player:hand_to_bottom_deck(1)
       end
-      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
         function(card) return not card.active end})
       local target2_idx = uniformly(player:get_follower_idxs())
       player.field[target1_idx].active = true
@@ -1070,7 +1060,7 @@ end,
       for i=1,2 do
         player:hand_to_bottom_deck(1)
       end
-      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower, 
+      local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
         function(card) return not card.active end})
       local target2_idx = uniformly(player.opponent:get_follower_idxs())
       player.field[target1_idx].active = true
@@ -1083,7 +1073,7 @@ end,
 [1101] = function(player, my_idx, my_card)
   if my_card.def >= 1 then
     OneBuff(player, my_idx, {def={"-",1}}):apply()
-    if player.deck[#player.deck].faction == player.character.faction and 
+    if player.deck[#player.deck].faction == player.character.faction and
       player:first_empty_field_slot() then
       player:deck_to_field(#player.deck)
     end

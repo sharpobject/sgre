@@ -11,9 +11,6 @@ Card = class(function(self, id, upgrade_lvl)
 
 function Card:remove_skill(skill_idx)
   self.skills[skill_idx] = nil
-  for i=skill_idx,2 do
-    self.skills[i] = self.skills[i+1]
-  end
 end
 
 function Card:refresh()
@@ -24,10 +21,35 @@ function Card:remove_skill_until_refresh(skill_idx)
   self.skills[skill_idx] = "refresh"
 end
 
-function Card:gain_skill(skill_id)
-  if #self.skills < 3 then
-    self.skills[#self.skills+1] = skill_id
+function Card:first_empty_skill_slot()
+  for i=1,3 do
+    if not self.skills[i] then
+      return i
+    end
   end
+end
+
+function Card:first_skill_idx()
+  for i=1,3 do
+    if self.skills[i] then
+      return i
+    end
+  end
+end
+
+function Card:gain_skill(skill_id)
+  local slot = self:first_empty_skill_slot()
+  if slot then
+    self.skills[slot] = skill_id
+  end
+end
+
+function Card:squished_skills()
+  local t = {}
+  for i=1,3 do
+    t[#t+1] = self.skills[i]
+  end
+  return t
 end
 
 function Card:reset()
@@ -84,8 +106,10 @@ function Player:upkeep_phase()
   for idx=0,5 do
     local card = self.field[idx]
     if card then
-      for skill_idx,skill_id in ipairs(card.skills or {}) do
-        if skill_id_to_type[skill_id] == "start" then
+      local skills = card.skills or {}
+      for skill_idx = 1,3 do
+        local skill_id = skills[skill_idx]
+        if skill_id and skill_id_to_type[skill_id] == "start" then
           skill_func[skill_id](self, idx, card, skill_idx)
         end
       end
@@ -483,12 +507,12 @@ function Player:follower_combat_round(idx, target_idx)
       local defender = defend_player.field[defend_idx]
 
       if defender.type == "follower" then
-        for skill_idx,skill_id in ipairs(attacker.skills) do
-          if skill_id_to_type[skill_id] == "attack" then
+        for skill_idx=1,3 do
+          local skill_id = attacker.skills[skill_idx]
+          if skill_id and skill_id_to_type[skill_id] == "attack" then
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, defender)
             self.game:clean_dead_followers()
-            if self.game.combat_round_interrupted then print("bail on attack skill") return end
           end
         end
       end
@@ -496,12 +520,12 @@ function Player:follower_combat_round(idx, target_idx)
       if self.game.combat_round_interrupted then print("bail that shouldn't happen 1")return end
 
       if defender.type == "follower" then
-        for skill_idx,skill_id in ipairs(defender.skills) do
-          if skill_id_to_type[skill_id] == "defend" then
+        for skill_idx=1,3 do
+          local skill_id = defender.skills[skill_idx]
+          if skill_id and skill_id_to_type[skill_id] == "defend" then
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, attacker)
             self.game:clean_dead_followers()
-            if self.game.combat_round_interrupted then print("bail on defend skill") return end
           end
         end
       end

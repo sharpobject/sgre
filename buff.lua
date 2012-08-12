@@ -67,7 +67,7 @@ for _,v in ipairs({"size","atk","def","sta"}) do
   pred[v] = function(card) return card[stat] or -9000 end
 end
 pred.active = function(card) return card.active end
-pred.skill = function(card) return #card.skills ~= 0 end
+pred.skill = function(card) return #card:squished_skills() > 0 end
 pred.neg = function(func) return function(card) return not func(card) end end
 pred.union = function(...)
   local t = {...}

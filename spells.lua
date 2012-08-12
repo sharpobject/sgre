@@ -1515,7 +1515,7 @@ end,
   local my_idx = player:field_idxs_with_preds({pred.follower, pred.neg(pred.skill)})[1]
   local other_idx = opponent:field_idxs_with_preds({pred.follower, pred.skill})[1]
   if my_idx and other_idx then
-    player.field[my_idx].skills = {opponent.field[other_idx].skills[1]}
+    player.field[my_idx].skills = {opponent.field[other_idx]:squished_skills()[1]}
   end
 end,
 
@@ -2922,7 +2922,7 @@ end,
   buff = OnePlayerBuff(player)
   for i=1,2 do
     if targets[i] then
-      local amt = #player.field[targets[i]].skills + 1
+      local amt = #player.field[targets[i]]:squished_skills() + 1
       buff[targets[i]] = {atk={"+",amt},sta={"+",amt}}
     end
   end
@@ -3062,7 +3062,7 @@ end,
 -- lady radar
 [200283] = function(player, opponent, my_idx, my_card)
   local targets = player:field_idxs_with_preds(pred.follower, pred.A, function(card)
-        for _,id in ipairs(card.skills) do
+        for _,id in pairs(card.skills) do
           if skill_id_to_type[id] == "defend" then
             return false
           end
