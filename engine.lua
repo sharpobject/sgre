@@ -187,6 +187,10 @@ function Player:field_to_top_deck(n)
   self.field[n] = nil
 end
 
+function Player:deck_to_hand(n)
+  self.hand[#self.hand + 1] = table.remove(self.deck, n)
+end
+
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
   self.grave[#self.grave]:reset()

@@ -29,13 +29,8 @@ end
 
 local esprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card.skills then
-    local removed = false
-    for idxx,skill in ipairs(other_card.skills) do
-      if skill then
-        other_card:remove_skill(idxx)
-        removed = true
-      end
-    end
+    local removed = pred.skill(other_card)
+    other_card.skills = {}
     if removed then
       OneBuff(player, my_idx, {atk={"+",1}, def={"+",1}, sta={"+",1}}):apply()
     end
@@ -408,7 +403,8 @@ end,
 
 -- stigma flint, stigma
 [1035] = function(player)
-  local ally_target_idx = uniformly(player:get_field_idxs_with_preds({pred.stig_wit_fel, pred.follower}))
+  local ally_target_idx = player:field_idxs_with_preds(
+      function(card) return card.id == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   if ally_target_idx then
     player:field_to_exile(ally_target_idx)
@@ -434,7 +430,8 @@ end,
 
 -- stigma witness felicia, proof of stigma
 [1037] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.stig_flint, pred.follower})
+  local target_idxs = player:field_idxs_with_preds(
+      function(card) return card.id == 300087 end)
   if #target_idxs > 0 then
     local buffsize = #player:field_idxs_with_preds({pred.A, pred.follower})
     local buff = OnePlayerBuff(player)
