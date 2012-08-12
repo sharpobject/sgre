@@ -85,7 +85,7 @@ local blue_cross_skill = function(player, my_idx, my_card, skill_idx, buff)
   elseif #player.hand >= 4 then
     my_card:remove_skill(skill_idx)
   end
-end,
+end
 
 skill_func = {
 ["refresh"] = refresh,
@@ -835,7 +835,7 @@ end,
         player:hand_to_bottom_deck(1)
       end
       local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
-        function(card) return not card.active end})
+        function(card) return not card.active end}))
       local target2_idx = uniformly(player:get_follower_idxs())
       player.field[target1_idx].active = true
       OneBuff(player, target2_idx, {size={"-",1}, atk={"+",1}, def={"+",1}}):apply()
@@ -856,7 +856,7 @@ end,
 [1084] = function(player, my_idx)
   local lucerrie = function(card) return card.id == 300181 end
   local deck_idx = player:deck_idxs_with_preds({lucerrie})
-  local field_idx = player:first_empty_field_slot
+  local field_idx = player:first_empty_field_slot()
   if deck_idx and field_idx then
     player:deck_to_field(deck_idx)
     player:field_to_grave(my_idx)
@@ -867,28 +867,27 @@ end,
 -- dress up lucerrie, rising attack
 [1085] = function(player, my_idx)
   local lucerrie = function(card) return card.id == 300181 end
-    local buff = false
-    local field_targets = player:field_idxs_with_preds({lucerrie})
-    for _,idx in ipairs(field_targets) do
-      if idx ~= my_idx then
-        player:field_to_grave(idx)
-        buff = true
-      end
-    end
-    local hand_target = player:hand_idxs_with_preds({pred.dressup})[1]
-    if hand_target then
-      player:hand_to_grave(hand_target)
+  local buff = false
+  local field_targets = player:field_idxs_with_preds({lucerrie})
+  for _,idx in ipairs(field_targets) do
+    if idx ~= my_idx then
+      player:field_to_grave(idx)
       buff = true
     end
-    local grave_target = player:grave_idxs_with_preds({pred.dressup})[1]
-    if grave_target then
-      player:grave_to_exile(grave_target)
-      buff = true
-    end
-    if buff then
-      local opp_target = math.random(#player.opponent.hand)
-      player.opponent:hand_to_grave(opp_target)
-    end
+  end
+  local hand_target = player:hand_idxs_with_preds({pred.dressup})[1]
+  if hand_target then
+    player:hand_to_grave(hand_target)
+    buff = true
+  end
+  local grave_target = player:grave_idxs_with_preds({pred.dressup})[1]
+  if grave_target then
+    player:grave_to_exile(grave_target)
+    buff = true
+  end
+  if buff then
+    local opp_target = math.random(#player.opponent.hand)
+    player.opponent:hand_to_grave(opp_target)
   end
 end,
 
@@ -919,7 +918,7 @@ end,
         player:hand_to_bottom_deck(1)
       end
       local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
-        function(card) return not card.active end})
+        function(card) return not card.active end}))
       local target2_idx = uniformly(player.opponent:get_follower_idxs())
       player.field[target1_idx].active = true
       OneBuff(player.opponent, target2_idx, {size={"+",1}, atk={"-",1}, sta={"-",2}}):apply()
@@ -971,7 +970,7 @@ end,
         player:hand_to_bottom_deck(1)
       end
       local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
-        function(card) return not card.active end})
+        function(card) return not card.active end}))
       local target2_idx = uniformly(player:get_follower_idxs())
       player.field[target1_idx].active = true
       OneBuff(player, target2_idx, {size={"-",1}, atk={"+",1}, sta={"+",2}}):apply()
@@ -1061,7 +1060,7 @@ end,
         player:hand_to_bottom_deck(1)
       end
       local target1_idx = uniformly(player:field_idxs_with_preds({pred.follower,
-        function(card) return not card.active end})
+        function(card) return not card.active end}))
       local target2_idx = uniformly(player.opponent:get_follower_idxs())
       player.field[target1_idx].active = true
       OneBuff(player.opponent, target2_idx, {size={"+",1}, atk={"-",1}, def={"-",1}}):apply()
