@@ -37,7 +37,7 @@ end
 
 pred = {}
 
-for group,ids in ipairs(group_to_ids) do
+for group,ids in pairs(group_to_ids) do
   pred[group] = function(card)
     local t = {}
     for k,v in ids do
