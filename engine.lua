@@ -35,7 +35,10 @@ function Card:reset()
     self[k] = deepcpy(v)
   end
   --TODO: apply upgrade
+  return self
 end
+
+local grave_mt = {__newindex=function(table, key, value) table[key] = value:reset() end}
 
 Player = class(function(self, side, deck)
     deck = shallowcpy(deck)
@@ -64,6 +67,7 @@ Player = class(function(self, side, deck)
     self.field = {}
     self.field[0] = self.character
     self.grave = {}
+    setmetatable(self.grave, grave_mt)
     self.exile = {}
     self.shuffles = 9000
   end)
@@ -141,6 +145,10 @@ function Player:grave_to_bottom_deck(n)
   self:to_bottom_deck(table.remove(self.grave,n))
 end
 
+function Player:grave_to_field(n)
+  self.field[self:first_empty_field_slot()]=table.remove(self.grave,n)
+end
+
 function Player:field_to_exile(n)
   self.exile[#self.exile+1] = self.field[n]
   self.field[n] = nil
@@ -171,7 +179,6 @@ end
 -- discards the card at index n
 function Player:hand_to_grave(n)
   self.grave[#self.grave + 1] = self.hand[n]
-  self.grave[#self.grave]:reset()
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
@@ -193,7 +200,6 @@ end
 
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
-  self.grave[#self.grave]:reset()
 end
 
 function Player:mill(n)
@@ -219,13 +225,11 @@ end
 
 function Player:field_to_grave(n)
   self.grave[#self.grave + 1] = self.field[n]
-  self.grave[#self.grave]:reset()
   self.field[n] = nil
 end
 
 function Player:field_to_exile(n)
   self.exile[#self.exile + 1] = self.field[n]
-  self.exile[#self.exile]:reset()
   self.field[n] = nil
 end
 

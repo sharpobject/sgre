@@ -26,8 +26,10 @@ function cards_init()
       card.sta = in_card.stamina + 0
       card.size = in_card.size + 0
       card.skills = in_card.skills or {}
+      card.active = true
     elseif card.type == "spell" then
       card.size = in_card.size + 0
+      card.active = true
     elseif card.type == "character" then
       card.life = in_card.life + 0
       card.skills = in_card.skills
