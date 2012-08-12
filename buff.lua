@@ -37,14 +37,18 @@ end
 
 pred = {}
 
-for group,ids in pairs(group_to_ids) do
-  pred[group] = function(card)
-    local t = {}
-    for k,v in ids do
-      t[v+0]=true
+function groups_init()
+  print("GROUPS")
+  for group,ids in pairs(group_to_ids) do
+    print(group)
+    pred[group] = function(card)
+      local t = {}
+      for k,v in ids do
+        t[v+0]=true
+      end
+      pred[group] = function(card) return t[card.id] end
+      return pred[group](card)
     end
-    pred[group] = function(card) return t[card.id] end
-    return pred[group](card)
   end
 end
 
