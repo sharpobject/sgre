@@ -258,7 +258,7 @@ end
 
 function Player:grave_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -276,7 +276,7 @@ end
 
 function Player:hand_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -296,7 +296,7 @@ end
 
 function Player:field_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -316,7 +316,7 @@ end
 
 function Player:deck_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
