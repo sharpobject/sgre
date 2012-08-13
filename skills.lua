@@ -86,6 +86,7 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
   end
 end
 
+
 local blue_cross_skill = function(player, my_idx, my_card, skill_idx, buff)
   if #player.hand <=2 then
     OneBuff(player, my_idx, buff):apply()
@@ -93,6 +94,7 @@ local blue_cross_skill = function(player, my_idx, my_card, skill_idx, buff)
     my_card:remove_skill(skill_idx)
   end
 end,
+
 
 skill_func = {
 ["refresh"] = refresh,
@@ -652,11 +654,11 @@ end,
 -- council maron, dress up!
 [1058] = function(player, my_idx, my_card)
   return dressup_skill(300143, player, my_idx) end,
-  
+
 -- dressup maron, heartful catch!
 [1059] = function(player, my_idx, my_card, skill_idx, other_idx)
   return heartful_catch(300143, player, my_idx, other_idx, "-") end,
-  
+
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
   local grave_targets = shuffle(player:grave_idxs_with_preds({function(card) return true end}))
@@ -758,7 +760,7 @@ end,
 -- scardel elder barbera, elder scroll
 -- todo: test this
 [1071] = function(player, my_idx, my_card, skill_idx)
-  if my_card.faction = player.character.faction then
+  if my_card.faction == player.character.faction then
     local target_idx = player:grave_idxs_with_most_and_preds(
       pred.size, {pred.follower, pred.faction.D})[1]
     if target_idx then
@@ -1097,6 +1099,52 @@ end,
 [1102] = function(player, my_idx)
   OneBuff(player, my_idx, {def={"=",2}}):apply()
 end,
+
+-- lib. evenne, 2s agent thirteen, blue cross ferris, crescent aligote, no negligence
+[1103] = function(player, my_idx, my_card, skill_idx)
+  if player.character.faction == my_card.faction then
+    OneBuff(player.opponent, 0, {life={"-",1}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- lib. serie, mascara
+[1104] = function(player, my_idx, my_card, skill_idx)
+  if #player.hand < 5 then
+    local deck_target_idx = player:deck_idxs_with_preds({pred.lib})[1]
+    if deck_target_idx then
+      player:deck_to_hand(deck_target_idx)
+      my_card:remove_skill_until_refresh(skill_idx)
+    end
+  end
+end,
+
+-- lib. milka, guitar!
+[1105] = function(player, my_idx, my_card, skill_idx)
+  local target_idx = player:field_idxs_with_preds({pred.lib, pred.follower})[1]
+  OneBuff(player, target_idx, {sta={"+",2}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- lib. h.l. tezina, i'll help you.
+[1106] = function(player, my_idx, my_card, skill_idx)
+  if player.character.faction == "V" then
+    local lib_target = uniformly(player:hand_idxs_with_preds({pred.V, pred.lib}))
+    local other_target = player:hand_idxs_with_preds({pred.V, function(card) return not pred.lib(card) end})[1]
+    if lib_target and other_target then
+      player:hand_to_bottom_deck(lib_target)
+      other_target = uniformly(player:hand_idxs_with_preds({pred.V, function(card) return not pred.lib(card) end}))
+      player:hand_to_bottom_deck(other_target)
+      local enemy_target = uniformly(player.opponent:field_idxs_with_preds({function(card) return true end)})
+      if enemy_target then
+        player.opponent:field_to_bottom_deck(enemy_target)
+      end
+      my_card:remove_skill(skill_idx)
+    end
+  end
+end,
+
+-- 
 
 }
 

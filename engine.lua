@@ -77,9 +77,7 @@ function Player:untap_phase()
 end
 
 function Player:upkeep_phase()
-  local slot_order = shuffle({[0]=0,1,2,3,4,5})
-  for i=0,5 do
-    local idx = slot_order[i]
+  for idx=0,5 do
     local card = self.field[idx]
     if card then
       for skill_idx,skill_id in ipairs(card.skills or {}) do
@@ -191,6 +189,7 @@ end
 
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
+  self.grave[#self.grave]:reset()
 end
 
 function Player:mill(n)
@@ -202,7 +201,17 @@ end
 
 function Player:deck_to_field(n)
   local card = table.remove(self.deck, n)
-  self.field[self:first_empty_field_idx()] = card
+  self.field[self:first_empty_field_slot()] = card
+end
+
+function Player:deck_to_hand(n)
+  local card = table.remove(self.deck, n)
+  self.hand[#self.hand + 1] = card
+  card.active = true
+
+function Player:hand_to_field(n)
+  local card = table.remove(self.hand, n)
+  self.field[self:first_empty_field_slot()] = card
 end
 
 function Player:has_follower()

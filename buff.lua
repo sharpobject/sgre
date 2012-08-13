@@ -130,6 +130,7 @@ for v in pairs(groups) do
 end
 pred.active = function(card) return card.active end
 pred.skill = function(card) return #card.skills ~= 0 end
+pred.neg = function(func) return function(card) return not func(card) end end
 
 pred.t = function() return true end
 pred.f = function() return false end
