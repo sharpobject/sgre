@@ -3206,5 +3206,15 @@ end,
   player:to_bottom_deck(Card(300194))
   player:to_bottom_deck(Card(300346))
 end,
+
+-- steparu
+[200440] = function(player, opponent, my_idx, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    opponent.field[target].active = false
+    opponent.field[target]:gain_skill(1175)
+    opponent.field[target]:gain_skill(1408)
+  end
+end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})

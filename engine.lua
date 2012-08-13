@@ -509,7 +509,8 @@ function Player:follower_combat_round(idx, target_idx)
       if defender.type == "follower" then
         for skill_idx=1,3 do
           local skill_id = attacker.skills[skill_idx]
-          if skill_id and skill_id_to_type[skill_id] == "attack" then
+          if attack_player.field[attack_idx] == attacker and
+              skill_id and skill_id_to_type[skill_id] == "attack" then
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, defender)
             self.game:clean_dead_followers()
@@ -522,7 +523,8 @@ function Player:follower_combat_round(idx, target_idx)
       if defender.type == "follower" then
         for skill_idx=1,3 do
           local skill_id = defender.skills[skill_idx]
-          if skill_id and skill_id_to_type[skill_id] == "defend" then
+          if defend_player.field[defend_idx] == defender and
+              skill_id and skill_id_to_type[skill_id] == "defend" then
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, attacker)
             self.game:clean_dead_followers()
