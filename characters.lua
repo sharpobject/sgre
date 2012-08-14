@@ -162,4 +162,14 @@ end,
    buff:apply()
 end,
 
+--Dress Iri
+[100013] = function(player)
+   if #player.hand == 0 then
+      return
+   end
+   if (player.character.life + player.hand[1].size)%2 == 0 then
+      OneBuff(player,0,{life={"+",3}}):apply()
+   end
+end,
+
 }
