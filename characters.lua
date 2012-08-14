@@ -126,21 +126,15 @@ end,
    if #target_idxs == 0 then
       return
    end
+   local max_size
    if #player.hand == 0 then
-      local max_size = 0
+      max_size = 0
    elseif #player.hand == 1 then
-      local max_size = player.hand[1].size
+      max_size = player.hand[1].size
    else
-      local max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
+      max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
    end
-   local buff = OnePlayerBuff(player.opponent)
-   for _,i in ipairs(target_idxs) do
-      if player.opponent.field[i].size <= max_size then
-	 buff[i] = {atk={"-",2},def={"-",2},sta={"-",2}}
-	 buff:apply()
-	 return
-      end
-   end
+   OneBuff(player.opponent,target_idxs[1],{atk={"-",2},def={"-",2},sta={"-",2}}):apply()
 end,
 
 --Dress Luthica
@@ -171,5 +165,55 @@ end,
       OneBuff(player,0,{life={"+",3}}):apply()
    end
 end,
+
+--Dress Vernika
+[100014] = function(player)
+   local followers = player:get_follower_idxs()
+   local target_idxs = {}
+   for _,i in ipairs(followers) do
+      if player.field[i].size > 1 then
+	 table.insert(target_idxs,i)
+      end
+   end
+   if #target_idxs == 0 then
+      return
+   end
+   if #player.hand > 1 then
+      local size_diff = math.abs(player.hand[1].size - player.hand[2].size)
+      OneBuff(player,uniformly(target_idxs),{size={"-",size_diff}}):apply()
+   end
+end,
+
+--Kendo Sita
+[100015] = function(player)
+   if #player.opponent:get_follower_idxs() == 0 then
+      return
+   end
+   if not player.opponent.field[3] then
+      local old_card_idx = uniformly(player.opponent:get_follower_idxs())
+      local card = player.opponent.field[old_card_idx]
+      player.opponent.field[3] = card
+      player.opponent.field[old_card_idx] = nil
+   end
+   OneBuff(player.opponent,3,{sta={"-",3}}):apply()
+end,
+
+--Chess Cinia
+[100016] = function(player)
+   if #player:get_follower_idxs() == 0 or #player.opponent:get_follower_idxs() == 0 then
+      return
+   end
+   local target_idx = player.opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
+   local followers = player:get_follower_idxs()
+   local buff_size = 0
+   if player.field[4] then
+      buff_size = math.ceil((player.field[followers[1]].size + player.field[4].size)/2)
+   else
+      buff_size = math.ceil(player.field[followers[1]].size/2)
+   end
+   OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
+end,
+
+
 
 }
