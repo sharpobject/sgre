@@ -99,6 +99,7 @@ end,
 	 if target_idxs[i] then
 	    buff[target_idxs[i]] = {sta={"-",1}}
 	 end
+      end
    else
       local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V}))
       buff[target_idx] = {atk={"-",2},sta={"-",2}}
@@ -117,6 +118,29 @@ end,
       buff[followers[1]] = {sta={"-",2}}
    end
    buff:apply()
+end,
+
+--Dress Cinia
+[100011] = function(player)
+   local followers = player.opponent:field_idxs_with_preds(pred.follower)
+   if #followers == 0 then
+      return
+   end
+   if #player.hand == 0 then
+      local max_size = 0
+   elseif #player.hand == 1 then
+      local max_size = player.hand[1].size
+   else
+      local max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
+   end
+   local buff = OnePlayerBuff(player.opponent)
+   for _,i in ipairs(followers) do
+      if player.opponent.field[i].size <= max_size then
+	 buff[i] = {atk={"-",2},def={"-",2},sta={"-",2}}
+	 buff:apply()
+	 return
+      end
+   end
 end,
 
 }
