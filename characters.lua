@@ -90,18 +90,18 @@ end,
 
 --Gart
 [100009] = function(player)
-   local num_follower = #player.opponent:field_idxs_with_preds(pred.follower)
+   local num_follower = #player.opponent:get_follower_idxs()
    local num_vita = #player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V})
    local buff = OnePlayerBuff(player.opponent)
    if num_follower==num_vita then
-      local target_idxs = shuffle(player.opponent:field_idxs_with_preds(pred.follower))
+      local target_idxs = shuffle(player.opponent:get_follower_idxs())
       for i=1,2 do
 	 if target_idxs[i] then
 	    buff[target_idxs[i]] = {sta={"-",1}}
 	 end
       end
    else
-      local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V}))
+      local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.faction.V)))
       buff[target_idx] = {atk={"-",2},sta={"-",2}}
    end
    buff:apply()
@@ -109,9 +109,9 @@ end,
 
 --Dress Sita
 [100010] = function(player)
-   local followers = player.opponent:field_idxs_with_preds(pred.follower)
+   local target_idxs = player.opponent:get_follower_idxs()
    local buff = OnePlayerBuff(player.opponent)
-   if #followers > 1 then
+   if #target_idxs > 1 then
       local target_idx = player.opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
       buff[target_idx] = {atk={"-",2},def={"-",1},sta={"-",2}}
    elseif #followers == 1 then
@@ -122,8 +122,8 @@ end,
 
 --Dress Cinia
 [100011] = function(player)
-   local followers = player.opponent:field_idxs_with_preds(pred.follower)
-   if #followers == 0 then
+   local target_idxs = player.opponent:get_follower_idxs()
+   if #target_idxs == 0 then
       return
    end
    if #player.hand == 0 then
@@ -134,13 +134,32 @@ end,
       local max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
    end
    local buff = OnePlayerBuff(player.opponent)
-   for _,i in ipairs(followers) do
+   for _,i in ipairs(target_idxs) do
       if player.opponent.field[i].size <= max_size then
 	 buff[i] = {atk={"-",2},def={"-",2},sta={"-",2}}
 	 buff:apply()
 	 return
       end
    end
+end,
+
+--Dress Luthica
+[100012] = function(player)
+   local target_idxs = player:get_follower_idxs()
+   if #player.hand < 2 or #target_idxs == 0 then
+      return
+   end
+   local buff = OnePlayerBuff(player)
+   if math.abs(player.hand[1].size - player.hand[2].size)%2 == 1 then
+      for _,i in ipairs(target_idxs) do
+	 buff[i] = {sta={"+",2}}
+      end
+   else
+      for _,i in ipairs(target_idxs) do
+	 buff[i] = {atk={"+",2}}
+      end
+   end
+   buff:apply()
 end,
 
 }
