@@ -2797,6 +2797,12 @@ end,
 
 -- rio's ward
 [200255] = function(player, opponent, my_idx, my_card)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"+",4},sta={"+",4}}
+  end
+  buff:apply()
 end,
 
 -- original reader

@@ -252,11 +252,6 @@ function Player:field_to_grave(n)
   self.field[n] = nil
 end
 
-function Player:field_to_exile(n)
-  self.exile[#self.exile + 1] = self.field[n]
-  self.field[n] = nil
-end
-
 function Player:destroy(n)
   if self.field[n].type == "follower" then
     self.character.life = self.character.life - self.field[n].size

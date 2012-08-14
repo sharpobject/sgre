@@ -1462,6 +1462,179 @@ end,
   OneBuff(player, my_idx, {atk={"+",buffsize}}):apply()
 end,
 
+-- lib. explorer rea
+[1220] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:grave_idxs_with_preds(pred.lib))
+  if target then
+    player:grave_to_bottom_deck(target)
+  end
+end,
+
+-- lib. explorer kamit
+[1221] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local n = 0
+  for i=1,min(4,#player.deck) do
+    if pred.lib(player.dec[i]) then
+      n = n + 1
+    end
+  end
+  OneBuff(player, my_idx, {atk={"+",floor(n/2)},sta={"+",n}}):apply()
+end,
+
+-- council press lyrica
+[1222] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    if other_card.atk <= #player:grave_idxs_with_preds(pred.follower, pred.V) then
+      opponent:field_to_grave(other_idx)
+    end
+  end
+end,
+
+-- dd lady tomo
+[1224] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local n = #player:hand_idxs_with_preds(pred.lady) + #player:field_idxs_with_preds(
+      pred.lady, function(card) return card ~= my_card end)
+  OneBuff(player, my_idx, {atk={"+",floor(n/2)},sta={"+",n}}):apply()
+end,
+
+-- witch cadet zislana
+[1225] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {sta={"+",1}}
+  for _,idx in ipairs(player:hand_idxs_with_preds(pred.follower, pred.witch)) do
+    buff.hand[player][idx] = {sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- magic lady chirushi
+[1226] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local n = #player:field_idxs_with_preds(pred.lady) + #player:hand_idxs_with_preds(pred.lady)
+  if n >= 2 and n <= 3 then
+    OneBuff(player, my_idx, {atk={"+",3},sta={"+",3}}):apply()
+  elseif n >= 5 then
+    local buff = OnePlayerBuff(player.opponent)
+    local targets = player.opponent:field_idxs_with_preds(pred.follower)
+    for _,idx in ipairs(targets) do
+      buff[idx] = {atk={"-",2},sta={"-",2}}
+    end
+    buff:apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+--
+[1227] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1228] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1229] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1230] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1231] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1232] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1233] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1234] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1236] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1238] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1239] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1240] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1241] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1242] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1243] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1244] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1245] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1246] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1247] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1248] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1249] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1250] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1251] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1252] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1253] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1254] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1255] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
+--
+[1256] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+end,
+
 -- attack charge
 [1257] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
