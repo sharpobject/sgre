@@ -238,6 +238,10 @@ function Player:deck_to_field(n)
   self.field[self:first_empty_field_slot()] = card
 end
 
+function Player:hand_to_exile(n)
+  local card = table.remove(self.hand, n)
+end
+
 function Player:hand_to_field(n)
   local card = table.remove(self.hand, n)
   self.field[self:first_empty_field_slot()] = card
