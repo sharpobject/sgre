@@ -11,9 +11,6 @@ Card = class(function(self, id, upgrade_lvl)
 
 function Card:remove_skill(skill_idx)
   self.skills[skill_idx] = nil
-  for i=skill_idx,2 do
-    self.skills[i] = self.skills[i+1]
-  end
 end
 
 function Card:refresh()
@@ -24,10 +21,35 @@ function Card:remove_skill_until_refresh(skill_idx)
   self.skills[skill_idx] = "refresh"
 end
 
-function Card:gain_skill(skill_id)
-  if #self.skills < 3 then
-    self.skills[#self.skills+1] = skill_id
+function Card:first_empty_skill_slot()
+  for i=1,3 do
+    if not self.skills[i] then
+      return i
+    end
   end
+end
+
+function Card:first_skill_idx()
+  for i=1,3 do
+    if self.skills[i] then
+      return i
+    end
+  end
+end
+
+function Card:gain_skill(skill_id)
+  local slot = self:first_empty_skill_slot()
+  if slot then
+    self.skills[slot] = skill_id
+  end
+end
+
+function Card:squished_skills()
+  local t = {}
+  for i=1,3 do
+    t[#t+1] = self.skills[i]
+  end
+  return t
 end
 
 function Card:reset()
@@ -35,7 +57,10 @@ function Card:reset()
     self[k] = deepcpy(v)
   end
   --TODO: apply upgrade
+  return self
 end
+
+local grave_mt = {__newindex=function(table, key, value) rawset(table, key, value:reset()) end}
 
 Player = class(function(self, side, deck)
     deck = shallowcpy(deck)
@@ -64,6 +89,7 @@ Player = class(function(self, side, deck)
     self.field = {}
     self.field[0] = self.character
     self.grave = {}
+    setmetatable(self.grave, grave_mt)
     self.exile = {}
     self.shuffles = 9000
   end)
@@ -80,8 +106,10 @@ function Player:upkeep_phase()
   for idx=0,5 do
     local card = self.field[idx]
     if card then
-      for skill_idx,skill_id in ipairs(card.skills or {}) do
-        if skill_id_to_type[skill_id] == "start" then
+      local skills = card.skills or {}
+      for skill_idx = 1,3 do
+        local skill_id = skills[skill_idx]
+        if skill_id and skill_id_to_type[skill_id] == "start" then
           skill_func[skill_id](self, idx, card, skill_idx)
         end
       end
@@ -141,6 +169,10 @@ function Player:grave_to_bottom_deck(n)
   self:to_bottom_deck(table.remove(self.grave,n))
 end
 
+function Player:grave_to_field(n)
+  self.field[self:first_empty_field_slot()]=table.remove(self.grave,n)
+end
+
 function Player:field_to_exile(n)
   self.exile[#self.exile+1] = self.field[n]
   self.field[n] = nil
@@ -171,7 +203,6 @@ end
 -- discards the card at index n
 function Player:hand_to_grave(n)
   self.grave[#self.grave + 1] = self.hand[n]
-  self.grave[#self.grave]:reset()
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
@@ -187,9 +218,12 @@ function Player:field_to_top_deck(n)
   self.field[n] = nil
 end
 
+function Player:deck_to_hand(n)
+  self.hand[#self.hand + 1] = table.remove(self.deck, n)
+end
+
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
-  self.grave[#self.grave]:reset()
 end
 
 function Player:mill(n)
@@ -204,6 +238,10 @@ function Player:deck_to_field(n)
   self.field[self:first_empty_field_slot()] = card
 end
 
+function Player:hand_to_exile(n)
+  local card = table.remove(self.hand, n)
+end
+
 function Player:hand_to_field(n)
   local card = table.remove(self.hand, n)
   self.field[self:first_empty_field_slot()] = card
@@ -215,13 +253,6 @@ end
 
 function Player:field_to_grave(n)
   self.grave[#self.grave + 1] = self.field[n]
-  self.grave[#self.grave]:reset()
-  self.field[n] = nil
-end
-
-function Player:field_to_exile(n)
-  self.exile[#self.exile + 1] = self.field[n]
-  self.exile[#self.exile]:reset()
   self.field[n] = nil
 end
 
@@ -254,7 +285,7 @@ end
 
 function Player:grave_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -272,7 +303,7 @@ end
 
 function Player:hand_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -292,7 +323,7 @@ end
 
 function Player:field_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -312,7 +343,7 @@ end
 
 function Player:deck_idxs_with_preds(...)
   local preds = {...}
-  if type(preds[1] == "table") then
+  if type(preds[1]) == "table" then
     preds = preds[1]
   end
   local ret = {}
@@ -320,7 +351,7 @@ function Player:deck_idxs_with_preds(...)
     if self.deck[i] then
       local incl = true
       for j=1,#preds do
-        incl = incl and preds[j](self.field[i])
+        incl = incl and preds[j](self.deck[i])
       end
       if incl then
         ret[#ret+1] = i
@@ -475,12 +506,13 @@ function Player:follower_combat_round(idx, target_idx)
       local defender = defend_player.field[defend_idx]
 
       if defender.type == "follower" then
-        for skill_idx,skill_id in ipairs(attacker.skills) do
-          if skill_id_to_type[skill_id] == "attack" then
+        for skill_idx=1,3 do
+          local skill_id = attacker.skills[skill_idx]
+          if attack_player.field[attack_idx] == attacker and
+              skill_id and skill_id_to_type[skill_id] == "attack" then
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, defender)
             self.game:clean_dead_followers()
-            if self.game.combat_round_interrupted then print("bail on attack skill") return end
           end
         end
       end
@@ -488,12 +520,13 @@ function Player:follower_combat_round(idx, target_idx)
       if self.game.combat_round_interrupted then print("bail that shouldn't happen 1")return end
 
       if defender.type == "follower" then
-        for skill_idx,skill_id in ipairs(defender.skills) do
-          if skill_id_to_type[skill_id] == "defend" then
+        for skill_idx=1,3 do
+          local skill_id = defender.skills[skill_idx]
+          if defend_player.field[defend_idx] == defender and
+              skill_id and skill_id_to_type[skill_id] == "defend" then
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, attacker)
             self.game:clean_dead_followers()
-            if self.game.combat_round_interrupted then print("bail on defend skill") return end
           end
         end
       end

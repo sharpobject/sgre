@@ -7,8 +7,8 @@ require("queue")
 require("globals")
 require("engine")
 require("cards")
-require("skills")
 require("buff")
+require("skills")
 require("spells")
 require("input")
 require("graphics")
@@ -21,6 +21,7 @@ function love.load()
   math.randomseed(os.time())
   for i=1,4 do math.random() end
   cards_init()
+  groups_init()
   graphics_init() -- load images and set up stuff
   mainloop = coroutine.create(fmainloop)
 end
