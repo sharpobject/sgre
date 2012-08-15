@@ -301,7 +301,7 @@ end,
    if #player.hand == 0 or #my_followers == 0 then
       return
    end
-   if player.hand[1].faction == "C" and #player.field == #player:field_idxs_with_preds(pred.C) then
+   if player.hand[1].faction == "C" and #my_followers == #player:field_idxs_with_preds({pred.follower, pred.C}) then
       OneBuff(player,uniformly(my_followers),{atk={"+",2},sta={"+",2}}):apply()
    end
 end,
