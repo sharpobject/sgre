@@ -214,6 +214,45 @@ end,
    OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
 end,
 
+--Sports Luthica
+[100017] = function(player)
+   if player.field[5] and not player.field[1] then
+      local card = player.field[5]
+      player.field[1] = card
+      player.field[5] = nil
+      OneBuff(player,1,{sta={"+",5}}):apply()
+   elseif player.field[1] and not player.field[5] then
+      local card = player.field[1]
+      player.field[5] = card
+      player.field[1] = nil
+      OneBuff(player,5,{sta={"+",5}}):apply()
+   end
+end,
 
+--Cheerleader Iri
+[100018] = function(player)
+   local target_idxs = {}
+   for i=1,5 do
+      if player.hand[i] then
+	 if player.hand[i].size > 1 then
+	    target_idxs[#target_idxs+1] = i
+	 end
+      end
+   end
+   OneBuff(player,uniformly(target_idxs),{size={"-",1}}):apply()
+end,
+
+--Team Manager Vernika
+[100019] = function(player)
+   local hand_size = #player.hand
+   if hand_size < 4 then
+      for i=1,hand_size do
+	 player.hand_to_bottom_deck(1)
+      end
+      local buff_size = math.ceil(hand_size/2)
+      local target_idx = uniformly(player.field:get_follower_idxs())
+      OneBuff(player,target_idx,{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+   end
+end,
 
 }
