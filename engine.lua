@@ -78,16 +78,10 @@ Player = class(function(self, side, deck)
     end
     assert(side == "left" or side == "right")
     self.side = side
-    assert(#deck == 31)
-    print(deck[31])
     map_inplace(function(x) if type(x) == "number" then return x end return x.id end, deck)
-    print(deck[31])
     table.sort(deck, function(a,b) return a>b end)
-    assert(deck[31] < 200000)
-    assert(deck[30] >= 200000)
-    print(deck[31])
-    self.character = Card(deck[31])
-    deck[31] = nil
+    self.character = Card(deck[#deck])
+    deck[#deck] = nil
     self.deck = map(Card, deck)
     shuffle(self.deck)
     self.hand = {}
@@ -117,7 +111,11 @@ function Player:upkeep_phase()
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
           print("About to run skill func for id "..skill_id)
-          skill_func[skill_id](self, idx, card, skill_idx)
+          if type(skill_id) == "number" and skill_id >= 100000 then
+            characters_func[skill_id](self, idx, card, skill_idx)
+          else
+            skill_func[skill_id](self, idx, card, skill_idx)
+          end
         end
       end
     end
