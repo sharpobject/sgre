@@ -421,7 +421,7 @@ end,
    if #target_idxs == 0 then
       return
    end
-   local crux_cards = #player.opponent:field_idxs_with_preds(pred.C) + #player.opponent:hand_idsx_with_preds(pred.C)
+   local crux_cards = #player.opponent:field_idxs_with_preds(pred.C) + #player.opponent:hand_idxs_with_preds(pred.C)
    local non_crux_cards = player.opponent:field_size() + #player.opponent.hand - crux_cards
    OneBuff(player,uniformly(target_idxs),{sta={"+",math.max(crux_cards, non_crux_cards)}}):apply()
 end,
@@ -433,7 +433,7 @@ end,
    end
    local diff_factions = false
    if #player.opponent:field_size() > 0 then
-      local field_idxs = player.opponent.field:field_idxs_with_preds(pred.size)
+      local field_idxs = player.opponent:field_idxs_with_preds(pred.size)
       local faction1 = player.opponent.field[field_idxs[1]].faction
       for _,i in field_idxs do
 	 if player.opponent.field[i].faction ~= faction1 then
