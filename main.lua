@@ -24,6 +24,20 @@ function love.load()
   for i=1,4 do math.random() end
   graphics_init() -- load images and set up stuff
   mainloop = coroutine.create(fmainloop)
+
+  local t = {}
+  for k,v in pairs(skill_func) do
+    if (not rawget(skill_id_to_type, k)) then
+      t[#t+1] = k
+    end
+  end
+  table.sort(t)
+  for _,k in ipairs(t) do
+    print(k)
+  end
+  if #t > 0 then
+    error("some skills lack types")
+  end
 end
 
 --[[local char_ids = {}
