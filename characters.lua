@@ -399,7 +399,7 @@ end,
 
 -- lig nijes
 [100075] = function(player)
-  local life = player.opponent.life
+  local life = player.opponent.character.life
   if 26 <= life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   elseif 16 <= life and life <= 20 then
@@ -411,7 +411,7 @@ end,
 
 -- anj inyghem
 [100088] = function(player)
-  local life = player.opponent.life
+  local life = player.opponent.character.life
   if 31 <= life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   elseif 20 <= life and life <= 25 then
@@ -431,7 +431,7 @@ end,
 
 -- swimsuit iri
 [100093] = function(player)
-  if player.life < player.opponent.life then
+  if player.character.life < player.opponent.character.life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   else
     OneBuff(player, 0, {life={"+",1}}):apply()
