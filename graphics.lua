@@ -79,13 +79,17 @@ function graphics_init()
 end
 
 function draw_card(card, x, y, text)
-  if not IMG_card[card.id] then
-    IMG_card[card.id], IMG_gray_card[card.id] = load_img("swordgirlsimages/"..card.id.."L.jpg")
+  local id = card.id
+  if card.hidden then
+    id = 200099
+  end
+  if not IMG_card[id] then
+    IMG_card[id], IMG_gray_card[id] = load_img("swordgirlsimages/"..id.."L.jpg")
   end
   if card.type == "character" or card.active then
-    draw(IMG_card[card.id], x, y, 0, card_scale, card_scale)
+    draw(IMG_card[id], x, y, 0, card_scale, card_scale)
   else
-    draw(IMG_gray_card[card.id], x, y, 0, card_scale, card_scale)
+    draw(IMG_gray_card[id], x, y, 0, card_scale, card_scale)
   end
   local card_width = card_width
   local card_height = card_height
@@ -93,7 +97,7 @@ function draw_card(card, x, y, text)
   local gray_shit_x = x+40
   local gray_shit_width = card_width - 40
   local middle = y+(card_height-gray_shit_height)/2
-  if card.size then
+  if card.size and not card.hidden then
     set_color(28,28,28)
     grectangle("fill",gray_shit_x,y,
       gray_shit_width, gray_shit_height)
@@ -107,26 +111,28 @@ function draw_card(card, x, y, text)
     set_color(255,255,255)
     gprintf(text, x, middle+3, card_width, "center")
   end
-  if card.type == "follower" then
-    set_color(28,28,28)
-    grectangle("fill",x,y + card_height - gray_shit_height,
-      card_width, gray_shit_height)
-    set_color(255, 255, 255)
-    gprintf(card.atk, x, y+80, card_width/3, "center")
-    gprintf(card.def, x+card_width/3, y+80, card_width/3, "center")
-    gprintf(card.sta, x+2*card_width/3, y+80, card_width/3, "center")
-    set_color(255,50,50)
-  elseif card.type == "spell" then
-    set_color(50,50,255)
-  else
-    set_color(28,28,28)
-    grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.life, gray_shit_x, y+80, gray_shit_width, "center")
-    set_color(180,50,180)
+  if not card.hidden then
+    if card.type == "follower" then
+      set_color(28,28,28)
+      grectangle("fill",x,y + card_height - gray_shit_height,
+        card_width, gray_shit_height)
+      set_color(255, 255, 255)
+      gprintf(card.atk, x, y+80, card_width/3, "center")
+      gprintf(card.def, x+card_width/3, y+80, card_width/3, "center")
+      gprintf(card.sta, x+2*card_width/3, y+80, card_width/3, "center")
+      set_color(255,50,50)
+    elseif card.type == "spell" then
+      set_color(50,50,255)
+    else
+      set_color(28,28,28)
+      grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
+        gray_shit_width, gray_shit_height)
+      set_color(255,255,255)
+      gprintf(card.life, gray_shit_x, y+80, gray_shit_width, "center")
+      set_color(180,50,180)
+    end
+    grectangle("line",x,y,card_width, card_height)
   end
-  grectangle("line",x,y,card_width, card_height)
   set_color(255,255,255)
 end
 
@@ -181,17 +187,18 @@ end
 function Game:draw()
   self.P1:draw()
   self.P2:draw()
-  gprint("turn "..self.turn, 300, 370)
+  gprint("deck "..#self.P1.deck.."      grave "..#self.P1.grave.."      turn "..self.turn, 168, 370)
   gprint("ready", 420, 430)
   gprint("shuffle ("..self.P1.shuffles..")", 420, 467)
-  gprint(self.time_remaining.."s", 490, 450)
+  gprint(self.time_remaining.."s", 490, 467 - 1 * 30)
+  gprint("size "..self.P1:field_size().."/10", 475, 467 - 2 * 30)
   if self.act_buttons then
-    make_button(function() self.ready = true end, 415, 400, 50, 60)
-    make_button(function() self.P1:attempt_shuffle() end, 415, 465, 50, 20)
+    make_button(function() self.ready = true end, 415, 400, 50, 60, true)
+    make_button(function() self.P1:attempt_shuffle() end, 415, 465, 50, 20, true)
   end
 end
 
-function Button:draw_outline()
-  set_color(200, 120, 120)
+function Button:draw_outline(...)
+  set_color(...)
   grectangle("line", self.x1, self.y1, self.w, self.h)
 end

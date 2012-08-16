@@ -3055,6 +3055,43 @@ end,
   end
 end,
 
+-- ominous sky
+[200224] = function(player, opponent, my_idx, my_card)
+  local my_guys = shuffle(player:field_idxs_with_preds(pred.follower))
+  local op_guys = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  if #my_guys > 0 then
+    local buff = GlobalBuff(player)
+    for i=1,min(2,#my_guys) do
+      buff.field[player][i] = {def={"+",1}}
+    end
+    for i=1,min(2,#op_guys) do
+      buff.field[opponent][i] = {atk={"-",2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- string of emotion
+[200231] = function(player, opponent, my_idx, my_card)
+  local target = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
+  if target then
+    OneBuff(player, target, {size={"+",2},atk={"+",2},def={"+",2},sta={"+",2}}):apply()
+  end
+end,
+
+-- fellowship
+[200232] = function(player, opponent, my_idx, my_card)
+  if #player:field_idxs_with_preds(pred.follower) > 0 then
+    local buff = GlobalBuff(player)
+    for _,p in ipairs({player, opponent}) do
+      for _,idx in ipairs(p:field_idxs_with_preds(pred.follower, pred.neg(pred.C))) do
+        buff.field[p][idx] = {sta={"-",3}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
 -- sita's suit
 [200239] = sitas_suit(pred.sita),
 
@@ -3259,18 +3296,41 @@ end,
 
 -- original reader
 [200256] = function(player, opponent, my_idx, my_card)
+  local spells = opponent:deck_idxs_with_preds(pred.spell)
+  for i=1,min(5-#opponent.hand, #spells) do
+    opponent:deck_to_hand(spells[i])
+  end
 end,
 
 -- awakened lady
 [200257] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {sta={"-",4}}
+  end
+  buff:apply()
 end,
 
 -- meltdown
 [200258] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {def={"-",5}}
+  end
+  buff:apply()
 end,
 
 -- restored origins
 [200259] = function(player, opponent, my_idx, my_card)
+  local buff = GlobalBuff(player)
+  for _,p in ipairs({player, opponent}) do
+    for _,idx in ipairs(p:field_idxs_with_preds()) do
+      buff.field[p][idx] = {size={"=",1}}
+    end
+  end
+  buff:apply()
 end,
 
 -- sage's slipper

@@ -96,7 +96,7 @@ Player = class(function(self, side, deck)
     self.grave = {}
     setmetatable(self.grave, grave_mt)
     self.exile = {}
-    self.shuffles = 9000
+    self.shuffles = 2
   end)
 
 function Player:untap_phase()
@@ -213,11 +213,6 @@ function Player:hand_to_grave(n)
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
-end
-
-function Player:hand_to_exile(n)
-  self.exile[#self.exile+1] = table.remove(self.hand, n)
-  self.exile[#self.exile]:reset()
 end
 
 function Player:field_to_bottom_deck(n)
@@ -467,8 +462,10 @@ end
 
 function Player:ai_act()
   for i=1,3 do
-    if self:can_play_card(1) then
-      self:play_card(1)
+    idx = math.random(#self.hand)
+    if self:can_play_card(idx) then
+      self.hand[idx].hidden = true
+      self:play_card(idx)
     end
   end
 end
@@ -483,6 +480,11 @@ function Player:user_act()
       self.game.ready = true
     end
     wait()
+  end
+  for i=1,5 do
+    if self.opponent.field[i] then
+      self.opponent.field[i].hidden = false
+    end
   end
   self.game.act_buttons = false
 end

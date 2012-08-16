@@ -7,7 +7,7 @@ function love.mousepressed(x,y,which)
   end
 end
 
-Button = class(function(self,cb,x,y,w,h)
+Button = class(function(self,cb,x,y,w,h,always)
     self.cb = cb
     self.x1 = x
     self.x2 = x + w
@@ -15,6 +15,7 @@ Button = class(function(self,cb,x,y,w,h)
     self.y2 = y + h
     self.w = w
     self.h = h
+    self.always_outline = always
   end)
 
 function Button:contains(x,y)
@@ -29,8 +30,10 @@ function do_input()
       if mouse_down then
         button.cb()
       else
-        button:draw_outline()
+        button:draw_outline(200, 120, 120)
       end
+    elseif button.always_outline then
+      button:draw_outline(120, 120, 120)
     end
   end
   mouse_down = false
@@ -39,6 +42,6 @@ function do_input()
   buttons = {}
 end
 
-function make_button(cb, x,y,w,h)
-  buttons[#buttons+1] = Button(cb,x,y,w,h)
+function make_button(...)
+  buttons[#buttons+1] = Button(...)
 end
