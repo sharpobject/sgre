@@ -278,7 +278,10 @@ end,
 --Cheerleader Iri
 [100018] = function(player)
    if #player.hand > 0 then
-      OneBuff(player,math.random(#player.hand),{size={"-",1}}):apply()
+      local hand_idx = math.random(#player.hand)
+      local buff = GlobalBuff() --stolen from Tower of Books
+      buff.hand[player][hand_idx] = {size={"-",1}}
+      buff:apply()
    end
 end,
 
@@ -390,6 +393,97 @@ end,
    local buff_size = floor(1.5*player.field[target_idx].size)
    player:field_to_grave(target_idx)
    OneBuff(player.opponent,uniformly(nme_followers),{sta={"-",buff_size}}):apply()
+end,
+
+--Foreign Student Cinia
+[100026] = function(player)
+   local my_followers = player:get_follower_idxs()
+   if #my_followers == 0 or #player.hand == 0 then
+      return
+   end
+   local target_idx = uniformly(my_followers)
+   if pred.V(player.hand[1]) then
+      OneBuff(player,target_idx,{atk={"+",1},sta={"+",2}}):apply()
+   elseif pred.A(player.hand[1]) then 
+      OneBuff(player,target_idx,{sta={"+",3}}):apply()
+   elseif pred.C(player.hand[1]) then
+      OneBuff(player,target_idx,{def={"+",1}}):apply()
+   elseif pred.D(player.hand[1]) then
+      OneBuff(player,target_idx,{size={"-",2}}):apply()
+   end
+end,
+
+--Blue Reaper Luthica
+[100027] = function(player)
+   local target_idxs = player:field_idxs_with_preds(pred.follower, pred.C)
+   if #target_idxs == 0 then
+      return
+   end
+   local crux_cards = #player.opponent:field_idxs_with_preds(pred.C) + #player.opponent:hand_idsx_with_preds(pred.C)
+   local non_crux_cards = player.opponent:field_size() + #player.opponent.hand - crux_cards
+   OneBuff(player,uniformly(target_idxs),{sta={"+",math.max(crux_cards, non_crux_cards)}}):apply()
+end,
+
+--Lovestruck Iri
+[100028] = function(player)
+   if #player.hand == 0 or #player.opponent.hand + player.opponent:field_size() < 2 then
+      return
+   end
+   local diff_factions = false
+   if #player.opponent:field_size() > 0 then
+      local field_idxs = player.opponent.field:field_idxs_with_preds(pred.size)
+      local faction1 = player.opponent.field[field_idxs[1]].faction
+      for _,i in field_idxs do
+	 if player.opponent.field[i].faction ~= faction1 then
+	    diff_factions = true
+	    break
+	 end
+      end
+      if #player.hand > 0 then
+	 for i=1,#player.hand do
+	    if player.opponent.hand[i].faction ~= faction1 then
+	       diff_factions = true
+	       break
+	    end
+	 end
+      end
+   else
+      local faction1 = player.opponent.hand[1].faction
+      for i=2,#player.hand do
+	 if player.opponent.hand[i].faction ~= faction1 then
+	    diff_factions = true
+	    break
+	 end
+      end
+   end
+   if diff_factions then
+      local hand_idx = math.random(#player.hand)
+      local buff = GlobalBuff() 
+      buff.hand[player][hand_idx] = {size={"-",2}}
+      buff:apply()
+   end
+end,
+
+--Night Denizen Vernika
+[100029] = function(player)
+   local nme_followers = player.opponent:get_follower_idxs()
+   if #nme_followers == 0 then
+      return
+   end
+   local target_idx = uniformly(nme_followers)
+   OneBuff(player.opponent,target_idx,{sta={"-",3}}):apply()
+   OneBuff(player, 0, {life={"+",1}}):apply()
+end,
+
+--Thorn Witch Rose
+[100030] = function(player)
+   local nme_followers = player.opponent:get_follower_idxs()
+   if #nme_followers == 0 then
+      return
+   end
+   local target_idx = uniformly(nme_followers)
+   local buff_size = math.abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)
+   OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
 end,
 
 -- child laevateinn
