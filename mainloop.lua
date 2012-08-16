@@ -16,6 +16,16 @@ function fmainloop()
 end
 
 local str_to_deck = function(s)
+  local file, err = io.open(ABSOLUTE_PATH.."decks"..PATH_SEP..s..".txt", "r")
+  if file then
+    s = file:read("*a")
+    file:close()
+  else
+    file = love.filesystem.newFile("decks/"..s..".txt")
+    file:open("r")
+    s = file:read(file:getSize())
+  end
+
   s = s:sub(s:find("[%dDPC]+")):split("DPC")
   local t = {}
   t[1] = s[1] + 0
@@ -51,12 +61,8 @@ function main_select_boss()
 end
 
 function main_play(which)
-  local player_file = love.filesystem.newFile("decks/player.txt")
-  player_file:open("r")
-  local player = str_to_deck(player_file:read(player_file:getSize()))
-  local npc_file = love.filesystem.newFile("decks/floor"..which..".txt")
-  npc_file:open("r")
-  local npc = str_to_deck(npc_file:read(npc_file:getSize()))
+  local player = str_to_deck("player")
+  local npc = str_to_deck("floor"..which)
   game = Game(player, npc)
   game:run()
   --[[while true do

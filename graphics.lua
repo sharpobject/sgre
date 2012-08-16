@@ -1,5 +1,14 @@
 function load_img(s)
-  s = love.image.newImageData(s)
+  local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
+  local data
+  if file then
+    local contents = file:read("*a")
+    file:close()
+    local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
+    s = love.image.newImageData(data)
+  else
+    s = love.image.newImageData("swordgirlsimages/"..s)
+  end
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -27,7 +36,7 @@ do
     if status then
       return a,b,c,d
     end
-    return real_load_img("swordgirlsimages/200033L.jpg")
+    return real_load_img("200033L.jpg")
   end
 end
 
@@ -72,7 +81,7 @@ function graphics_init()
   IMG_gray_card = {}
   for _,v in ipairs({300249}) do
     IMG_card[v], IMG_gray_card[v], card_width, card_height =
-      load_img("swordgirlsimages/"..v.."L.jpg")
+      load_img(v.."L.jpg")
   end
   card_width = card_width * card_scale
   card_height = card_height * card_scale
@@ -84,7 +93,7 @@ function draw_card(card, x, y, text)
     id = 200099
   end
   if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img("swordgirlsimages/"..id.."L.jpg")
+    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
   end
   if card.type == "character" or card.active then
     draw(IMG_card[id], x, y, 0, card_scale, card_scale)

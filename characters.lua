@@ -33,14 +33,18 @@ end,
 [100002] = function(player)
    local target_idxs = player.opponent:get_follower_idxs()
    local target_idx = uniformly(target_idxs)
-   OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+   if target_idx then
+     OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+   end
 end,
 
 --Crux Knight Luthica
 [100003] = function(player)
    local target_idxs = player:field_idxs_with_preds(pred.C, pred.follower)
    local target_idx = uniformly(target_idxs)
-   OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
+   if target_idx then
+     OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
+   end
 end,
 
 --Runaway Iri Flina
@@ -55,18 +59,10 @@ end,
    if #player.hand == 0 then
       return
    end
-<<<<<<< HEAD
-=======
-
->>>>>>> e52ba099a0a71fd306dc889c6056fc143e1dc8ce
    local hand_idx = math.random(#player.hand)
    local buff = GlobalBuff() --stolen from Tower of Books
    buff.hand[player][hand_idx] = {size={"+",1}}
    buff:apply()
-<<<<<<< HEAD
-   local target_idx = uniformly(player.field_idxs_with_preds(pred.size))
-   OneBuff(player,target_idx,{size={"-",1}}):apply()
-=======
    --there's gotta be a better way to do this.  oh well.
    local pre_target_idxs = player:field_idxs_with_preds(pred.size)
    local target_idxs = {}
@@ -75,13 +71,14 @@ end,
 	 target_idxs[#target_idxs + 1] = i
       end
    end
-   local target_idx = target_idxs[math.random(#target_idxs)]
-   OneBuff(player,target_idx,{size={"-",1}}):apply()
+   local target_idx = uniformly(target_idxs)
+   if target_idx then
+     OneBuff(player,target_idx,{size={"-",1}}):apply()
+   end
 
    --fix this to use 18:33 sharpobject: local idx = uniformly(player.field_idxs_with_preds(function(card) return card.size >= 2 end))
    -- 18:33 sharpobject: then idx will be nil if there weren't any cards like that
 
->>>>>>> e52ba099a0a71fd306dc889c6056fc143e1dc8ce
 end,
 
 --Ginger
@@ -131,11 +128,14 @@ end,
 	    buff[target_idxs[i]] = {sta={"-",1}}
 	 end
       end
-   else
-      local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.V)))
+    end
+  else
+    local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.faction.V)))
+    if target_idx then
       buff[target_idx] = {atk={"-",2},sta={"-",2}}
-   end
-   buff:apply()
+    end
+  end
+  buff:apply()
 end,
 
 --Dress Sita
@@ -157,12 +157,14 @@ end,
 
 --Dress Cinia
 [100011] = function(player)
-   local nme_followers = player.opponent:get_follower_idxs()
-   if #nme_followers == 0 or #player.hand == 0then
+   local target_idxs = player.opponent:get_follower_idxs()
+   if #target_idxs == 0 then
       return
    end
    local max_size
-   if #player.hand == 1 then
+   if #player.hand == 0 then
+      max_size = 0
+   elseif #player.hand == 1 then
       max_size = player.hand[1].size
    else
       max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
@@ -263,12 +265,14 @@ end,
    local target_idxs = {}
    for i=1,5 do
       if player.hand[i] then
-	 if player.hand[i].size > 1 then
-	    target_idxs[#target_idxs+1] = i
-	 end
+         if player.hand[i].size > 1 then
+            target_idxs[#target_idxs+1] = i
+         end
       end
    end
-   OneBuff(player,uniformly(target_idxs),{size={"-",1}}):apply()
+   if #target_idxs > 0 then
+     OneBuff(player,uniformly(target_idxs),{size={"-",1}}):apply()
+   end
 end,
 
 --Team Manager Vernika
@@ -280,7 +284,9 @@ end,
       end
       local buff_size = math.ceil(hand_size/2)
       local target_idx = uniformly(player.field:get_follower_idxs())
-      OneBuff(player,target_idx,{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+      if target_idx then
+        OneBuff(player,target_idx,{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+      end
    end
 end,
 
@@ -300,7 +306,9 @@ end,
    end
    local def_lose = math.floor(player.hand[hand_idx].atk/2)
    local target_idx = uniformly(player.opponent:get_follower_idxs())
-   OneBuff(player.opponent,target_idx,{def={"-",def_lose}}):apply()
+   if target_idx then
+     OneBuff(player.opponent,target_idx,{def={"-",def_lose}}):apply()
+   end
 end,
 
 --Swimwear Cinia
@@ -361,7 +369,9 @@ end,
    end
    local new_size = math.abs(player.opponent.hand[1].size - player.opponent.hand[2].size)
    local target_idx = player:field_idx_with_most_and_preds(pred.size, {pred.follower})[1]
-   OneBuff(player,target_idx,{size={"=",new_size}}):apply()
+   if target_idx then
+     OneBuff(player,target_idx,{size={"=",new_size}}):apply()
+   end
 end,
 
 --Lightseeker Sita
@@ -411,7 +421,7 @@ end,
 
 -- lig nijes
 [100075] = function(player)
-  local life = player.opponent.life
+  local life = player.opponent.character.life
   if 26 <= life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   elseif 16 <= life and life <= 20 then
@@ -423,7 +433,7 @@ end,
 
 -- anj inyghem
 [100088] = function(player)
-  local life = player.opponent.life
+  local life = player.opponent.character.life
   if 31 <= life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   elseif 20 <= life and life <= 25 then
@@ -443,7 +453,7 @@ end,
 
 -- swimsuit iri
 [100093] = function(player)
-  if player.life < player.opponent.life then
+  if player.character.life < player.opponent.character.life then
     OneBuff(player.opponent, 0, {life={"-",2}}):apply()
   else
     OneBuff(player, 0, {life={"+",1}}):apply()
@@ -570,3 +580,4 @@ end,
   OneBuff(player, 0, {life={"+",8}}):apply()
 end,
 }
+setmetatable(characters_func, {__index = function()return function() end end})
