@@ -20,6 +20,12 @@ function cards_init()
     card.faction = in_card.faction[1]
     card.name = in_card.name
     card.id = in_card.id + 0
+    if card.type == "npc spell" then
+      card.type = "spell"
+    end
+    if card.type == "npc follower" then
+      card.type = "follower"
+    end
     if card.type == "follower" then
       card.atk = in_card.attack + 0
       card.def = in_card.defense + 0
