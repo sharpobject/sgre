@@ -87,6 +87,18 @@ local nold = {
 
 assert(#vr == 31)
 
+function str_to_deck(s)
+  s = s:sub(s:find("[%dDPC]+")):split("DPC")
+  local t = {}
+  t[1] = s[1] + 0
+  for i=2,#s,2 do
+    for j=1,s[i]+0 do
+      t[#t+1] = s[i+1]+0
+    end
+  end
+  return t
+end
+
 function main_gogogo()
   local func = function(s)
       if not name_to_ids[s] then return s end
@@ -96,6 +108,16 @@ function main_gogogo()
   local vrids = map(func,vr)
   local noldids = map(func,nold)
   for i=1,31 do print(vrids[i]) end
-  game = Game(vrids, nold)
+  local player_file = love.filesystem.newFile("decks/player.txt")
+  player_file:open("r")
+  local player = str_to_deck(player_file:read(player_file:getSize()))
+  local npc_file = love.filesystem.newFile("decks/npc.txt")
+  npc_file:open("r")
+  local npc = str_to_deck(npc_file:read(npc_file:getSize()))
+  game = Game(player, npc)
   game:run()
+  --[[while true do
+    go_hard()
+    game:run()
+  end--]]
 end

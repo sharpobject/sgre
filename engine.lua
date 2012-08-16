@@ -1,4 +1,4 @@
-local max = math.max
+local min,max = math.min,math.max
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
@@ -14,7 +14,7 @@ function Card:remove_skill(skill_idx)
 end
 
 function Card:refresh()
-  self.skills = deepcpy(id_to_canonical_card[self.id])
+  self.skills = deepcpy(id_to_canonical_card[self.id].skills)
 end
 
 function Card:remove_skill_until_refresh(skill_idx)
@@ -60,7 +60,12 @@ function Card:reset()
   return self
 end
 
-local grave_mt = {__newindex=function(table, key, value) rawset(table, key, value:reset()) end}
+local grave_mt = {__newindex=function(table, key, value)
+  if value then
+    value:reset()
+  end
+  rawset(table, key, value)
+end}
 
 Player = class(function(self, side, deck)
     deck = shallowcpy(deck)
@@ -109,7 +114,9 @@ function Player:upkeep_phase()
       local skills = card.skills or {}
       for skill_idx = 1,3 do
         local skill_id = skills[skill_idx]
-        if skill_id and skill_id_to_type[skill_id] == "start" then
+        if skill_id and skill_id_to_type[skill_id] == "start" and
+            self.field[idx] == card then
+          print("About to run skill func for id "..skill_id)
           skill_func[skill_id](self, idx, card, skill_idx)
         end
       end
@@ -224,6 +231,10 @@ end
 
 function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
+end
+
+function Player:to_grave(card)
+  self.grave[#self.grave + 1] = card
 end
 
 function Player:mill(n)
@@ -510,8 +521,13 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
+            print("About to run skill func for id "..skill_id)
+            local other_card = defender
+            if other_card ~= defend_player.field[defend_idx] then
+              other_card = nil
+            end
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
-                defend_idx, defender)
+                defend_idx, other_card)
             self.game:clean_dead_followers()
           end
         end
@@ -524,8 +540,13 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
+            print("About to run skill func for id "..skill_id)
+            local other_card = attacker
+            if other_card ~= attack_player.field[attack_idx] then
+              other_card = nil
+            end
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
-                attack_idx, attacker)
+                attack_idx, other_card)
             self.game:clean_dead_followers()
           end
         end
@@ -571,8 +592,10 @@ function Player:combat_round()
     card.active = false
   else
     self.send_spell_to_grave = true
+    print("About to run spell func for id "..card.id)
     spell_func[card.id](self, self.opponent, idx, card)
-    if self.send_spell_to_grave then
+    print("Just ran spell func for id "..card.id)
+    if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
     end
   end
@@ -646,7 +669,7 @@ function Game:apply_buff(buff)
           anything_happened = true
           local which, howmuch = unpack(effect)
           if which == "-" and stat == "size" then
-            howmuch = max(player[zone][idx].size-1, howmuch)
+            howmuch = min(player[zone][idx].size-1, howmuch)
           end
           if which == "=" and stat == "size" then
             howmuch = max(1,howmuch)
@@ -664,16 +687,18 @@ end
 
 function Game:run()
   local P1,P2 = self.P1,self.P2
-  local P1_first = nil
+  local P1_first, P1_first_upkeep = nil, nil
   while true do
     self.turn = self.turn+1
-    if P1_first == nil then
-      P1_first = self:coin_flip()
+    if P1_first_upkeep == nil then
+      P1_first_upkeep = self:coin_flip()
+    else
+      P1_first_upkeep = not P1_first_upkeep
     end
     wait(20)
     P1:untap_phase()
     P2:untap_phase()
-    if P1_first then
+    if P1_first_upkeep then
       P1:upkeep_phase()
       P2:upkeep_phase()
     else
@@ -686,12 +711,11 @@ function Game:run()
     P1:user_act()
     P1_first = self:coin_flip()
     while P1:has_active_cards() or P2:has_active_cards() do
-      if skip_P1 then
-        skip_P1 = false
-      elseif P1:has_active_cards() then
+      if P1_first and P1:has_active_cards() then
         P1:combat_round()
         wait(30)
       end
+      P1_first = true
       if P2:has_active_cards() then
         P2:combat_round()
         wait(30)
