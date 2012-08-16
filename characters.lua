@@ -100,34 +100,36 @@ end,
 
 --Cannelle
 [100008] = function(player)
-   local max_size = player.opponent.field[player.opponent:field_idxs_with_most_and_preds(pred.size)[1]].size
-   local min_size = player.field[player:field_idxs_with_least_and_preds(pred.size)[1]].size
-   local buff_size = max_size - min_size
-   local target_idxs = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
-   local buff = OnePlayerBuff(player)
-   for _,idx in ipairs(target_idxs) do
-      buff[idx] = {atk={"+",buff_size}, sta={"+",buff_size}}
-   end
-   buff:apply()
+  local max_size = player.opponent.field[player.opponent:field_idxs_with_most_and_preds(pred.size)[1]].size
+  local min_size = player.field[player:field_idxs_with_least_and_preds(pred.size)[1]].size
+  local buff_size = max_size - min_size
+  local target_idxs = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+     buff[idx] = {atk={"+",buff_size}, sta={"+",buff_size}}
+  end
+  buff:apply()
 end,
 
 --Gart
 [100009] = function(player)
-   local num_follower = #player.opponent:get_follower_idxs()
-   local num_vita = #player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V})
-   local buff = OnePlayerBuff(player.opponent)
-   if num_follower==num_vita then
-      local target_idxs = shuffle(player.opponent:get_follower_idxs())
-      for i=1,2 do
-	 if target_idxs[i] then
-	    buff[target_idxs[i]] = {sta={"-",1}}
-	 end
+  local num_follower = #player.opponent:get_follower_idxs()
+  local num_vita = #player.opponent:field_idxs_with_preds({pred.follower, pred.faction.V})
+  local buff = OnePlayerBuff(player.opponent)
+  if num_follower==num_vita then
+    local target_idxs = shuffle(player.opponent:get_follower_idxs())
+    for i=1,2 do
+      if target_idxs[i] then
+        buff[target_idxs[i]] = {sta={"-",1}}
       end
-   else
-      local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.faction.V)))
+    end
+  else
+    local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.faction.V)))
+    if target_idx then
       buff[target_idx] = {atk={"-",2},sta={"-",2}}
-   end
-   buff:apply()
+    end
+  end
+  buff:apply()
 end,
 
 --Dress Sita
@@ -257,12 +259,14 @@ end,
    local target_idxs = {}
    for i=1,5 do
       if player.hand[i] then
-	 if player.hand[i].size > 1 then
-	    target_idxs[#target_idxs+1] = i
-	 end
+         if player.hand[i].size > 1 then
+            target_idxs[#target_idxs+1] = i
+         end
       end
    end
-   OneBuff(player,uniformly(target_idxs),{size={"-",1}}):apply()
+   if #target_idxs > 0 then
+     OneBuff(player,uniformly(target_idxs),{size={"-",1}}):apply()
+   end
 end,
 
 --Team Manager Vernika
@@ -274,7 +278,9 @@ end,
       end
       local buff_size = math.ceil(hand_size/2)
       local target_idx = uniformly(player.field:get_follower_idxs())
-      OneBuff(player,target_idx,{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+      if target_idx then
+        OneBuff(player,target_idx,{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+      end
    end
 end,
 
@@ -294,7 +300,9 @@ end,
    end
    local def_lose = math.floor(player.hand[hand_idx].atk/2)
    local target_idx = uniformly(player.opponent:get_follower_idxs())
-   OneBuff(player.opponent,target_idx,{def={"-",def_lose}}):apply()
+   if target_idx then
+     OneBuff(player.opponent,target_idx,{def={"-",def_lose}}):apply()
+   end
 end,
 
 --Swimwear Cinia
@@ -325,7 +333,9 @@ end,
       return
    end
    if player.hand[1].faction == "C" and #my_followers == #player:field_idxs_with_preds({pred.follower, pred.C}) then
+     if #my_followers > 0 then
       OneBuff(player,uniformly(my_followers),{atk={"+",2},sta={"+",2}}):apply()
+    end
    end
 end,
 
@@ -355,7 +365,9 @@ end,
    end
    local new_size = math.abs(player.opponent.hand[1].size - player.opponent.hand[2].size)
    local target_idx = player:field_idx_with_most_and_preds(pred.size, {pred.follower})[1]
-   OneBuff(player,target_idx,{size={"=",new_size}}):apply()
+   if target_idx then
+     OneBuff(player,target_idx,{size={"=",new_size}}):apply()
+   end
 end,
 
 --Lightseeker Sita

@@ -3073,7 +3073,7 @@ end,
 
 -- string of emotion
 [200231] = function(player, opponent, my_idx, my_card)
-  local target = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
+  local target = player:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
   if target then
     OneBuff(player, target, {size={"+",2},atk={"+",2},def={"+",2},sta={"+",2}}):apply()
   end
