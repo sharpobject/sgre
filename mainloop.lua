@@ -21,7 +21,7 @@ local str_to_deck = function(s)
     s = file:read("*a")
     file:close()
   else
-    file = love.filesystem.newFile("decks"..PATH_SEP..s..".txt")
+    file = love.filesystem.newFile("decks/"..s..".txt")
     file:open("r")
     s = file:read(file:getSize())
   end

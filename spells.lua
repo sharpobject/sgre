@@ -3062,10 +3062,10 @@ end,
   if #my_guys > 0 then
     local buff = GlobalBuff(player)
     for i=1,min(2,#my_guys) do
-      buff.field[player][i] = {def={"+",1}}
+      buff.field[player][my_guys[i]] = {def={"+",1}}
     end
     for i=1,min(2,#op_guys) do
-      buff.field[opponent][i] = {atk={"-",2}}
+      buff.field[opponent][op_guys[i]] = {atk={"-",2}}
     end
     buff:apply()
   end

@@ -32,15 +32,19 @@ end,
 --Beautiful and Smart Cinia Pacifica
 [100002] = function(player)
    local target_idxs = player.opponent:get_follower_idxs()
-   local target_idx = target_idxs[math.random(#target_idxs)]
-   OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+   local target_idx = uniformly(target_idxs)
+   if target_idx then
+     OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+   end
 end,
 
 --Crux Knight Luthica
 [100003] = function(player)
    local target_idxs = player:field_idxs_with_preds(pred.C, pred.follower)
-   local target_idx = target_idxs[math.random(#target_idxs)]
-   OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
+   local target_idx = uniformly(target_idxs)
+   if target_idx then
+     OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
+   end
 end,
 
 --Runaway Iri Flina
@@ -68,8 +72,10 @@ end,
 	 target_idxs[#target_idxs + 1] = i
       end
    end
-   local target_idx = target_idxs[math.random(#target_idxs)]
-   OneBuff(player,target_idx,{size={"-",1}}):apply()
+   local target_idx = uniformly(target_idxs)
+   if target_idx then
+     OneBuff(player,target_idx,{size={"-",1}}):apply()
+   end
 
    --fix this to use 18:33 sharpobject: local idx = uniformly(player.field_idxs_with_preds(function(card) return card.size >= 2 end))
    -- 18:33 sharpobject: then idx will be nil if there weren't any cards like that
