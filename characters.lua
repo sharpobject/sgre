@@ -392,7 +392,9 @@ end,
    local target_idx = uniformly(target_idxs)
    local buff_size = floor(1.5*player.field[target_idx].size)
    player:field_to_grave(target_idx)
-   OneBuff(player.opponent,uniformly(nme_followers),{sta={"-",buff_size}}):apply()
+   if #nme_followers > 0 then
+      OneBuff(player.opponent,uniformly(nme_followers),{sta={"-",buff_size}}):apply()
+   end
 end,
 
 --Foreign Student Cinia
