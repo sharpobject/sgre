@@ -382,7 +382,7 @@ end,
 --Lightseeker Sita
 [100025] = function(player)
    local nme_followers = player.opponent:get_follower_idxs()
-   local target_idxs = player:field_idxs_with_preds(pred.V, pred.follower, function(card) return card card.size < 10 end)
+   local target_idxs = player:field_idxs_with_preds(pred.V, pred.follower, function(card) return card.size < 10 end)
    if #target_idxs == 0 then
       return
    end
