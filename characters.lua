@@ -29,7 +29,7 @@ end,
 --Runaway Iri Flina
 [100004] = function(player)
    if player:field_size() > player.opponent:field_size() then
-      OneBuff(player,0,{life={"-",1}}):apply()
+      OneBuff(player.opponent,0,{life={"-",1}}):apply()
    end
 end,
 
