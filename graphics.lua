@@ -1,5 +1,5 @@
 function load_img(s)
-  local file = io.open(ABSOLUTE_PATH..s, "r")
+  local file, err = io.open(ABSOLUTE_PATH..s, "r")
   local data
   if file then
     local contents = file:read("*a")
@@ -7,6 +7,7 @@ function load_img(s)
     local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
     s = love.image.newImageData(data)
   else
+    error(err)
     s = love.image.newImageData(s)
   end
   local w, h = s:getWidth(), s:getHeight()
