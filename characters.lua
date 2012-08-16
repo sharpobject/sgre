@@ -576,3 +576,4 @@ end,
   OneBuff(player, 0, {life={"+",8}}):apply()
 end,
 }
+setmetatable(characters_func, {__index = function()return function() end end})
