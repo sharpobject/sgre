@@ -1,5 +1,14 @@
 function load_img(s)
-  s = love.image.newImageData(s)
+  local file = io.open(ABSOLUTE_PATH..s, "r")
+  local data
+  if file then
+    local contents = file:read("*a")
+    file:close()
+    local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
+    s = love.image.newImageData(data)
+  else
+    s = love.image.newImageData(s)
+  end
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -27,7 +36,7 @@ do
     if status then
       return a,b,c,d
     end
-    return real_load_img("swordgirlsimages/200033L.jpg")
+    return real_load_img("swordgirlsimages"..PATH_SEP.."200033.jpg")
   end
 end
 
