@@ -177,6 +177,11 @@ function Player:hand_to_grave(n)
   end
 end
 
+function Player:hand_to_exile(n)
+  self.exile[#self.exile+1] = table.remove(self.hand, n)
+  self.exile[#self.exile]:reset()
+end
+
 function Player:field_to_bottom_deck(n)
   self:to_bottom_deck(self.field[n])
   self.field[n] = nil

@@ -1405,6 +1405,198 @@ end,
   end
 end,
 
+-- tennis ace, beach volleyball lady, messenger knight, scardel unit felgus, ignore defense
+[1128] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {sta={"-",other_card.def}}):apply()
+  end
+end,
+
+-- cook club elfsi, perfect lady, blue cross noel, gs spy, everything is ready
+[1129] = function(player, my_idx, my_card)
+  if my_card.active then
+    OneBuff(player, my_idx, {atk={"+",1}, sta={"+",1}}):apply()
+  end
+end,
+
+-- council exec. maron, ice lady, quartermaster knight, gs 1st star, our virtue
+[1130] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    if my_card.faction ~= other_card.faction then
+      local buff = GlobalBuff(player)
+      buff.field[player][my_idx] = {atk={"+",1}, sta={"+",1}}
+      buff.field[player.opponent][other_idx] = {atk={"-",1}, sta={"-",1}}
+      buff:apply()
+    end
+  end
+end,
+
+-- council roroa, memory block
+[1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    for idx,skill in other_card.skills do
+      other_card:remove_skill_until_refresh(idx)
+    end
+  end
+end,
+
+-- tennis lure, scramble
+[1132] = function(player)
+  local my_target_idx = uniformly(player:get_follower_idxs())
+  local other_target_idx = uniformly(player.opponent:get_follower_idxs())
+  if my_target_idx and other_target_idx then
+    local my_target = player.field[my_target_idx]
+    local other_target = player.opponent.field[other_target_idx]
+    local swap = my_target.skills
+    my_target.skills = other_target.skills
+    other_target.skills = swap
+  end
+end,
+
+-- council coordinator, event swap
+[1133] = function(player, my_idx, my_card, skill_idx)
+  local target_idxs = player:field_idxs_with_preds({pred.V})
+  local buff = OnePlayerBuff(player)
+  for _,idx in target_idxs do
+    buff[idx] = {atk={"+",2}}
+  end
+  buff:apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- campus waitress, best service
+[1134] = function(player, my_idx, my_card)
+  if my_card.atk >= 1 then
+    OneBuff(player, my_idx, {atk={"-",1}, def={"+",1}, sta={"+",1}}):apply()
+  end
+end,
+
+-- guitar maid, voice of music
+[1135] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and not other_card.active then
+    OneBuff(player.opponent, other_idx, {atk={"-",1}, def={"-",1}, sta={"-",1}}):apply()
+  end
+end,
+
+-- rainbow lady, rainbow magic
+[1136] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local buff_size = math.min(math.abs(my_card.atk - other_card.atk), 5)
+    OneBuff(player.opponent, other_idx, {def={"-",buff_size}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- 2s sink queen 571, submerge
+[1137] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local deactivated = 0
+  for _,idx in ipairs({my_idx -1, my_idx, my_idx + 1}) do
+    if idx > 0 and idx <= 5 and player.field[idx] then
+      player.field[idx].active = false
+      deactivated = deactivated + 1
+    end
+  end
+  if deactivated > 1 and other_card then
+    player.opponent:field_to_bottom_deck(other_idx)
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- mist lady, mist sorcery
+[1138] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    other_card.atk = id_to_canonical_card[other_card.id].atk
+    other_card.def = id_to_canonical_card[other_card.id].def
+    other_card.sta = id_to_canonical_card[other_card.id].sta
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- knight manager, equipment check
+[1139] = function(player)
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.follower, pred.knight}))
+  if target_idx then
+    OneBuff(player, target_idx, {size={"-",1}}):apply()
+  end
+end,
+
+-- blue cross elda, blue cross mission
+[1140] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.size >= 4 then
+    OneBuff(player, my_idx, {sta={"+",4}}):apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- blue cross linda, blue cross business
+[1141] = function(player, my_idx, my_card, skill_idx)
+  blue_cross_skill(player, my_idx, my_card, skill_idx, {sta={"-",3}})
+end,
+
+-- blue cross lifreya, blue cross secret meeting
+[1142] = function(player, my_idx, my_card, skill_idx)
+  blue_cross_skill(player, my_idx, my_card, skill_idx, {atk={"-",2}})
+end,
+
+-- lightning witch, lightning trick
+[1143] = function(player, my_idx)
+  local rand = math.random(2)
+  local buff = {}
+  if rand == 1 then
+    buff = {size={"+",1}}
+  else
+    buff = {size={"-",2}}
+  end
+  OneBuff(player, my_idx, buff):apply()
+end,
+
+-- gs fighting instructor, camaraderie
+[1144] = function(player)
+  local gs_target_idxs = player:field_idxs_with_preds({pred.gs, pred.follower})
+  local nongs_target_idxs = player:field_idxs_with_preds({pred.neg(pred.gs), pred.follower})
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(gs_target_idxs) do
+    buff[idx] = {atk={"+",1}, sta={"+",1}}
+  end
+  for _,idx in ipairs(nongs_target_idxs) do
+    buff[idx] = {atk={"-",1}, sta={"-",1}}
+  end
+  buff:apply()
+end,
+
+-- creepy witch, blood relation
+[1145] = function(player, my_idx, my_card)
+  if my_card.def > 0 then
+    OneBuff(player, my_idx, {def={"-",1}}):apply()
+  end
+end,
+
+-- crescent unit azoth, blood relation
+[1146] = function(player, my_idx)
+  local buff_size = #player:field_idxs_with_preds({pred.scardel})
+  OneBuff(player, my_idx, {sta={"+",buff_size}}):apply()
+end,
+
+-- creepy witch, chrome shelled magic
+[1147] = function(player, my_idx, my_card, skill_idx)
+  local buff_size = my_card.def
+  OneBuff(player, my_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- 2nd witness kana.dnd, liquor of kana
+[1148] = function(player, my_idx, my_card)
+  local field_target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.t}))
+  local hand_target_idx = math.random(#player.opponent.hand)
+  local grave_target_idx = math.random(#player.opponent.grave)
+  player.opponent:field_to_exile(field_target_idx)
+  player.opponent:hand_to_exile(hand_target_idx)
+  player.opponent:grave_to_exile(grave_target_idx)
+  for _,stat in ipairs({"atk", "def", "sta", "size"}) do
+    my_card[stat] = id_to_canonical_card[my_card.id][stat]
+  end
+end,
+
 }
 
 
