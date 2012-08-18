@@ -42,8 +42,6 @@ function love.load(arg)
   if last_sep then
     path = path:sub(1,last_sep)
     print(path)
-  else
-    error("found no sepi "..love._os)
   end
   ABSOLUTE_PATH = path
   for k,v in pairs(love) do
