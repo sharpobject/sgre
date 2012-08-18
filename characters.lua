@@ -533,7 +533,7 @@ end,
   for i=1,5 do
     while opponent.hand[i] and pred.spell(opponent.hand[i]) do
       opponent:hand_to_grave(i)
-      amt = amt + 1
+      amt = amt + 2
     end
   end
   local buff = OnePlayerBuff(opponent)

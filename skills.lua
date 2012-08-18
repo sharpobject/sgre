@@ -505,8 +505,11 @@ end,
   if #grave_target_idxs > 0 then
     local opp_target_idxs = shuffle(player.opponent:get_follower_idxs())
     local buff = OnePlayerBuff(player.opponent)
-    for i=1,math.min(2,#grave_target_idxs) do
-      player:grave_to_exile(grave_target_idxs[i])
+    for i=1,2 do
+      local grave_target_idx = uniformly(player:grave_idxs_with_preds({pred.A}))
+      if grave_target_idx then
+        player:grave_to_exile(grave_target_idx)
+      end
     end
     for i=1,math.min(2,#opp_target_idxs) do
       buff[opp_target_idxs[i]] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
@@ -551,8 +554,11 @@ end,
   local grave_idxs = shuffle(player:grave_idxs_with_preds({pred.C}))
   if #grave_idxs > 0 then
     local target_idxs = player:get_follower_idxs()
-    for i=1,math.min(2,#grave_idxs) do
-      player:grave_to_exile(grave_idxs[i])
+    for i=1,2 do
+      local grave_idx = uniformly(player:grave_idxs_with_preds(pred.C))
+      if grave_idx then
+        player:grave_to_exile(grave_idx)
+      end
     end
     local buff = OnePlayerBuff(player)
     buff[my_idx] = {atk={"+",2}, sta={"+",2}}
@@ -634,11 +640,12 @@ end,
   local opp_grave_idxs = player.opponent:grave_idxs_with_preds(
       function(card) return card.size == other_card.size end)
   local buffsize = 0
-  for _,idx in ipairs(player_grave_idxs) do
+  for i=#player_grave_idxs,1,-1 do
     player:grave_to_exile(idx)
     buffsize = buffsize + 1
   end
-  for _,idx in ipairs(opp_grave_idxs) do
+  for i=#opp_grave_idxs,1,-1 do
+    local idx = opp_grave_idxs[i]
     player.opponent:grave_to_exile(idx)
     buffsize = buffsize + 1
   end
@@ -1310,18 +1317,17 @@ end,
 
 -- agent nold, agent change
 [1112] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and other_card.size > my_card.size then
+  if other_card and other_card.size >= my_card.size then
+    my_card:remove_skill(skill_idx)
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"-",2}, sta={"-",2}}
     buff.field[player.opponent][other_idx] = {atk={"+",2}, sta={"+",2}}
     buff:apply()
     player.deck[#player.deck+1] = other_card
     player.opponent.field[other_idx] = nil
-    if my_card.sta > 0 then
+    if player.field[my_idx] == my_card > 0 then
       player.opponent.deck[#player.opponent.deck+1] = my_card
-      player.field[my_idx] = nil
     end
-    my_card:remove_skill(skill_idx)
   end
 end,
 

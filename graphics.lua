@@ -1,13 +1,13 @@
 function load_img(s)
-  local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
-  local data
-  if file then
+  if not pcall(function() s = love.image.newImageData("swordgirlsimages/"..s) end) then
+    local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
+    if not file then
+      error(err)
+    end
     local contents = file:read("*a")
     file:close()
     local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
     s = love.image.newImageData(data)
-  else
-    s = love.image.newImageData("swordgirlsimages/"..s)
   end
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
