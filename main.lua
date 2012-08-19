@@ -70,30 +70,6 @@ function love.load(arg)
   end
 end
 
---[[local char_ids = {}
-local norm_ids = {}
-for k,v in pairs(id_to_canonical_card) do
-  if v.type == "character" then
-    char_ids[#char_ids+1] = k
-  elseif v.type == "spell" or v.type == "follower" then
-    norm_ids[#norm_ids+1] = k
-  end
-end
-
-function get_deck()
-  local t = {}
-  t[1] = uniformly(char_ids)
-  for i=2,31 do
-    t[i] = uniformly(norm_ids)
-  end
-  return t
-end
-
-function go_hard()
-  Player.user_act = Player.ai_act
-  game = Game(get_deck(), get_deck())
-end--]]
-
 function love.update()
   gfx_q:clear()
   --print("FRAME BEGIN")

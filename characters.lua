@@ -1,3 +1,7 @@
+local floor,ceil,min,max = math.floor, math.ceil, math.min, math.max
+local abs = math.abs
+local random = math.random
+
 local recycle_one = function(player)
   if #player.grave > 0 then
     player:grave_to_bottom_deck(#player.grave)
@@ -15,10 +19,7 @@ local ex2_recycle = function(player, char)
   end
 end
 
-characters_func = {
-
---Mysterious Girl Sita Vilosa
-[100001] = function(player)
+local sita_vilosa = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
   local buff = OnePlayerBuff(player.opponent)
   for _,idx in ipairs(target_idxs) do
@@ -27,34 +28,73 @@ characters_func = {
     end
   end
   buff:apply()
-end,
+end
 
---Beautiful and Smart Cinia Pacifica
-[100002] = function(player)
+local cinia_pacifica = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
   if #target_idxs == 0 then
     return
   end
   local target_idx = uniformly(target_idxs)
   OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
-end,
+end
 
---Crux Knight Luthica
-[100003] = function(player)
-  local target_idxs = player:field_idxs_with_preds(pred.C, pred.follower)
+local luthica_preventer = function(player)
+  local target_idxs = player:field_idxs_with_preds(pred[player.character.faction], pred.follower)
   if #target_idxs == 0 then
     return
   end
   local target_idx = uniformly(target_idxs)
   OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
-end,
+end
 
---Runaway Iri Flina
-[100004] = function(player)
+local iri_flina = function(player)
   if player:field_size() > player.opponent:field_size() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
-end,
+end
+
+local curious_vernika = function(player)
+  local idx = player.opponent:field_idxs_with_most_and_preds(pred.def, pred.follower)[1]
+  if idx then
+    OneBuff(player.opponent,idx,{def={"=",0}}):apply()
+  end
+end
+
+local thorn_witch_rose = function(player)
+  local nme_followers = player.opponent:get_follower_idxs()
+  if #nme_followers == 0 then
+    return
+  end
+  local target_idx = uniformly(nme_followers)
+  local buff_size = ceil(math.abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)/2)
+  OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
+end
+
+local head_knight_jaina = function(player)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    if player.game.turn % 2 == 0 then
+      OneBuff(player, target, {atk={"+",2},sta={"+",1}}):apply()
+    else
+      OneBuff(player, target, {atk={"+",2}}):apply()
+    end
+  end
+end
+
+characters_func = {
+
+--Mysterious Girl Sita Vilosa
+[100001] = sita_vilosa,
+
+--Beautiful and Smart Cinia Pacifica
+[100002] = cinia_pacifica,
+
+--Crux Knight Luthica
+[100003] = luthica_preventer,
+
+--Runaway Iri Flina
+[100004] = iri_flina,
 
 --Nold
 [100005] = function(player)
@@ -62,7 +102,7 @@ end,
     return
   end
   local hand_idx = math.random(#player.hand)
-  local buff = GlobalBuff() --stolen from Tower of Books
+  local buff = GlobalBuff(player) --stolen from Tower of Books
   buff.hand[player][hand_idx] = {size={"+",1}}
   buff:apply()
   local my_cards = player:field_idxs_with_preds(function(card) return card.size > 2 end)
@@ -76,7 +116,7 @@ end,
 --Ginger
 [100006] = function(player)
   local ncards = #player:field_idxs_with_preds()
-  local target_idxs = player:field_idxs_with_preds(function(card) return card.size >= ncards) end)
+  local target_idxs = player:field_idxs_with_preds(pred.follower, function(card) return card.size >= ncards end)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",1}, sta={"+",2}}
@@ -85,12 +125,7 @@ end,
 end,
 
 --Curious Girl Vernika
-[100007] = function(player)
-  local idx = player.opponent:field_idxs_with_most_and_preds(pred.def, pred.follower)[1]
-  if idx then
-    OneBuff(player.opponent,idx,{def={"=",0}}):apply()
-  end
-end,
+[100007] = curious_vernika,
 
 --Cannelle
 [100008] = function(player)
@@ -162,7 +197,7 @@ end,
   else
     max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
   end
-  local target_idx = player:field_idxs_with_preds(pred.follower, function(card) return card.size <= max_size end)[1]
+  local target_idx = player.opponent:field_idxs_with_preds(pred.follower, function(card) return card.size <= max_size end)[1]
   if target_idx then
     OneBuff(player.opponent,target_idx,{atk={"-",2},def={"-",2},sta={"-",2}}):apply()
   end
@@ -179,6 +214,7 @@ end,
   if player.hand[2] then
     size2 = player.hand[2].size
   end
+  local target_idxs = player:get_follower_idxs()
   if math.abs(size1 - size2)%2 == 1 then
     for _,idx in ipairs(target_idxs) do
 	    buff[idx] = {sta={"+",2}}
@@ -270,7 +306,7 @@ end,
 [100018] = function(player)
   local hand_idx = uniformly(player:hand_idxs_with_preds(function(card) return card.size >= 2 end))
   if hand_idx then
-    local buff = GlobalBuff() --stolen from Tower of Books
+    local buff = GlobalBuff(player) --stolen from Tower of Books
     buff.hand[player][hand_idx] = {size={"-",1}}
     buff:apply()
   end
@@ -281,13 +317,13 @@ end,
   local hand_size = #player.hand
   if hand_size < 4 then
     for i=1,hand_size do
-	    player.hand_to_bottom_deck(1)
+	    player:hand_to_bottom_deck(1)
     end
   else
     return
   end
   local buff_size = math.ceil(hand_size/2)
-  local followers = player.field:get_follower_idxs()
+  local followers = player:get_follower_idxs()
   if #followers > 0 then
     OneBuff(player,uniformly(followers),{atk={"+",buff_size},sta={"+",buff_size}}):apply()
   end
@@ -359,7 +395,7 @@ end,
     return
   end
   local new_size = math.abs(player.opponent.hand[1].size - player.opponent.hand[2].size)
-  local target_idx = player:field_idx_with_most_and_preds(pred.size, pred.follower)[1]
+  local target_idx = player:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
   if target_idx then
     OneBuff(player,target_idx,{size={"=",new_size}}):apply()
   end
@@ -405,7 +441,7 @@ end,
     return
   end
   local crux_cards = #player.opponent:field_idxs_with_preds(pred.C) + #player.opponent:hand_idxs_with_preds(pred.C)
-  local non_crux_cards = player.opponent:field_idxs_with_preds() + #player.opponent.hand - crux_cards
+  local non_crux_cards = #player.opponent:field_idxs_with_preds() + #player.opponent.hand - crux_cards
   OneBuff(player,uniformly(target_idxs),{sta={"+",math.max(crux_cards, non_crux_cards)}}):apply()
 end,
 
@@ -422,7 +458,7 @@ end,
   end
   if #factions > 1 and #player.hand > 0 then
     local hand_idx = math.random(#player.hand)
-    local buff = GlobalBuff()
+    local buff = GlobalBuff(player)
     buff.hand[player][hand_idx] = {size={"-",2}}
     buff:apply()
   end
@@ -440,14 +476,354 @@ end,
 end,
 
 --Thorn Witch Rose
-[100030] = function(player)
-  local nme_followers = player.opponent:get_follower_idxs()
-  if #nme_followers == 0 then
-    return
+[100030] = thorn_witch_rose,
+
+-- rose pacifica
+[100031] = function(player)
+  local hand_idx = player:hand_idxs_with_preds(pred.D)[1]
+  if hand_idx then
+    local sz = player.hand[hand_idx].size
+    player:hand_to_grave(hand_idx)
+    local target = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player.opponent, target, {atk={"-",sz},sta={"-",sz}}):apply()
+    end
   end
-  local target_idx = uniformly(nme_followers)
-  local buff_size = ceil(math.abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)/2)
-  OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
+end,
+
+-- blood witch rose
+[100032] = function(player)
+  if player.game.turn % 1 == 1 then
+    local idx = uniformly(player.opponent:hand_idxs_with_preds(pred.spell))
+    if idx then
+      player.opponent:hand_to_exile(idx)
+    end
+  else
+    local idx = uniformly(player.opponent:grave_idxs_with_preds(pred.spell))
+    if idx then
+      player.opponent:grave_to_exile(idx)
+    end
+  end
+end,
+
+-- outcast rose
+[100033] = function(player)
+  if #player:field_idxs_with_preds(pred.follower) >= 2 then
+    local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
+    local buff = OnePlayerBuff(player)
+    buff[0] = {life={"-",1}}
+    if target then
+      buff[target] = {atk={"+",2},def={"+",1},sta={"+",2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- picnic rose
+[100034] = function(player)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  if #targets >= 2 then
+    local amt = abs(player.field[targets[1]].size - player.field[targets[2]].size)
+    local buff = OnePlayerBuff(player)
+    for i=1,2 do
+      buff[targets[i]] = {sta={"+",amt}}
+    end
+    buff:apply()
+  end
+end,
+
+-- wedding dress rose
+[100035] = thorn_witch_rose,
+
+-- wedding dress sita
+[100036] = sita_vilosa,
+
+-- wedding dress cinia
+[100037] = cinia_pacifica,
+
+-- wedding dress luthica
+[100038] = luthica_preventer,
+
+-- wedding dress iri
+[100039] = iri_flina,
+
+-- wedding dress vernika
+[100040] = curious_vernika,
+
+-- laevateinn
+[100041] = function(player)
+  local size_to_n = {}
+  for i=1,#player.hand do
+    local sz = player.hand[i].size
+    size_to_n[sz] = (size_to_n[sz] or 0) + 1
+  end
+  local size = -1
+  for k,v in pairs(size_to_n) do
+    if v >= 2 and k > size then
+      size = k
+    end
+  end
+  if size > 0 then
+    OneBuff(player, 0, {life={"+",ceil(size/2)}}):apply()
+  end
+end,
+
+-- sisters sion & rion
+[100042] = function(player)
+  local field_idxs = player:field_idxs_with_preds(pred.follower)
+  local hand_idxs = player:hand_idxs_with_preds(pred.follower)
+  local target = uniformly(field_idxs)
+  if target then
+    OneBuff(player, target, {atk={"+",#hand_idxs},sta={"+",#field_idxs}}):apply()
+  end
+end,
+
+-- head knight jaina
+[100043] = head_knight_jaina,
+
+-- resting jaina
+[100044] = function(player, opponent, my_card)
+  if player.game.turn % 3 == 0 then
+    local targets = shuffle(player:field_idxs_with_preds(pred.follower, pred.C))
+    local buff = OnePlayerBuff(player)
+    for i=1,min(2,#targets) do
+      buff[targets[i]] = {atk={"+",3},sta={"+",3}}
+    end
+    buff[0] = {life={"+",2}}
+    buff:apply()
+  end
+end,
+
+-- adept jaina
+[100045] = function(player, opponent, my_card)
+  local amt = min(4, 6-#player.hand)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",amt}}):apply()
+  end
+end,
+
+-- swimwear jaina
+[100046] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target and player:first_empty_field_slot() then
+    for i=target+1,5 do
+      if not player.field[i] then
+        local card = player.field[target]
+        player.field[target] = nil
+        player.field[i] = card
+        OneBuff(player, i, {atk={"+",i}}):apply()
+        return
+      end
+    end
+    local slot = player:first_empty_field_slot()
+    local card = player.field[target]
+    player.field[target] = nil
+    player.field[slot] = card
+    OneBuff(player, slot, {atk={"+",slot}}):apply()
+  end
+end,
+
+-- sword planter jaina
+[100047] = function(player, opponent, my_card)
+  local amt = 0
+  local sizes = {}
+  for i=1,#player.hand do
+    if not sizes[player.hand[i].size] then
+      sizes[player.hand[i].size] = true
+      amt = amt + 1
+    end
+  end
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#targets) do
+    buff[targets[i]] = {atk={"+",amt}}
+  end
+  buff:apply()
+end,
+
+-- wedding dress jaina
+[100048] = head_knight_jaina,
+
+-- sigma
+[100049] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local hand_targets = shuffle(player:hand_idxs_with_preds(pred.follower))
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  for i=1,min(2,#hand_targets) do
+    buff.hand[player][hand_targets[i]] = {atk={"+",1},sta={"+",1}}
+  end
+  for i=1,min(2,#targets) do
+    buff.field[player][targets[i]] = {sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- child sita
+[100050] = function(player, opponent, my_card)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs({1,2,5}) do
+    if opponent.field[idx] and pred.follower(opponent.field[idx]) then
+      buff[idx] = {sta={"-",2}}
+    end
+  end
+  buff:apply()
+end,
+
+-- child cinia
+[100051] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    if opponent.field[target].size >= 3 then
+      OneBuff(opponent, target, {atk={"-",2}}):apply()
+    else
+      OneBuff(opponent, target, {sta={"-",3}}):apply()
+    end
+  end
+end,
+
+-- child luthica
+[100052] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.C))
+  if target then
+    if player.field[target].size >= 3 then
+      OneBuff(player, target, {atk={"+",2}}):apply()
+    else
+      OneBuff(player, target, {sta={"+",3}}):apply()
+    end
+  end
+end,
+
+-- child iri
+[100053] = function(player, opponent, my_card)
+  if #player.hand % 2 == 0 then
+    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(opponent, target, {atk={"-",1},def={"-",1},sta={"-",1}}):apply()
+    end
+  end
+end,
+
+-- hot springs sita
+[100054] = function(player, opponent, my_card)
+  local buff = OnePlayerBuff(opponent)
+  for i=2,4 do
+    if opponent.field[i] and pred.follower(opponent.field[i]) then
+      buff[i] = {sta={"-",2}}
+    end
+  end
+  buff:apply()
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(opponent, target, {sta={"-",1}}):apply()
+  end
+end,
+
+-- hot springs cinia
+[100055] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    if opponent.field[target].def <= 0 then
+      OneBuff(opponent, target, {atk={"-",2},sta={"-",2}}):apply()
+    else
+      OneBuff(opponent, target, {def={"-",1},sta={"-",1}}):apply()
+    end
+  end
+end,
+
+-- hot springs luthica
+[100056] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    if player.field[target].def >= 1 then
+      OneBuff(player, target, {atk={"+",2},sta={"+",2}}):apply()
+    else
+      OneBuff(player, target, {def={"+",1},sta={"+",1}}):apply()
+    end
+  end
+end,
+
+-- hot springs iri
+[100057] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    if opponent.field[target].sta >= 10 then
+      OneBuff(opponent, target, {sta={"-",4}}):apply()
+    else
+      OneBuff(opponent, target, {atk={"-",1},def={"-",1},sta={"-",1}}):apply()
+    end
+  end
+end,
+
+-- miracle panda panica
+[100058] = function(player, opponent, my_card)
+  if player.game.turn % 2 ==1 then
+    local buff = OnePlayerBuff(player)
+    local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+    for i=1,min(2,#targets) do
+      buff[targets[i]] = {atk={"+",1}}
+    end
+    buff:apply()
+  else
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player, target, {sta={"+",2}}):apply()
+    end
+  end
+end,
+
+-- child vernika
+[100059] = function(player, opponent, my_card)
+  if player.hand[1] then
+    local amt = min(3,ceil(player.hand[1].size/2))
+    player:hand_to_bottom_deck(1)
+    local target = opponent:field_idxs_with_most_and_preds(pred.sta,pred.follower)[1]
+    if target then
+      OneBuff(opponent, target, {def={"-",amt}}):apply()
+    end
+  end
+end,
+
+-- child rose
+[100060] = function(player, opponent, my_card)
+  local hand_idx = player:hand_idxs_with_preds(pred.spell, pred.A,
+      function(card) return card.size <= (9-player:field_size()) end)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local slot = player:first_empty_field_slot()
+  if hand_idx and slot then
+    local amt = player.hand[hand_idx].size
+    player:hand_to_field(hand_idx)
+    if target then
+      OneBuff(opponent, target, {atk={"-",amt},sta={"-",amt}}):apply()
+    end
+  end
+end,
+
+-- child jaina
+[100061] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local my_guy = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_guy = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_guy then
+    buff.field[player][my_guy] = {atk={"+",2}}
+  end
+  if op_guy then
+    buff.field[opponent][op_guy] = {atk={"-",1}}
+  end
+  buff:apply()
+end,
+
+-- child ginger
+[100062] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2}}):apply()
+    player:field_to_top_deck(target)
+  end
+  target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2}}):apply()
+  end
 end,
 
 -- child laevateinn
@@ -463,15 +839,39 @@ end,
       size = k
     end
   end
-  if k > 0 then
+  if size > 0 then
     for i=1,5 do
-      while player.hand[i].size == k do
+      while player.hand[i] and player.hand[i].size == size do
         player:hand_to_bottom_deck(i)
       end
     end
-    OneBuff(player, 0, {life={"+",min(4,ceil(k/2))}}):apply()
+    OneBuff(player, 0, {life={"+",min(4,ceil(size/2))}}):apply()
   end
 end,
+
+-- child sigma
+[100064] = function(player, opponent, my_card)
+  if player.hand[1] then
+    local amt = min(4,floor(player.hand[1].size/2))
+    player:hand_to_bottom_deck(1)
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
+    end
+  end
+end,
+
+-- layna scentriver
+[100065] = luthica_preventer,
+
+-- chief maid
+[100066] = iri_flina,
+
+-- new knight
+[100067] = sita_vilosa,
+
+-- nytitch
+[100068] = cinia_pacifica,
 
 -- lig nijes
 [100075] = function(player)
@@ -632,6 +1032,56 @@ end,
 -- origin disciple
 [110137] = function(player)
   OneBuff(player, 0, {life={"+",8}}):apply()
+end,
+
+-- sion flina
+[110138] = function(player)
+  if #player.opponent:field_idxs_with_preds(pred.rion) > 0 then
+    OneBuff(player, 0, {life={"-",7}}):apply()
+  end
+  recycle_one(player)
+end,
+
+-- rion flina
+[110139] = function(player)
+  local targets = player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.sion))
+  local buff = OnePlayerBuff(player.opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
+  end
+  buff:apply()
+  if #player.opponent:field_idxs_with_preds(pred.sion) > 0 then
+    OneBuff(player, 0, {life={"-",7}}):apply()
+  end
+  recycle_one(player)
+  recycle_one(player)
+end,
+
+-- frett
+[110140] = function(player)
+  local idxs = player.opponent:field_idxs_with_preds(function(card) return card.size ~= 3 end)
+  for _,idx in ipairs(idxs) do
+    player.opponent:destroy(idx)
+  end
+  recycle_one(player)
+end,
+
+-- odien
+[110141] = function(player)
+  local idxs = player.opponent:field_idxs_with_preds(pred.skill)
+  for _,idx in ipairs(idxs) do
+    player.opponent:destroy(idx)
+  end
+  recycle_one(player)
+end,
+
+-- lyrica
+[110142] = function(player)
+  local idxs = player.opponent:field_idxs_with_preds(pred.neg(pred.skill))
+  for _,idx in ipairs(idxs) do
+    player.opponent:destroy(idx)
+  end
+  recycle_one(player)
 end,
 }
 setmetatable(characters_func, {__index = function()return function() end end})

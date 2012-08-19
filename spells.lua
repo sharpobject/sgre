@@ -3335,18 +3335,36 @@ end,
 
 -- sage's slipper
 [200260] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.union(pred.sion, pred.rion))
+  for _,idx in ipairs(targets) do
+    opponent:destroy(idx)
+  end
 end,
 
 -- third impact
 [200261] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {size={"=",random(1,10)}}
+  end
+  buff:apply()
 end,
 
 -- arc light
 [200262] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    opponent.field[idx]:gain_skill(1003)
+  end
 end,
 
 -- charming aura
 [200263] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].skills = {}
+  end
 end,
 
 -- trap book

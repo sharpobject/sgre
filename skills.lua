@@ -1325,7 +1325,7 @@ end,
     buff:apply()
     player.deck[#player.deck+1] = other_card
     player.opponent.field[other_idx] = nil
-    if player.field[my_idx] == my_card > 0 then
+    if player.field[my_idx] == my_card then
       player.opponent.deck[#player.opponent.deck+1] = my_card
     end
   end
@@ -1344,8 +1344,8 @@ end,
 
 -- blue cross jainier, blue cross support
 [1114] = function(player, my_idx, my_card, skill_idx)
-  if #player.hand < 4 then
-    while #player.hand < 4 do
+  if #player.hand <= 2 then
+    while #player.hand < 4 and #player.deck > 0 do
       player:draw_a_card()
     end
   else
@@ -1531,10 +1531,8 @@ end,
 
 -- council roroa, memory block
 [1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card then
-    for idx,skill in other_card.skills do
-      other_card:remove_skill_until_refresh(idx)
-    end
+  if other_card and pred.skill(other_card) then
+    other_card.skills = {"refresh"}
   end
 end,
 
@@ -1553,9 +1551,9 @@ end,
 
 -- council coordinator, event swap
 [1133] = function(player, my_idx, my_card, skill_idx)
-  local target_idxs = player:field_idxs_with_preds({pred.V})
+  local target_idxs = player:field_idxs_with_preds(pred.follower, pred.V)
   local buff = OnePlayerBuff(player)
-  for _,idx in target_idxs do
+  for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",2}}
   end
   buff:apply()
@@ -1685,11 +1683,17 @@ end,
 -- 2nd witness kana.dnd, liquor of kana
 [1148] = function(player, my_idx, my_card)
   local field_target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.t}))
-  local hand_target_idx = math.random(#player.opponent.hand)
-  local grave_target_idx = math.random(#player.opponent.grave)
-  player.opponent:field_to_exile(field_target_idx)
-  player.opponent:hand_to_exile(hand_target_idx)
-  player.opponent:grave_to_exile(grave_target_idx)
+  if field_target_idx then
+    player.opponent:field_to_exile(field_target_idx)
+  end
+  if #player.opponent.hand > 0 then
+    local hand_target_idx = math.random(#player.opponent.hand)
+    player.opponent:hand_to_exile(hand_target_idx)
+  end
+  if #player.opponent.grave > 0 then
+    local grave_target_idx = math.random(#player.opponent.grave)
+    player.opponent:grave_to_exile(grave_target_idx)
+  end
   for _,stat in ipairs({"atk", "def", "sta"}) do
     my_card[stat] = id_to_canonical_card[my_card.id][stat]
   end
@@ -2068,6 +2072,23 @@ end,
   end
 end,
 
+-- knight adjt. luthica, red sun
+[1213] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.C,
+      function(card) return card ~= my_card end))
+  if target then
+    local amt = 0
+    local with_def = player:field_idxs_with_preds(pred.follower,
+        function(card) return card.def > 0 end)
+    for _,idx in ipairs(with_def) do
+      amt = amt + player.field[idx].def
+    end
+    amt = min(amt,5)
+    OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
+    OneBuff(player, 0, {life={"-",1}}):apply()
+  end
+end,
+
 -- guide rio, best attack
 [1218] = function(player, my_idx)
   local buffsize = uniformly({1,2,3})
@@ -2169,12 +2190,18 @@ end,
 [1233] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
 end,
 
---
+-- 4th witness kana. ddt, time control!
 [1234] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.game.turn % 2 == 1 and other_card then
+    OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
+  end
 end,
 
---
+-- 4th witness kana. ddt, investigation!
 [1236] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.game.turn % 2 == 0 then
+    OneBuff(player, my_idx, {atk={"+",1},sta={"+",2}}):apply()
+  end
 end,
 
 --

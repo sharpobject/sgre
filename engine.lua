@@ -46,8 +46,9 @@ end
 
 function Card:squished_skills()
   local t = {}
+  local skills = self.skills or {}
   for i=1,3 do
-    t[#t+1] = self.skills[i]
+    t[#t+1] = skills[i]
   end
   return t
 end
@@ -93,6 +94,14 @@ Player = class(function(self, side, deck)
     self.shuffles = 2
   end)
 
+function Player:check_hand()
+  for i=1,4 do
+    if self.hand[i+1] and not self.hand[i] then
+      error("hand is wrong")
+    end
+  end
+end
+
 function Player:untap_phase()
   for i=1,5 do
     if self.field[i] then
@@ -112,10 +121,12 @@ function Player:upkeep_phase()
             self.field[idx] == card then
           print("About to run skill func for id "..skill_id)
           if type(skill_id) == "number" and skill_id >= 100000 then
-            characters_func[skill_id](self, idx, card, skill_idx)
+            characters_func[skill_id](self, self.opponent, card)
           else
             skill_func[skill_id](self, idx, card, skill_idx)
           end
+          self:check_hand()
+          self.opponent:check_hand()
         end
       end
     end
@@ -137,7 +148,7 @@ function Player:draw_phase()
     self:hand_to_grave(1)
   end
   if #self.deck == 0 then
-    error("I lost the game :(")
+    --error("I lost the game :(")
   end
   for i=1,math.min(5-#self.hand, #self.deck) do
     self:draw_a_card()
@@ -391,6 +402,27 @@ function Player:field_idxs_with_most_and_preds(func, ...)
   return self:field_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
+function Player:hand_idxs_with_least_and_preds(func, ...)
+  local idxs = self:hand_idxs_with_preds(...)
+  local best = 99999
+  local ret = {}
+  for i=1,#idxs do
+    local card = self.hand[idxs[i]]
+    local score = func(card)
+    if score < best then
+      ret = {idxs[i]}
+      best = score
+    elseif score == best then
+      ret[#ret+1] = idxs[i]
+    end
+  end
+  return ret
+end
+
+function Player:hand_idxs_with_most_and_preds(func, ...)
+  return self:hand_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
+end
+
 function Player:first_empty_field_slot()
   for i=1,5 do
     if not self.field[i] then return i end
@@ -460,10 +492,12 @@ end
 
 function Player:ai_act()
   for i=1,3 do
-    idx = math.random(#self.hand)
-    if self:can_play_card(idx) then
-      self.hand[idx].hidden = true
-      self:play_card(idx)
+    if #self.hand > 0 then
+      idx = math.random(#self.hand)
+      if self:can_play_card(idx) then
+        self.hand[idx].hidden = true
+        self:play_card(idx)
+      end
     end
   end
 end
@@ -533,6 +567,8 @@ function Player:follower_combat_round(idx, target_idx)
             end
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
+            self:check_hand()
+            self.opponent:check_hand()
             self.game:clean_dead_followers()
           end
         end
@@ -552,6 +588,8 @@ function Player:follower_combat_round(idx, target_idx)
             end
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
+            self:check_hand()
+            self.opponent:check_hand()
             self.game:clean_dead_followers()
           end
         end
@@ -599,6 +637,8 @@ function Player:combat_round()
     self.send_spell_to_grave = true
     print("About to run spell func for id "..card.id)
     spell_func[card.id](self, self.opponent, idx, card)
+    self:check_hand()
+    self.opponent:check_hand()
     print("Just ran spell func for id "..card.id)
     if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
@@ -694,6 +734,9 @@ function Game:run()
   local P1,P2 = self.P1,self.P2
   local P1_first, P1_first_upkeep = nil, nil
   while true do
+    if GO_HARD and self.turn >= 8 then
+      return
+    end
     self.turn = self.turn+1
     if P1_first_upkeep == nil then
       P1_first_upkeep = self:coin_flip()
