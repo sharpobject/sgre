@@ -1092,6 +1092,7 @@ end,
       local slot = opponent:first_empty_field_slot()
       opponent.field[slot] = deepcpy(my_card)
       opponent.field[slot].size = opponent.field[slot].size - 1
+      opponent.field[slot].active = false
     end
     player:field_to_exile(my_idx)
   end
@@ -2671,6 +2672,7 @@ end,
       player.send_spell_to_grave = false
       player.field[my_idx] = nil
       opponent.field[idx] = my_card
+      my_card.active = false
       my_card.size = my_card.size - 1
     end
   end

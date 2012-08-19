@@ -1083,5 +1083,15 @@ end,
   end
   recycle_one(player)
 end,
+
+-- true vampire god
+[120010] = function(player, opponent)
+  if opponent.character.life >= 15 then
+    OneBuff(opponent, 0, {life={"-",1}}):apply()
+  elseif opponent.character.life <= 8 then
+    OneBuff(opponent, 0, {life={"=",0}}):apply()
+  end
+  recycle_one(player)
+end,
 }
 setmetatable(characters_func, {__index = function()return function() end end})
