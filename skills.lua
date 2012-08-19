@@ -407,7 +407,7 @@ end,
 -- red moon aka flina, cook club ace, silent maid, seeker director, lantern witch,
 -- coin lady, reverse defense
 [1026] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local diff = abs(other_card.def)
+  local diff = min(9,abs(other_card.def))
   OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
 end,
 
