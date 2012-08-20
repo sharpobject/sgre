@@ -2,6 +2,7 @@ local min,max = math.min,math.max
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
+    print("card init "..id)
     for k,v in pairs(id_to_canonical_card[id]) do
       self[k]=deepcpy(v)
       print(k,v,self[k])
@@ -120,6 +121,8 @@ function Player:upkeep_phase()
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
           print("About to run skill func for id "..skill_id)
+          self:check_hand()
+          self.opponent:check_hand()
           if type(skill_id) == "number" and skill_id >= 100000 then
             characters_func[skill_id](self, self.opponent, card)
           else
@@ -423,8 +426,25 @@ function Player:hand_idxs_with_most_and_preds(func, ...)
   return self:hand_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
+function Player:empty_field_slots()
+  local t = {}
+  for i=1,5 do
+    if not self.field[i] then
+      t[#t+1] = i
+    end
+  end
+  return t
+end
+
 function Player:first_empty_field_slot()
   for i=1,5 do
+    if not self.field[i] then return i end
+  end
+  return nil
+end
+
+function Player:last_empty_field_slot()
+  for i=5,1,-1 do
     if not self.field[i] then return i end
   end
   return nil
@@ -449,13 +469,6 @@ end
 
 function Player:grave_idxs_with_most_and_preds(func, preds)
   return self:grave_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
-end
-
-function Player:first_empty_field_slot()
-  for i=1,5 do
-    if not self.field[i] then return i end
-  end
-  return nil
 end
 
 function Player:squish_hand()
@@ -565,6 +578,8 @@ function Player:follower_combat_round(idx, target_idx)
             if other_card ~= defend_player.field[defend_idx] then
               other_card = nil
             end
+            self:check_hand()
+            self.opponent:check_hand()
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
             self:check_hand()
@@ -586,6 +601,8 @@ function Player:follower_combat_round(idx, target_idx)
             if other_card ~= attack_player.field[attack_idx] then
               other_card = nil
             end
+            self:check_hand()
+            self.opponent:check_hand()
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
             self:check_hand()
@@ -636,6 +653,8 @@ function Player:combat_round()
   else
     self.send_spell_to_grave = true
     print("About to run spell func for id "..card.id)
+    self:check_hand()
+    self.opponent:check_hand()
     spell_func[card.id](self, self.opponent, idx, card)
     self:check_hand()
     self.opponent:check_hand()

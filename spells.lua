@@ -1791,6 +1791,7 @@ end,
 end,
 
 -- escape
+-- TODO: this puts the cards in the wrong order
 [200130] = function(player, opponent, my_idx, my_card)
   if #player:field_idxs_with_preds(pred.follower) > 0 then
     local ncards = #player.hand

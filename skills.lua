@@ -986,7 +986,7 @@ end,
     player:grave_to_exile(grave_target)
     buff = true
   end
-  if buff then
+  if buff and #player.opponent.hand > 0 then
     local opp_target = math.random(#player.opponent.hand)
     player.opponent:hand_to_grave(opp_target)
   end
@@ -1183,7 +1183,7 @@ end,
 [1101] = function(player, my_idx, my_card)
   if my_card.def >= 1 then
     OneBuff(player, my_idx, {def={"-",1}}):apply()
-    if player.deck[#player.deck].faction == player.character.faction and
+    if #player.deck > 0 and player.deck[#player.deck].faction == player.character.faction and
       player:first_empty_field_slot() then
       player:deck_to_field(#player.deck)
     end

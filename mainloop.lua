@@ -66,6 +66,7 @@ end
 
 function main_go_hard()
   while true do
+    gfx_q:clear()
     go_hard()
     game:run()
   end
