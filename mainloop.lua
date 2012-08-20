@@ -80,13 +80,16 @@ function main_select_boss()
     end
   end
   local cbs = {}
-  for i=1,10 do
+  for i=1,20 do
     cbs[i]=mk_cb(i)
   end
   while true do
-    for i=1,10 do
-      gprint(i.."F", 400 + (i-5.5)*50 - 10, 265)
-      make_button(cbs[i], 400 + (i-5.5)*50 - 20, 260, 40, 40, true)
+    for i=1,2 do
+      for j=1,10 do
+        local floor = (i-1)*10+j
+        gprint(floor.."F", 400 + (j-5.5)*50 - 10, 190 + i * 50)
+        make_button(cbs[floor], 400 + (j-5.5)*50 - 20, 185 + i * 50, 40, 40, true)
+      end
     end
     wait()
     if which then

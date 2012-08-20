@@ -762,7 +762,9 @@ function Game:run()
     else
       P1_first_upkeep = not P1_first_upkeep
     end
-    wait(20)
+    if self.turn > 1 then
+      wait(20)
+    end
     P1:untap_phase()
     P2:untap_phase()
     if P1_first_upkeep then

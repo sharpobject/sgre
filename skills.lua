@@ -81,7 +81,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3,
-                    [1205]=2, [1257]=1, [1408]=2, [1485]=2, ["refresh"]=3})
+                    [1205]=2, [1237]=1, [1257]=1, [1408]=2, [1485]=2, ["refresh"]=3})
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local refresh = function(player, my_idx, my_card)
@@ -400,7 +400,7 @@ end,
 
 -- master luna flina, moon guardian
 [1025] = function(player, my_idx)
-  local new_def = #player:hand_idxs_with_preds({pred.faction.D, pred.follower})
+  local new_def = #player:field_idxs_with_preds({pred.faction.D})
   OneBuff(player, my_idx, {def={"=",new_def}, sta={"+",new_def}}):apply()
 end,
 
@@ -2202,6 +2202,11 @@ end,
   if player.game.turn % 2 == 0 then
     OneBuff(player, my_idx, {atk={"+",1},sta={"+",2}}):apply()
   end
+end,
+
+-- ack!
+[1237] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {sta={"=",1}}):apply()
 end,
 
 --

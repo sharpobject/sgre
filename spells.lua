@@ -1566,7 +1566,7 @@ end,
   local buff = OnePlayerBuff(player)
   for i=1,2 do
     if idxs[i] then
-      local def = player.field[idxs[i]].def
+      local def = abs(player.field[idxs[i]].def)
       buff[idxs[i]] = {def={"=",0},sta={"+",2*def}}
     end
   end
@@ -3548,18 +3548,39 @@ end,
 
 -- sacred tutor
 [200276] = function(player, opponent, my_idx, my_card)
+  local hand_idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if hand_idx and opponent:first_empty_field_slot() then
+    opponent:hand_to_field(hand_idx)
+  end
 end,
 
 -- rainy day
 [200277] = function(player, opponent, my_idx, my_card)
+  player.game.turn = player.game.turn + 2
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"-",2},sta={"-",2}}
+  end
+  buff:apply()
 end,
 
 -- flee
 [200278] = function(player, opponent, my_idx, my_card)
+  for i=1,5 do
+    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(opponent, target, {sta={"-",5}}):apply()
+    end
+  end
 end,
 
 -- burning crusade
 [200279] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"-",2},sta={"-",2}}
+  end
 end,
 
 -- library explorer
@@ -3746,6 +3767,77 @@ end,
   opponent:to_grave(Card(300346))
   player:to_bottom_deck(Card(300194))
   player:to_bottom_deck(Card(300346))
+end,
+
+-- suggested reading
+[200292] = function(player, opponent, my_idx, my_card)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {sta={"-",5}}
+  end
+  buff:apply()
+end,
+
+-- last one
+[200293] = function(player, opponent, my_idx, my_card)
+  local amt = random(-5,5)
+  OneBuff(player, 0, {life={"+",amt}}):apply()
+end,
+
+-- spearhead
+[200294] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    local atk = ceil(opponent.field[idx].atk/2)
+    local sta = ceil(opponent.field[idx].sta/2)
+    buff[idx] = {atk={"=",atk},sta={"=",sta}}
+  end
+  buff:apply()
+end,
+
+-- book meets girl
+[200295] = function(player, opponent, my_idx, my_card)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(targets) do
+    local def = player.field[idx].def*2
+    buff[idx] = {def={"=",def}}
+  end
+  buff:apply()
+  targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local skills = opponent.field[idx].skills
+    for i=1,3 do
+      if skills[i] and skill_id_to_type[skills[i]] == "attack" then
+        skills[i] = nil
+      end
+    end
+  end
+  targets = opponent:hand_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local skills = opponent.hand[idx].skills
+    for i=1,3 do
+      if skills[i] and skill_id_to_type[skills[i]] == "attack" then
+        skills[i] = nil
+      end
+    end
+  end
+end,
+
+-- wrathful reversal
+[200296] = function(player, opponent, my_idx, my_card)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  for _,idx in ipairs(targets) do
+    buff.field[player][idx] = {atk={"+",2},sta={"+",2}}
+  end
+  targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    buff.field[opponent][idx] = {atk={"-",2},sta={"-",2}}
+  end
+  buff:apply()
 end,
 
 -- steparu

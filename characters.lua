@@ -1508,6 +1508,130 @@ end,
   recycle_one(player)
 end,
 
+-- sarah
+[110149] = function(player, opponent, my_card)
+  local targets = {}
+  for i=1,5 do
+    if opponent.field[i] and pred.follower(opponent.field[i]) and
+        ((opponent.field[i-1] and pred.follower(opponent.field[i-1])) or
+          (opponent.field[i+1] and pred.follower(opponent.field[i+1]))) then
+      targets[#targets+1] = i
+    end
+  end
+  for _,idx in ipairs(targets) do
+    opponent:destroy(idx)
+  end
+  recycle_one(player)
+end,
+
+-- gart
+[110150] = function(player, opponent, my_card)
+  if player.game.turn == 14 then
+    OneBuff(opponent, 0, {life={"=",0}}):apply()
+  end
+  recycle_one(player)
+end,
+
+-- knight messenger
+[110151] = function(player, opponent, my_card)
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- gs 1st star
+[110152] = function(player, opponent, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {sta={"-",1}}
+  end
+  buff:apply()
+  targets = opponent:field_idxs_with_preds(pred.follower, pred.skill)
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].skills = {1237}
+  end
+  recycle_one(player)
+end,
+
+-- kana dtd
+[110153] = function(player, opponent, my_card)
+  OneBuff(player, 0, {life={"+",4}}):apply()
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- lotte
+[110154] = function(player, opponent, my_card)
+  if player.game.turn > 1 then
+    if #player:field_idxs_with_preds() == 0 then
+      OneBuff(opponent, 0, {life={"-",10}}):apply()
+    end
+  end
+end,
+
+-- conundrum
+[110155] = function(player, opponent, my_card)
+  if player.character.life <= 10 then
+    OneBuff(opponent, 0, {life={"=",0}}):apply()
+  end
+end,
+
+-- knight vanguard
+[110156] = function(player, opponent, my_card)
+  if player.game.turn > 1 then
+    local amt = 5-#opponent.hand
+    OneBuff(opponent, 0, {life={"-",4*amt}}):apply()
+  end
+end,
+
+-- serie
+[110157] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    opponent.field[target].active = false
+  end
+  local buff = OnePlayerBuff(player)
+  local the_buff = {atk={"+",0},def={"+",0},sta={"+",0}}
+  local targets = player:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    buff[idx] = the_buff
+    the_buff.atk[2] = the_buff.atk[2] + player.field[idx].def
+    the_buff.def[2] = the_buff.def[2] + player.field[idx].def
+    the_buff.sta[2] = the_buff.sta[2] + player.field[idx].def
+  end
+  buff:apply()
+  recycle_one(player)
+end,
+
+-- envy lady
+[110158] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local card = opponent.field[idx]
+    buff.field[opponent][idx] = {}
+    for _,stat in ipairs({"atk","def","sta"}) do
+      if card[stat] > id_to_canonical_card[card.id][stat] then
+        buff.field[opponent][idx][stat] = {"=",id_to_canonical_card[card.id][stat]}
+      end
+    end
+  end
+  targets = player:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local card = player.field[idx]
+    buff.field[player][idx] = {}
+    for _,stat in ipairs({"atk","def","sta"}) do
+      if card[stat] < id_to_canonical_card[card.id][stat] then
+        buff.field[player][idx][stat] = {"=",id_to_canonical_card[card.id][stat]}
+      end
+    end
+  end
+  buff:apply()
+  recycle_one(player)
+end,
+
 -- true vampire god
 [120010] = function(player, opponent)
   if opponent.character.life >= 15 then
