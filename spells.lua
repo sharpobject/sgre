@@ -2904,7 +2904,7 @@ end,
   for i=1,5 do
     local card = player.field[i]
     local buff = 2
-    if card and pred.follower(card) and card.faction == player.faction then
+    if card and pred.follower(card) and card.faction == player.character.faction then
       for j=1,5 do
         local other_card = player.field[j]
         if j ~= i and other_card and pred.follower(other_card) then

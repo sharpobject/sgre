@@ -2113,7 +2113,7 @@ end,
 [1221] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = 0
   for i=1,min(4,#player.deck) do
-    if pred.lib(player.dec[i]) then
+    if pred.lib(player.deck[i]) then
       n = n + 1
     end
   end
@@ -2124,7 +2124,7 @@ end,
 [1222] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     if other_card.atk <= #player:grave_idxs_with_preds(pred.follower, pred.V) then
-      opponent:field_to_grave(other_idx)
+      player.opponent:field_to_grave(other_idx)
     end
   end
 end,
