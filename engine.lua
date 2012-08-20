@@ -114,10 +114,12 @@ end
 function Player:upkeep_phase()
   for idx=0,5 do
     local card = self.field[idx]
-    if card then
-      local skills = card.skills or {}
+    if card and card.skills then
+      if pred.spell(card) then
+        print("Something is terribly wrong, a spell has a skill")
+      end
       for skill_idx = 1,3 do
-        local skill_id = skills[skill_idx]
+        local skill_id = card.skills[skill_idx]
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
           print("About to run skill func for id "..skill_id)

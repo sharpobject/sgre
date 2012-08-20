@@ -3578,6 +3578,7 @@ end,
 -- burning crusade
 [200279] = function(player, opponent, my_idx, my_card)
   local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
   for _,idx in ipairs(targets) do
     buff[idx] = {atk={"-",2},sta={"-",2}}
   end
