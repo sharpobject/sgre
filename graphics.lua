@@ -164,10 +164,13 @@ function Player:draw()
     local text = nil
     if self.game.print_attack_info then
       if self==self.game.attacker[1] and i==self.game.attacker[2] then
-        text = "attacking"
+        text = "attack"
       elseif self==self.game.defender[1] and i==self.game.defender[2] then
-        text = "defending"
+        text = "defend"
       end
+    end
+    if self.field[i] and self.field[i].trigger then
+      text = "trigger"
     end
     local dx,dy = unpack(slot_to_dxdy[self.side][i])
     if self.field[i] then

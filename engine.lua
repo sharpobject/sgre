@@ -125,6 +125,9 @@ function Player:upkeep_phase()
           print("About to run skill func for id "..skill_id)
           self:check_hand()
           self.opponent:check_hand()
+          card.trigger = true
+          wait(50)
+          card.trigger = nil
           if type(skill_id) == "number" and skill_id >= 100000 then
             characters_func[skill_id](self, self.opponent, card)
           else
@@ -582,6 +585,9 @@ function Player:follower_combat_round(idx, target_idx)
             end
             self:check_hand()
             self.opponent:check_hand()
+            attacker.trigger = true
+            wait(50)
+            attacker.trigger = nil
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
             self:check_hand()
@@ -605,6 +611,9 @@ function Player:follower_combat_round(idx, target_idx)
             end
             self:check_hand()
             self.opponent:check_hand()
+            defender.trigger = true
+            wait(50)
+            defender.trigger = nil
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
             self:check_hand()
@@ -657,6 +666,9 @@ function Player:combat_round()
     print("About to run spell func for id "..card.id)
     self:check_hand()
     self.opponent:check_hand()
+    card.trigger = true
+    wait(50)
+    card.trigger = nil
     spell_func[card.id](self, self.opponent, idx, card)
     self:check_hand()
     self.opponent:check_hand()
