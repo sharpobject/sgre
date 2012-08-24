@@ -318,7 +318,7 @@ end,
 [1016] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card.size < my_card.size then
     local buff = GlobalBuff(player)
-    buff.field[player][my_idx] = {atk={"+",1}, sta={"+",1}}
+    buff.field[player][my_idx] = {atk={"+",1}, def={"+",1}}
     buff:apply()
   end
 end,

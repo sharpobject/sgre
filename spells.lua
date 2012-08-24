@@ -1894,7 +1894,7 @@ end,
       opponent:field_to_grave(idx)
     end
     OneBuff(opponent, 0, {life={"-",nlife}}):apply()
-  elseif opp_spell == 0 then
+  elseif #opp_spell == 0 then
     local nlife = #my_spell
     for _,idx in ipairs(my_spell) do
       player:field_to_grave(idx)
@@ -2923,7 +2923,7 @@ end,
   local buff = OnePlayerBuff(player)
   for i=1,2 do
     if targets[i] then
-      buff[targets[i]] = {atk={"+",4},sta={"-",4}}
+      buff[targets[i]] = {atk={"+",4},sta={"+",4}}
     end
   end
   buff:apply()
