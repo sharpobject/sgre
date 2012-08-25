@@ -83,6 +83,7 @@ function main_select_boss()
   for i=1,20 do
     cbs[i]=mk_cb(i)
   end
+  network_init()
   while true do
     for i=1,2 do
       for j=1,10 do
@@ -91,6 +92,7 @@ function main_select_boss()
         make_button(cbs[floor], 400 + (j-5.5)*50 - 20, 185 + i * 50, 40, 40, true)
       end
     end
+    gprint(VERSION_MSG, 250, 40)
     wait()
     if which then
       if (""..which):len() == 1 then

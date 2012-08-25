@@ -118,26 +118,31 @@ end,
 -- balance
 [200007] = function(player, opponent)
   if abs(player.character.life - opponent.character.life) <= 25 then
+    -- set life equal
     local buff = GlobalBuff(player)
     local new_life = ceil((player.character.life + opponent.character.life)/2)
     buff.field[player][0] = {life={"=",new_life}}
     buff.field[opponent][0] = {life={"=",new_life}}
     buff:apply()
-  end
-  local more_stuff,less_stuff = player, opponent
-  if less_stuff:ncards_in_field() > more_stuff:ncards_in_field() then
-    more_stuff,less_stuff = less_stuff,more_stuff
-  end
-  while less_stuff:ncards_in_field() < more_stuff:ncards_in_field() do
-    more_stuff:field_to_grave(more_stuff:field_idxs_with_preds({})[1])
-  end
-  local hand_pred = pred.t
-  if pred.faction.V(player.character) then
-    hand_pred = pred.follower
-  end
-  for i=1,#player.hand do
-    while player.hand[i] and hand_pred(player.hand[i]) do
-      player:hand_to_grave(i)
+
+    -- send cards to grave
+    local more_stuff,less_stuff = player, opponent
+    if less_stuff:ncards_in_field() > more_stuff:ncards_in_field() then
+      more_stuff,less_stuff = less_stuff,more_stuff
+    end
+    while less_stuff:ncards_in_field() < more_stuff:ncards_in_field() do
+      more_stuff:field_to_grave(more_stuff:field_idxs_with_preds({})[1])
+    end
+
+    -- discard cards from hand
+    local hand_pred = pred.t
+    if pred.faction.V(player.character) then
+      hand_pred = pred.follower
+    end
+    for i=1,#player.hand do
+      while player.hand[i] and hand_pred(player.hand[i]) do
+        player:hand_to_grave(i)
+      end
     end
   end
 end,
