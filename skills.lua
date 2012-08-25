@@ -797,7 +797,7 @@ end,
     local sent = math.min(#player.grave, 5)
     if sent > 0 then
       for i=1,sent do
-        player:grave_to_exile(math.random(#player.grave))
+        player:grave_to_bottom_deck(math.random(#player.grave))
       end
       OneBuff(player.opponent, other_idx, {atk={"-",math.ceil(sent/2)}}):apply()
     end
@@ -1326,6 +1326,7 @@ end,
     player.deck[#player.deck+1] = other_card
     player.opponent.field[other_idx] = nil
     if player.field[my_idx] == my_card then
+      player.field[my_idx] = nil
       player.opponent.deck[#player.opponent.deck+1] = my_card
     end
   end
