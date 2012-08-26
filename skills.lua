@@ -1411,7 +1411,8 @@ end,
 -- gs agent, agent call
 [1119] = function(player, my_idx, my_card, skill_idx)
   local deck_target_idx = player:deck_idxs_with_preds({pred.gs})[1]
-  if deck_target_idx then
+  local slot = player:first_empty_field_slot()
+  if deck_target_idx and slot then
     player:deck_to_field(deck_target_idx)
   end
   my_card:remove_skill(skill_idx)
@@ -1883,12 +1884,15 @@ end,
 
 -- sword girls sita, position change!
 [1192] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local card_to_skill = {[300320]=1193,[300322]=1194,[300324]=1195,[300326]=1196}
   local target_idx = player:deck_idxs_with_preds(pred.follower, pred.sword_girls)[1]
   local slot = player:first_empty_field_slot()
   if target_idx and slot then
     local target_card = player.deck[target_idx]
     if slot < my_idx then
-      target_card:refresh()
+      assert(card_to_skill[target_card.id])
+      -- TODO: this probably still isn't quite right...
+      target_card:gain_skill(card_to_skill[target_card.id])
     else
       for i=1,3 do
         if target_card.skills[i] == 1192 then
@@ -2074,6 +2078,31 @@ end,
   end
 end,
 
+-- council gart & sita, takoyaki and noodles
+[1211] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.V,
+      function(card) return card ~= my_card end))
+  if target then
+    OneBuff(player, target, {atk={"+",random(3,5)},sta={"+",random(3,5)}}):apply()
+    OneBuff(player, 0, {life={"-",1}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- cinia's new maid, accident!
+[1212] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.A,
+      function(card) return card ~= my_card end))
+  if target then
+    local amt = #player:field_idxs_with_preds(pred.follower) +
+        #player:hand_idxs_with_preds(pred.follower)
+    amt = min(amt,5)
+    OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
+    OneBuff(player, 0, {life={"-",1}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
 -- knight adjt. luthica, red sun
 [1213] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.C,
@@ -2088,6 +2117,45 @@ end,
     amt = min(amt,5)
     OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
     OneBuff(player, 0, {life={"-",1}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- witch hunter becky flina, witch hunt
+[1214] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.D,
+      function(card) return card ~= my_card end))
+  if target then
+    local amt = 0
+    for i=1,#player.hand do
+      amt = amt + player.hand[i].size
+    end
+    amt = min(ceil(amt/2),5)
+    OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
+    OneBuff(player, 0, {life={"-",1}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- fiona scentriver, delay!
+[1215] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and pred.skill(other_card) then
+    other_card.skills = {"refresh"}
+  end
+end,
+
+-- fiona scentriver, delay!
+[1216] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and pred.skill(other_card) then
+    other_card.skills = {"refresh"}
+  end
+end,
+
+-- fiona scentriver, delay!
+[1217] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player.opponent:hand_idxs_with_preds(pred.follower))
+  if target and pred.skill(player.opponent.hand[target]) then
+    player.opponent.hand[target].skills = {"refresh"}
   end
 end,
 
