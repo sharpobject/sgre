@@ -77,7 +77,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
                     [1526]=1, [1527]=2, [1528]=1, [1529]=1, [1530]=2, [1531]=1, [1532]=1,
                     [1533]=1, [1534]=2, [1535]=3, [1536]=1, [1537]=2, [1539]=2, [1540]=2,
                     [1541]=1, [1542]=1, [1543]=1, [1544]=1, [1545]=2, [1546]=3, [1547]=1,
-                    [1548]=2, [1549]=2, [1551]=1,
+                    [1548]=2, [1549]=2, [1551]=1, [1223]=3,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3,
@@ -745,12 +745,13 @@ end,
 
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
-  local grave_targets = shuffle(player:grave_idxs_with_preds({function(card) return true end}))
-  if grave_targets then
-    player:grave_to_exile(grave_targets[1])
-    if grave_targets[2] then
-      player:grave_to_bottom_deck(grave_targets[2])
-    end
+  local target = uniformly(player:grave_idxs_with_preds())
+  if target then
+    player:grave_to_exile(target)
+  end
+  target = uniformly(player:grave_idxs_with_preds())
+  if target then
+    player:grave_to_bottom_deck(target)
   end
 end,
 
@@ -2102,7 +2103,7 @@ end,
   OneBuff(player, my_idx, {sta={"+",buffsize}}):apply()
 end,
 
--- lib. explorer rea
+-- lib. explorer rea, summon member!
 [1220] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local target = uniformly(player:grave_idxs_with_preds(pred.lib))
   if target then
@@ -2110,7 +2111,7 @@ end,
   end
 end,
 
--- lib. explorer kamit
+-- lib. explorer kamit, underground exploration!
 [1221] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = 0
   for i=1,min(4,#player.deck) do
@@ -2121,7 +2122,7 @@ end,
   OneBuff(player, my_idx, {atk={"+",floor(n/2)},sta={"+",n}}):apply()
 end,
 
--- council press lyrica
+-- council press lyrica, press campaign!
 [1222] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     if other_card.atk <= #player:grave_idxs_with_preds(pred.follower, pred.V) then
@@ -2130,14 +2131,23 @@ end,
   end
 end,
 
--- dd lady tomo
+-- council press lyrica, guarantee!
+[1223] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = player:grave_idxs_with_preds(pred.V, pred.follower)
+  target = target[#target]
+  if target then
+    player:grave_to_exile(target)
+  end
+end,
+
+-- dd lady tomo, lady ready!
 [1224] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = #player:hand_idxs_with_preds(pred.lady) + #player:field_idxs_with_preds(
       pred.lady, function(card) return card ~= my_card end)
   OneBuff(player, my_idx, {atk={"+",floor(n/2)},sta={"+",n}}):apply()
 end,
 
--- witch cadet zislana
+-- witch cadet zislana, witch cheer!
 [1225] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {sta={"+",1}}
@@ -2147,7 +2157,7 @@ end,
   buff:apply()
 end,
 
--- magic lady chirushi
+-- magic lady chirushi, hot winds! hurricane!
 [1226] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = #player:field_idxs_with_preds(pred.lady) + #player:hand_idxs_with_preds(pred.lady)
   if n >= 2 and n <= 3 then
@@ -2163,32 +2173,71 @@ end,
   my_card:remove_skill_until_refresh(skill_idx)
 end,
 
---
+-- knight sgt. seyfarf, defense sink!
 [1227] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {def={"=",my_card.def}}):apply()
+  end
 end,
 
---
+-- seeker sarah, sacred shield!
 [1228] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local seekers = player:field_idxs_with_preds(pred.follower, pred.seeker)
+  if #seekers >= 2 then
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(seekers) do
+      buff[idx] = {sta={"+",4}}
+    end
+    buff:apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
 end,
 
---
+-- knight veltier, rear maneuver!
 [1229] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = player.hand[1]
+  if target then
+    local buff = GlobalBuff(player)
+    buff.hand[player][1] = {size={"-",1}}
+    buff.field[player][my_idx] = {sta={"+",target.size}}
+    buff:apply()
+    player:hand_to_top_deck(1)
+  end
 end,
 
---
+-- aletheian a-ga, attack roulette!
 [1230] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"=",random(1,10)}}):apply()
 end,
 
---
+-- aletheian a-ga, health roulette!
 [1231] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {sta={"=",random(1,10)}}):apply()
 end,
 
---
+-- aletheian b-na, my body is a shield!
 [1232] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if my_card.atk >= 1 then
+    OneBuff(player, my_idx, {atk={"-",1},sta={"+",3}}):apply()
+  end
 end,
 
---
+-- apostle schindler k. eru, sacrifice!
 [1233] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = player:field_idxs_with_preds(pred.follower,
+      function(card) return card ~= my_card end)[1]
+  local buff = {atk={"+",1},sta={"+",1}}
+  if target then
+    if pred.aletheian(player.field[target]) then
+      buff = {atk={"+",3},sta={"+",3}}
+    elseif pred.D(player.field[target]) then
+      buff = {atk={"+",2},sta={"+",2}}
+    else
+      buff = {sta={"+",3}}
+    end
+    player:field_to_grave(target)
+  end
+  OneBuff(player, my_idx, buff):apply()
 end,
 
 -- 4th witness kana. ddt, time control!
@@ -2210,80 +2259,256 @@ end,
   OneBuff(player, my_idx, {sta={"=",1}}):apply()
 end,
 
---
+-- lib. explorer vitelle, super eight!
 [1238] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"=",8}}):apply()
 end,
 
---
+-- lib. explorer orte, attack sink!
 [1239] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player, my_idx, {atk={"=",other_card.def + 2}}):apply()
+  end
 end,
 
---
+-- lib. explorer orte, best three!
 [1240] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {sta={"-",3}}):apply()
+  end
 end,
 
---
+-- lib. explorer returner, phase shift!
 [1241] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    if my_card.size > 2 then
+      local new_card = Card(300353)
+      player:field_to_exile(my_idx)
+      local slot = player:first_empty_field_slot()
+      player.field[slot] = new_card
+      OneBuff(player, slot, {size={"-",1},atk={"+",2},sta={"+",2}}):apply()
+      new_card.active = false
+    elseif pred.V(player.character) then
+      player.opponent:field_to_grave(other_idx)
+      player:field_to_grave(my_idx)
+    else
+      player.opponent:field_to_bottom_deck(other_idx)
+      player:field_to_grave(my_idx)
+    end
+  end
 end,
 
---
+-- witch cadet dauner, status change!
 [1242] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {size={"-",#player:hand_idxs_with_preds(pred.witch)}}):apply()
 end,
 
---
+-- witch cadet dauner, neutralize!
 [1243] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    for idx,id in pairs(other_card.skills) do
+      if skill_id_to_type[id] == "attack" then
+        other_card:remove_skill(idx)
+      end
+    end
+  end
+  my_card:remove_skill(skill_idx)
 end,
 
---
+-- witch cadet prelitch, harden!
 [1244] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {def={"+",2}}):apply()
 end,
 
---
+-- witch cadet prelitch, shield support!
 [1245] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.witch))
+  local buff = OnePlayerBuff(player)
+  buff[my_idx] = {def={"=",0}}
+  local amt = abs(my_card.def)
+  if target then
+    buff[target] = {atk={"+",amt},sta={"+",amt}}
+  end
+  buff:apply()
 end,
 
---
+-- shut-in lady neetness, phase shift!
 [1246] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    if my_card.size > 3 then
+      local new_card = Card(300356)
+      player:field_to_exile(my_idx)
+      local slot = player:first_empty_field_slot()
+      player.field[slot] = new_card
+      OneBuff(player, slot, {size={"-",1}}):apply()
+      new_card.active = false
+      local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
+      if hand_target then
+        local amt = player.opponent.hand[hand_target].size
+        player.opponent:hand_to_grave(hand_target)
+        OneBuff(player.opponent, other_idx, {sta={"-",amt}}):apply()
+      end
+    elseif pred.A(player.character) then
+      player.opponent:field_to_grave(other_idx)
+      player:field_to_grave(my_idx)
+    else
+      player.opponent:field_to_bottom_deck(other_idx)
+      player:field_to_grave(my_idx)
+    end
+  end
 end,
 
---
+-- seeker alameda, sanctuary call!
 [1247] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = player:deck_idxs_with_preds(pred.sanctuary, pred.spell)[1]
+  local slot = player:first_empty_field_slot()
+  if target and slot then
+    player:deck_to_field(target)
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
 end,
 
---
+-- seeker adalia, sanctuary burst!
 [1248] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"+",#player:field_idxs_with_preds(pred.sanctuary)}}):apply()
 end,
 
---
+-- seeker adalia, sanctuary return!
 [1249] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local targets = player:field_idxs_with_preds(pred.sanctuary)
+  for _,idx in ipairs(targets) do
+    player.field[idx].active = true
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
---
+-- seeker lagerfeld, phase shift!
 [1250] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    if my_card.size < 3 then
+      local new_card = Card(300359)
+      player:field_to_exile(my_idx)
+      local slot = player:first_empty_field_slot()
+      player.field[slot] = new_card
+      OneBuff(player, slot, {size={"+",1}}):apply()
+      new_card.active = false
+      local buff = OnePlayerBuff(player)
+      local targets = player:field_idxs_with_preds(pred.follower,
+          function(card) return card ~= new_card end)
+      for _,idx in ipairs(targets) do
+        buff[idx] = {size={"-",2}}
+      end
+      buff:apply()
+    elseif pred.C(player.character) then
+      player.opponent:field_to_grave(other_idx)
+      player:field_to_grave(my_idx)
+    else
+      player.opponent:field_to_bottom_deck(other_idx)
+      player:field_to_grave(my_idx)
+    end
+  end
 end,
 
---
+-- aletheian c-eda, boost!
 [1251] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
+    if target then
+      OneBuff(player, target, {atk={"+",2},sta={"+",2}}):apply()
+    end
+  end
 end,
 
---
+-- apostle d-ra, sacrifice's reward!
 [1252] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = player:hand_idxs_with_preds(pred.aletheian)[1]
+  if target then
+    local amt = player.hand[target].sta
+    player:hand_to_grave(target)
+    OneBuff(player, my_idx, {sta={"+",min(6,amt)}}):apply()
+  end
 end,
 
---
+-- nether merchant minac, phase shift!
 [1253] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    if my_card.size > 3 then
+      local new_card = Card(300362)
+      local amt = ceil(my_card.size / 2)
+      player:field_to_exile(my_idx)
+      local slot = player:first_empty_field_slot()
+      player.field[slot] = new_card
+      OneBuff(player, slot, {size={"-",1}}):apply()
+      new_card.active = false
+      local buff = OnePlayerBuff(player.opponent)
+      local targets = player.opponent:field_idxs_with_preds(pred.follower)
+      for _,idx in ipairs(targets) do
+        buff[idx] = {sta={"-",amt}}
+      end
+      buff:apply()
+    elseif pred.D(player.character) then
+      player.opponent:field_to_grave(other_idx)
+      player:field_to_grave(my_idx)
+    else
+      player.opponent:field_to_bottom_deck(other_idx)
+      player:field_to_grave(my_idx)
+    end
+  end
 end,
 
---
+-- edelfelt of the wing, phase shift!
 [1254] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    local new_card = Card(300363)
+    player:field_to_exile(my_idx)
+    local slot = player:first_empty_field_slot()
+    player.field[slot] = new_card
+    new_card.active = false
+    if player.shuffles == 0 then
+      player.shuffles = 1
+    end
+  end
 end,
 
---
+-- council temp sinclair, council's blessing!
 [1255] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local grave_idxs = shuffle(player:grave_idxs_with_preds({pred.V}))
+  if #grave_idxs > 0 then
+    local target_idxs = player:get_follower_idxs()
+    for i=1,2 do
+      local grave_idx = uniformly(player:grave_idxs_with_preds(pred.V))
+      if grave_idx then
+        player:grave_to_exile(grave_idx)
+      end
+    end
+    local buff = OnePlayerBuff(player)
+    buff[my_idx] = {atk={"+",2}, sta={"+",2}}
+    if target_idxs[1] ~= my_idx then
+      buff[target_idxs[1]] = {atk={"+",1}, sta={"+",1}}
+    elseif target_idxs[2] then
+      buff[target_idxs[2]] = {atk={"+",1}, sta={"+",1}}
+    end
+    buff:apply()
+  end
 end,
 
---
+-- dark witch seven, brilliant idea!
 [1256] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local grave_target_idxs = shuffle(player:grave_idxs_with_preds({pred.D}))
+  if #grave_target_idxs > 0 then
+    local opp_target_idxs = shuffle(player.opponent:get_follower_idxs())
+    local buff = OnePlayerBuff(player.opponent)
+    for i=1,2 do
+      local grave_target_idx = uniformly(player:grave_idxs_with_preds({pred.D}))
+      if grave_target_idx then
+        player:grave_to_exile(grave_target_idx)
+      end
+    end
+    for i=1,math.min(2,#opp_target_idxs) do
+      buff[opp_target_idxs[i]] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    end
+    buff:apply()
+  end
 end,
 
 -- attack charge

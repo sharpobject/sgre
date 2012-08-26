@@ -3500,7 +3500,7 @@ end,
   if player.game.turn % 2 == 0 then
     local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
     if target then
-      oppnent.field[target].active = false
+      opponent.field[target].active = false
     end
   end
 end,

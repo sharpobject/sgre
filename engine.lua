@@ -101,6 +101,18 @@ function Player:check_hand()
       error("hand is wrong")
     end
   end
+  local ndeck = 0
+  local ngrave = 0
+  for _,__ in pairs(self.deck) do
+    ndeck = ndeck + 1
+  end
+  for _,__ in pairs(self.grave) do
+    ngrave = ngrave + 1
+  end
+  local str1 = "ndeck = "..ndeck.." #deck = "..#self.deck
+  local str2 = "ngrave = "..ngrave.." #grave = "..#self.grave
+  assert(ndeck == #self.deck, str1)
+  assert(ngrave == #self.grave, str2)
 end
 
 function Player:untap_phase()
