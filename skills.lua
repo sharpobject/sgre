@@ -604,12 +604,12 @@ end,
 -- undertaker, undertaker
 [1044] = function(player, my_idx)
   local buffsize = 0
-  local my_idx = player:grave_idxs_with_preds(pred.follower)
+  local my_grave_idx = player:grave_idxs_with_preds(pred.follower)
   local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)
-  my_idx = my_idx[#my_idx]
+  my_grave_idx = my_grave_idx[#my_grave_idx]
   op_idx = op_idx[#op_idx]
-  if my_idx then
-    player:grave_to_exile(my_idx)
+  if my_grave_idx then
+    player:grave_to_exile(my_grave_idx)
     buffsize = buffsize + 1
   end
   if op_idx then
