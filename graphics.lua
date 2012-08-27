@@ -41,7 +41,7 @@ do
 end
 
 local GFX_SCALE = 1
-local card_scale = .2
+local card_scale = .25
 local card_width, card_height
 
 function draw(img, x, y, rot, x_scale,y_scale)
@@ -63,6 +63,20 @@ end
 
 function gprintf(...)
   gfx_q:push({love.graphics.printf, {...}})
+end
+
+local fonts = {}
+
+function gfontsize(...)
+  local func = function(size)
+    local font = fonts[size]
+    if not font then
+      font = love.graphics.newFont(size)
+      fonts[size] = font
+    end
+    love.graphics.setFont(font)
+  end
+  gfx_q:push({func, {...}})
 end
 
 local _r, _g, _b, _a = nil, nil, nil, nil
@@ -87,6 +101,76 @@ function graphics_init()
   card_height = card_height * card_scale
 end
 
+function draw_hover_card(card)
+  local id = card.id
+  if not IMG_card[id] then
+    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
+  end
+  local x,y = 591,30
+  draw(IMG_card[id], x, y, 0, 0.5, 0.5)
+  local card_width = card_width*2
+  local card_height = card_height*2
+  local gray_shit_height = (card_height - 200)/2
+  local gray_shit_dx = math.floor(card_width*2/3)
+  local gray_shit_x = x + gray_shit_dx
+  local gray_shit_width = card_width - gray_shit_dx
+  local middle = y+(card_height-gray_shit_height)/2
+  if card.size then
+    set_color(28,28,28)
+    grectangle("fill",gray_shit_x,y,
+      gray_shit_width, gray_shit_height)
+    set_color(255,255,255)
+    gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
+  end
+  if card.faction then
+    set_color(28,28,28)
+    grectangle("fill",x,y,
+      gray_shit_width, gray_shit_height)
+    set_color(255,255,255)
+    gprintf(card.faction, x, y+3, gray_shit_width, "center")
+  end
+  if card.type == "follower" then
+    set_color(28,28,28)
+    grectangle("fill",x,y + card_height - gray_shit_height,
+      card_width, gray_shit_height)
+    set_color(255, 255, 255)
+    gprintf(card.atk, x, y+223, card_width/3, "center")
+    gprintf(card.def, x+card_width/3, y+223, card_width/3, "center")
+    gprintf(card.sta, x+2*card_width/3, y+223, card_width/3, "center")
+    set_color(255,50,50)
+  elseif card.type == "spell" then
+    set_color(50,50,255)
+  else
+    set_color(28,28,28)
+    grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
+      gray_shit_width, gray_shit_height)
+    set_color(255,255,255)
+    gprintf(card.life, gray_shit_x, y+223, gray_shit_width, "center")
+    set_color(180,50,180)
+  end
+  grectangle("line",x,y,card_width, card_height)
+  set_color(255,255,255)
+  gfontsize(11)
+  local text = card.text
+  if card.type == "follower" then
+    text = ""
+    local skills = card.skills or {}
+    for i=1,3 do
+      if skills[i] then
+        if skill_text[skills[i]] then
+          text = text .. skill_text[skills[i]] .. "\n\n"
+        else
+          text = text .. "Unknown skill with id " .. skills[i] .. "\n\n"
+        end
+      else
+        text = text .. "-\n\n"
+      end
+    end
+  end
+  gprintf(text, x, y+card_height+10, card_width, "left")
+  gfontsize(12)
+end
+
 function draw_card(card, x, y, text)
   local id = card.id
   if card.hidden then
@@ -102,9 +186,10 @@ function draw_card(card, x, y, text)
   end
   local card_width = card_width
   local card_height = card_height
-  local gray_shit_height = card_height - 78
-  local gray_shit_x = x+40
-  local gray_shit_width = card_width - 40
+  local gray_shit_height = card_height - 100
+  local gray_shit_dx = math.floor(card_width*2/3)
+  local gray_shit_x = x + gray_shit_dx
+  local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
   if card.size and not card.hidden then
     set_color(28,28,28)
@@ -112,6 +197,13 @@ function draw_card(card, x, y, text)
       gray_shit_width, gray_shit_height)
     set_color(255,255,255)
     gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
+  end
+  if card.faction and not card.hidden then
+    set_color(28,28,28)
+    grectangle("fill",x,y,
+      gray_shit_width, gray_shit_height)
+    set_color(255,255,255)
+    gprintf(card.faction, x, y+3, gray_shit_width, "center")
   end
   if text then
     set_color(28,28,28)
@@ -126,9 +218,9 @@ function draw_card(card, x, y, text)
       grectangle("fill",x,y + card_height - gray_shit_height,
         card_width, gray_shit_height)
       set_color(255, 255, 255)
-      gprintf(card.atk, x, y+80, card_width/3, "center")
-      gprintf(card.def, x+card_width/3, y+80, card_width/3, "center")
-      gprintf(card.sta, x+2*card_width/3, y+80, card_width/3, "center")
+      gprintf(card.atk, x, y+103, card_width/3, "center")
+      gprintf(card.def, x+card_width/3, y+103, card_width/3, "center")
+      gprintf(card.sta, x+2*card_width/3, y+103, card_width/3, "center")
       set_color(255,50,50)
     elseif card.type == "spell" then
       set_color(50,50,255)
@@ -137,7 +229,7 @@ function draw_card(card, x, y, text)
       grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
         gray_shit_width, gray_shit_height)
       set_color(255,255,255)
-      gprintf(card.life, gray_shit_x, y+80, gray_shit_width, "center")
+      gprintf(card.life, gray_shit_x, y+103, gray_shit_width, "center")
       set_color(180,50,180)
     end
     grectangle("line",x,y,card_width, card_height)
@@ -150,15 +242,15 @@ local slot_to_dxdy = {left={[0]={0,1},{0,0},{1,0},{1,1},{1,2},{0,2}},
 
 function Player:draw()
   local leftcol, rightcol = {},{}
-  local y_anchor = 50
-  local x_anchor = 50
+  local y_anchor = 25
+  local x_anchor = 25
   if self.side == "left" then
     leftcol = {self.field[1], self.character, self.field[5]}
     rightcol = {self.field[2], self.field[3], self.field[4]}
   else
     rightcol = {self.field[1], self.character, self.field[5]}
     leftcol = {self.field[2], self.field[3], self.field[4]}
-    x_anchor = x_anchor +  400
+    x_anchor = x_anchor +  350
   end
   for i=0,5 do
     local text = nil
@@ -174,16 +266,25 @@ function Player:draw()
     end
     local dx,dy = unpack(slot_to_dxdy[self.side][i])
     if self.field[i] then
-      draw_card(self.field[i], x_anchor+80*dx, y_anchor+100*dy, text)
+      local x, y, w, h = x_anchor+85*dx, y_anchor+125*dy, card_width, card_height
+      draw_card(self.field[i], x, y, text)
+      if not self.field[i].hidden then
+        make_button(function()
+            game.hover_card = deepcpy(self.field[i])
+          end, x, y, w, h, false, true)
+      end
     end
   end
   if self.side == "left" then
     for i=1,#self.hand do
       local img = IMG_card[self.hand[i].id]
       local w,h = card_width, card_height
-      local x,y = 50+70*(i-1), 400
+      local x,y = 25+85*(i-1), 450
       local idx = i
       draw_card(self.hand[i], x, y)
+      make_button(function()
+          game.hover_card = deepcpy(self.hand[idx])
+        end, x, y, w, h, false, true)
       if self.game.act_buttons then
         make_button(function()
             print("trying to play card at idx "..idx)
@@ -199,16 +300,19 @@ end
 function Game:draw()
   self.P1:draw()
   self.P2:draw()
-  gprint("deck "..#self.P1.deck.."    grave "..#self.P1.grave, 60, 370)
-  gprint("turn "..self.turn, 280, 370)
-  gprint("deck "..#self.P2.deck.."    grave "..#self.P2.grave, 470, 370)
-  gprint("ready", 420, 430)
-  gprint("shuffle ("..self.P1.shuffles..")", 420, 467)
-  gprint(self.time_remaining.."s", 490, 467 - 1 * 30)
-  gprint("size "..self.P1:field_size().."/10", 475, 467 - 2 * 30)
+  gprint("deck "..#self.P1.deck.."    grave "..#self.P1.grave, 45, 425)
+  gprint("turn "..self.turn, 260, 425)
+  gprint("deck "..#self.P2.deck.."    grave "..#self.P2.grave, 405, 425)
+  gprint("ready", 397+60, 425+50)
+  gprint("shuffle ("..self.P1.shuffles..")", 395+60, 468+50)
+  gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
+  gprint("size "..self.P1:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
   if self.act_buttons then
-    make_button(function() self.ready = true end, 415, 400, 50, 60, true)
-    make_button(function() self.P1:attempt_shuffle() end, 415, 465, 50, 20, true)
+    make_button(function() self.ready = true end, 395+55, 400+50, 50, 60, true)
+    make_button(function() self.P1:attempt_shuffle() end, 395+55, 465+50, 50, 20, true)
+  end
+  if self.hover_card then
+    draw_hover_card(self.hover_card)
   end
 end
 

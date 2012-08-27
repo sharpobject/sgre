@@ -1492,7 +1492,7 @@ end,
 
 -- odien
 [110141] = function(player)
-  local idxs = player.opponent:field_idxs_with_preds(pred.skill)
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower, pred.skill)
   for _,idx in ipairs(idxs) do
     player.opponent:destroy(idx)
   end
@@ -1501,7 +1501,7 @@ end,
 
 -- lyrica
 [110142] = function(player)
-  local idxs = player.opponent:field_idxs_with_preds(pred.neg(pred.skill))
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.skill))
   for _,idx in ipairs(idxs) do
     player.opponent:destroy(idx)
   end
@@ -1514,7 +1514,8 @@ end,
   for i=1,5 do
     if opponent.field[i] and pred.follower(opponent.field[i]) and
         ((opponent.field[i-1] and pred.follower(opponent.field[i-1])) or
-          (opponent.field[i+1] and pred.follower(opponent.field[i+1]))) then
+          (opponent.field[i+1] and pred.follower(opponent.field[i+1])) or
+          opponent.field[i].sta == 1) then
       targets[#targets+1] = i
     end
   end

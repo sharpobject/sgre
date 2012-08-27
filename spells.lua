@@ -3149,7 +3149,7 @@ end,
 -- halloween countess
 [200244] = function(player, opponent, my_idx, my_card)
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if target then
+  if target and #player:field_idxs_with_preds(pred.follower) > 0 then
     local idx = opponent.field[target]:first_skill_idx()
     if idx then
       opponent.field[target]:remove_skill(idx)

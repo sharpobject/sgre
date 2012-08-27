@@ -1,6 +1,7 @@
 id_to_canonical_card = {}
 name_to_ids = {}
 group_to_ids = {}
+skill_text = {}
 
 function cards_init()
   local file = love.filesystem.newFile("swogi.json")
@@ -26,6 +27,7 @@ function cards_init()
     if card.type == "npc follower" then
       card.type = "follower"
     end
+    card.text = in_card.ability
     if card.type == "follower" then
       card.atk = in_card.attack + 0
       card.def = in_card.defense + 0
@@ -51,4 +53,7 @@ function cards_init()
   end
   name_to_ids = decoded.name_to_ids
   group_to_ids = decoded.group_to_ids
+  for k,v in pairs(decoded.skill_text) do
+    skill_text[0+k] = v
+  end
 end

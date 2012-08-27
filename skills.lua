@@ -604,12 +604,16 @@ end,
 -- undertaker, undertaker
 [1044] = function(player, my_idx)
   local buffsize = 0
-  if player.grave[1] then
-    player:grave_to_exile(1)
+  local my_idx = player:grave_idxs_with_preds(pred.follower)
+  local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)
+  my_idx = my_idx[#my_idx]
+  op_idx = op_idx[#op_idx]
+  if my_idx then
+    player:grave_to_exile(my_idx)
     buffsize = buffsize + 1
   end
-  if player.opponent.grave[1] then
-    player.opponent:grave_to_exile(1)
+  if op_idx then
+    player.opponent:grave_to_exile(op_idx)
     buffsize = buffsize + 1
   end
   if buffsize > 0 then
@@ -1088,14 +1092,14 @@ end,
 
 -- sion flina, dress up
 [1095] = function(player, my_idx)
-  local rion_idx = player:deck_idxs_with_preds({function(card)
-    return card.id == 300058 or card.id == 300196 end})[1]
-  local dressup_idx = player:deck_idxs_with_preds({function(card)
-    return card.id == 300198 end})[1]
+  local rion_idx = player:deck_idxs_with_preds(pred.rion, pred.flina)[1]
+  local dressup_func = function(card) return card.id == 300198 end
+  local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if rion_idx and dressup_idx then
     player:field_to_grave(my_idx)
     player:deck_to_grave(rion_idx)
     local field_idx = player:first_empty_field_slot()
+    dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
     player:deck_to_field(dressup_idx)
     OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
   end
@@ -1103,14 +1107,14 @@ end,
 
 -- rion flina, dress up
 [1096] = function(player, my_idx)
-  local sion_idx = player:deck_idxs_with_preds({function(card)
-    return card.id == 300057 or card.id == 300195 end})[1]
-  local dressup_idx = player:deck_idxs_with_preds({function(card)
-    return card.id == 300198 end})[1]
+  local sion_idx = player:deck_idxs_with_preds(pred.sion, pred.flina)[1]
+  local dressup_func = function(card) return card.id == 300198 end
+  local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if sion_idx and dressup_idx then
     player:field_to_grave(my_idx)
     player:deck_to_grave(sion_idx)
     local field_idx = player:first_empty_field_slot()
+    dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
     player:deck_to_field(dressup_idx)
     OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
   end

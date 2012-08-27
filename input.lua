@@ -7,7 +7,7 @@ function love.mousepressed(x,y,which)
   end
 end
 
-Button = class(function(self,cb,x,y,w,h,always)
+Button = class(function(self,cb,x,y,w,h,always,hover)
     self.cb = cb
     self.x1 = x
     self.x2 = x + w
@@ -16,6 +16,7 @@ Button = class(function(self,cb,x,y,w,h,always)
     self.w = w
     self.h = h
     self.always_outline = always
+    self.hover = hover
   end)
 
 function Button:contains(x,y)
@@ -26,7 +27,11 @@ function do_input()
   mouse_x = mouse_x or love.mouse.getX()
   mouse_y = mouse_y or love.mouse.getY()
   for _,button in ipairs(buttons) do
-    if button:contains(mouse_x, mouse_y) then
+    if button.hover then
+      if button:contains(mouse_x, mouse_y) then
+        button.cb()
+      end
+    elseif button:contains(mouse_x, mouse_y) then
       if mouse_down then
         button.cb()
       else
