@@ -2617,6 +2617,51 @@ end,
   end
   buff:apply()
 end,
+
+-- badminton sita, sita smash!
+[1522] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.sta % 2 == 0 then
+    OneBuff(player.opponent, other_idx, {sta={"-",1}}):apply()
+    if pred.V(player.character) and pred.skill(other_card) then
+      other_card.skills = {"refresh"}
+    end
+  end
+end,
+
+-- archery cinia, 200% accuracy!
+[1523] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local target = uniformly(player.opponent:field_idxs_with_preds(pred.active, pred.follower))
+  if target then
+    OneBuff(player.opponent, target, {sta={"-",2}}):apply()
+    target = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
+    if pred.A(player.character) and target then
+      OneBuff(player.opponent, target, {sta={"-",2}}):apply()
+    end
+  end
+end,
+
+-- judo luthica, judo throw!
+[1524] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local amt = #player:field_idxs_with_preds(pred.follower)
+  if not pred.C(player.character) then
+    amt = min(2,amt)
+  end
+  if other_card then
+    OneBuff(player.opponent, other_idx, {def={"-",amt}}):apply()
+  end
+end,
+
+-- ping pong iri, serve of victory!
+[1525] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.def + other_card.sta <= 7 then
+    local amt = other_card.size
+    player.opponent:destroy(other_idx)
+    local target = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
+    if pred.D(player.character) and target then
+      OneBuff(player.opponent, target, {sta={"-",amt}}):apply()
+    end
+  end
+end,
 }
 
 
