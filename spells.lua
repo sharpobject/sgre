@@ -1277,7 +1277,7 @@ end,
     if target_idxs[1] then
       OneBuff(opponent, target_idxs[1], {sta={"-",5}}):apply()
     end
-    if #player.deck >= 8 then
+    if #player.grave >= 8 then
       if target_idxs[2] then
         target_idxs[1] = target_idxs[2]
       end
@@ -2345,7 +2345,7 @@ end,
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     local factions = {}
-    local amt = 0
+    local amt = 1
     for i=1,#player.hand do
       if not factions[player.hand[i].faction] then
         factions[player.hand[i].faction] = true
@@ -3589,9 +3589,8 @@ end,
 -- burning crusade
 [200279] = function(player, opponent, my_idx, my_card)
   local targets = opponent:field_idxs_with_preds(pred.follower)
-  local buff = OnePlayerBuff(opponent)
   for _,idx in ipairs(targets) do
-    buff[idx] = {atk={"-",2},sta={"-",2}}
+    opponent.field[idx]:gain_skill(1237)
   end
 end,
 

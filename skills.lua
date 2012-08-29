@@ -358,7 +358,7 @@ end,
 
 -- scardel sion flina, sion attack!
 [1021] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.flina, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",1}}
@@ -368,7 +368,7 @@ end,
 
 -- scardel rion flina, rion defense!
 [1022] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.flina, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",1}}
@@ -1718,6 +1718,7 @@ end,
 [1150] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local clone = Card(my_card.id)
   OneBuff(player, my_idx, {atk={"=",clone.atk},def={"=",clone.def},sta={"=",clone.sta}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- death
