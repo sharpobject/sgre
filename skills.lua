@@ -1970,7 +1970,7 @@ end,
 -- animal suit cinia, panda beam!
 [1198] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local atk,sta = {1,1,2},{1,2,3}
-  local n = min(3,#player:field_idxs_with_preds(pred.sita))
+  local n = min(3,#player:field_idxs_with_preds(pred.cinia))
   if other_card and n > 0 then
     OneBuff(player.opponent, other_idx, {atk={"-",atk[n]},sta={"-",sta[n]}}):apply()
   end
@@ -1979,7 +1979,7 @@ end,
 -- animal suit luthica, i want to be a bear!
 [1199] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local atk,sta = {1,1,2},{1,2,3}
-  local n = min(3,#player:field_idxs_with_preds(pred.sita))
+  local n = min(3,#player:field_idxs_with_preds(pred.luthica))
   if n > 0 then
     OneBuff(player, my_idx, {atk={"+",atk[n]},sta={"+",sta[n]}}):apply()
   end
@@ -1988,7 +1988,7 @@ end,
 -- animal suit iri, ultimate rabbit
 [1200] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local sta = {2,3,4}
-  local n = min(3,#player:field_idxs_with_preds(pred.sita))
+  local n = min(3,#player:field_idxs_with_preds(pred.iri))
   if other_card and n > 0 then
     OneBuff(player.opponent, other_idx, {sta={"-",sta[n]}}):apply()
   end
