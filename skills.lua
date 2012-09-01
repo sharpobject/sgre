@@ -873,7 +873,7 @@ end,
 
 -- sweet lady isfeldt, sweet spell
 [1073] = function(player, my_idx, my_card, skill_idx)
-  my_card.skills[skill_idx] = 1074
+  my_card.skills[skill_idx] = "refresh"
 end,
 
 -- sweet lady isfeldt, sweet count
@@ -1689,7 +1689,7 @@ end,
 
 -- 2nd witness kana.dnd, liquor of kana
 [1148] = function(player, my_idx, my_card)
-  local field_target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.t}))
+  local field_target_idx = uniformly(player.opponent:field_idxs_with_preds())
   if field_target_idx then
     player.opponent:field_to_exile(field_target_idx)
   end
@@ -1761,8 +1761,8 @@ end,
   for i=1,2 do
     if skills[i] then
       n = n + 1
-      my_card.skills[i+1] = skills[i]
     end
+    my_card.skills[i+1] = skills[i]
   end
   OneBuff(player, my_idx, {atk={"+",n},sta={"+",n}}):apply()
 end,

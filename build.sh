@@ -6,5 +6,5 @@ cat ~/lovex/love.exe fakesg.love > fakesg.exe
 echo "Zip windows exe"
 cp ~/lovex/*dll .
 zip fakesg.zip *dll fakesg.exe decks/*
-zip images.zip swordgirlsimages/*
+# zip images.zip swordgirlsimages/*
 rm *dll
