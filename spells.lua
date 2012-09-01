@@ -1171,8 +1171,8 @@ end,
     my_follower = my_follower[1]
     local buff = GlobalBuff(player)
     buff.field[player][my_follower] = {atk={"=",0},def={"=",0}}
-    local debuff_amt = floor(player.field[my_follower].atk +
-        player.field[my_follower].def)
+    local debuff_amt = floor((player.field[my_follower].atk +
+        player.field[my_follower].def)/2)
     local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
     for i=1,min(2,#targets) do
       buff.field[opponent][targets[i]] = {atk={"-",debuff_amt}}
