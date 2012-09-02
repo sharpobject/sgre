@@ -1362,7 +1362,7 @@ end,
 -- seeker odien, seeker call
 [1115] = function(player, my_idx, my_card, skill_idx)
   local deck_target_idx = player:deck_idxs_with_preds({pred.seeker})[1]
-  if deck_target_idx then
+  if deck_target_idx and #player.hand < 5 then
     local sent_card = player.deck[deck_target_idx]
     player:deck_to_hand(deck_target_idx)
     OneBuff(player, my_idx, {sta={"+", sent_card.size}}):apply()

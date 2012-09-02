@@ -3036,15 +3036,15 @@ end,
     end
   end
   for i=1,5 do
-    local myhand = player.hand[i]
-    local opphand = opponent.hand[i]
+    local myhand = player.hand[1]
+    local opphand = opponent.hand[1]
     if myhand then
       myhand.size = max(1, myhand.size-1)
-      player:hand_to_bottom_deck(i)
+      player:hand_to_bottom_deck(1)
     end
     if opphand then
       opphand.size = opphand.size + 1
-      opponent:hand_to_bottom_deck(i)
+      opponent:hand_to_bottom_deck(1)
     end
   end
   opponent.shuffles = max(0, opponent.shuffles-1)

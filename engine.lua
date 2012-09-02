@@ -101,6 +101,9 @@ function Player:check_hand()
       error("hand is wrong")
     end
   end
+  if #self.hand > 5 then
+    error("The #hand is too damn high.")
+  end
   local ndeck = 0
   local ngrave = 0
   for _,__ in pairs(self.deck) do
