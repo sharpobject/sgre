@@ -80,8 +80,8 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
                     [1548]=2, [1549]=2, [1551]=1, [1223]=3,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
-                    [1201]=1, [1202]=2, [1203]=2, [1204]=3,
-                    [1205]=2, [1237]=1, [1257]=1, [1408]=2, [1485]=2, ["refresh"]=3})
+                    [1201]=1, [1202]=2, [1203]=2, [1204]=3, [1205]=2, [1237]=1, [1257]=1,
+                    [1272]=3, [1408]=2, [1485]=2, ["refresh"]=3})
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local refresh = function(player, my_idx, my_card)
@@ -2587,6 +2587,10 @@ end,
 -- attack charge
 [1257] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
+end,
+
+[1272] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  player:destroy(my_idx)
 end,
 
 -- coin child, all together now!

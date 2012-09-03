@@ -299,6 +299,20 @@ function Player:field_to_grave(n)
   self.field[n] = nil
 end
 
+function Player:destroy_hand(n)
+  if self.deck[n].type == "follower" then
+    self.character.life = self.character.life - self.deck[n].size
+  end
+  self:deck_to_grave(n)
+end
+
+function Player:destroy_hand(n)
+  if self.hand[n].type == "follower" then
+    self.character.life = self.character.life - self.hand[n].size
+  end
+  self:hand_to_grave(n)
+end
+
 function Player:destroy(n)
   if self.field[n].type == "follower" then
     self.character.life = self.character.life - self.field[n].size
@@ -724,10 +738,20 @@ end
 function Game:clean_dead_followers()
   for _,playername in ipairs({"P1","P2"}) do
     local player = self[playername]
-    for i=1,5 do
+    for i=5,1 do
       local card = player.field[i]
       if card and card.type == "follower" and card.sta < 1 then
         player:destroy(i)
+      end
+      card = player.hand[i]
+      if card and card.type == "follower" and card.sta < 1 then
+        player:destroy_hand(i)
+      end
+    end
+    for i=#player.deck,1,-1 do
+      local card = player.deck[i]
+      if card and card.type == "follower" and card.sta < 1 then
+        player:destroy_deck(i)
       end
     end
   end

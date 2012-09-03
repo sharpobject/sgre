@@ -1561,6 +1561,9 @@ end,
   while #player.grave > 0 do
     recycle_one(player)
   end
+  while #player.hand > 0 do
+    player:hand_to_top_deck(#player.hand)
+  end
 end,
 
 -- lotte
@@ -1583,7 +1586,7 @@ end,
 [110156] = function(player, opponent, my_card)
   if player.game.turn > 1 then
     local amt = 5-#opponent.hand
-    OneBuff(opponent, 0, {life={"-",4*amt}}):apply()
+    OneBuff(opponent, 0, {life={"-",3*amt}}):apply()
   end
 end,
 
@@ -1631,6 +1634,149 @@ end,
   end
   buff:apply()
   recycle_one(player)
+end,
+
+-- sleeping club president
+[110159] = function(player, opponent, my_card)
+  if #player.hand > 0 and #opponent.hand > 0 then
+    player.hand[1], opponent.hand[1] = opponent.hand[1], player.hand[1]
+  end
+end,
+
+-- fourteen
+[110160] = function(player, opponent, my_card)
+  for i=1,3 do
+    if #opponent.deck > 0 then
+      opponent:deck_to_grave(#opponent.deck)
+    end
+  end
+  recycle_one(player)
+end,
+
+-- maid luna
+[110161] = function(player, opponent, my_card)
+  local my_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local buff = GlobalBuff(player)
+  if my_idx then
+    local amt = #player.grave
+    buff.field[player][my_idx] = {atk={"+",amt},sta={"+",amt}}
+  end
+  if op_idx then
+    local amt = #opponent.grave
+    buff.field[opponent][op_idx] = {atk={"-",amt},sta={"-",amt}}
+  end
+  recycle_one(player)
+end,
+
+-- chirushi
+[110163] = function(player, opponent, my_card)
+  local func = function(card) return card.id == 200035 end
+  for i=1,3 do
+    if player:first_empty_field_slot() then
+      local hand_idx = player:hand_idxs_with_preds(func)[1]
+      if hand_idx then
+        player:hand_to_field(hand_idx)
+      else
+        local deck_idx = player:deck_idxs_with_preds(func)[1]
+        if deck_idx then
+          player:deck_to_field(deck_idx)
+        end
+      end
+    end
+  end
+end,
+
+-- ragafelt
+[110164] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local targets = opponent:deck_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    buff.deck[opponent][idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
+  end
+  buff:apply()
+  local to_top = {}
+  for i=1,5 do
+    local idx = uniformly(opponent:deck_idxs_with_preds(pred.follower))
+    if idx then
+      to_top[i] = table.remove(opponent.deck, idx)
+    end
+  end
+  for i=1,#to_top do
+    opponent.deck[#opponent.deck + 1] = to_top[i]
+  end
+end,
+
+-- winfield
+[110165] = function(player, opponent, my_card)
+  local op_cards = opponent:field_idxs_with_preds()
+  for _,idx in ipairs(op_cards) do
+    opponent.field[idx].active = false
+  end
+  local buff = OnePlayerBuff(player)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local amt = 5*player.field[idx].def
+    buff[idx] = {atk={"+",amt},sta={"+",amt}}
+  end
+  buff:apply()
+  for i=1,3 do
+    local target = opponent:hand_idxs_with_preds(pred.spell)[i]
+    if target then
+      opponent:hand_to_grave(target)
+    end
+  end
+end,
+
+-- kris flina
+[110166] = function(player, opponent, my_card)
+  local my_slot = player:first_empty_field_slot()
+  local op_slot = opponent:first_empty_field_slot()
+  local buff = GlobalBuff(player)
+  if my_slot then
+    player.field[my_slot] = Card(300055)
+    buff.field[player][my_slot] = {atk={"=",14},def={"=",2},sta={"=",14}}
+  end
+  if op_slot then
+    opponent.field[op_slot] = Card(300055)
+    buff.field[opponent][op_slot] = {atk={"=",4},def={"=",2},sta={"=",4}}
+    opponent.field[op_slot]:gain_skill(1272)
+  end
+end,
+
+-- amethystar
+[110173] = function(player, opponent, my_card)
+  local which = random(1,5)
+  if which == 1 then
+    local targets = opponent:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(opponent)
+    for _,idx in ipairs(targets) do
+      buff[idx] = {atk={"-",3},sta={"-",3}}
+    end
+    buff:apply()
+  elseif which == 2 then
+    local targets = player:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(targets) do
+      buff[idx] = {atk={"+",3},sta={"+",3}}
+    end
+    buff:apply()
+  elseif which == 3 then
+    OneBuff(opponent, 0, {life={"-",2}}):apply()
+  elseif which == 4 then
+    OneBuff(player, 0, {life={"+",2}}):apply()
+  else
+    while #player.grave > 0 do
+      recycle_one(player)
+    end
+  end
+end,
+
+-- zislana
+[110174] = function(player, opponent, my_card)
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
 end,
 
 -- true vampire god
