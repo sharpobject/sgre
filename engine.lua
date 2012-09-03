@@ -299,7 +299,7 @@ function Player:field_to_grave(n)
   self.field[n] = nil
 end
 
-function Player:destroy_hand(n)
+function Player:destroy_deck(n)
   if self.deck[n].type == "follower" then
     self.character.life = self.character.life - self.deck[n].size
   end

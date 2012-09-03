@@ -99,7 +99,7 @@ end
 local dressup_skill = function(dressup_id, player, my_idx)
   local dressup = function(card) return card.id == dressup_id end
   local dressup_target = player:deck_idxs_with_preds({dressup})[1]
-  if dressup_target then
+  if dressup_target and player:first_empty_field_slot() then
     local field_idxs = player:field_idxs_with_preds({dressup})
     for _,idx in ipairs(field_idxs) do
       player:field_to_grave(idx)
