@@ -738,7 +738,7 @@ end
 function Game:clean_dead_followers()
   for _,playername in ipairs({"P1","P2"}) do
     local player = self[playername]
-    for i=5,1 do
+    for i=5,1,-1 do
       local card = player.field[i]
       if card and card.type == "follower" and card.sta < 1 then
         player:destroy(i)
