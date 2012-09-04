@@ -81,7 +81,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3, [1205]=2, [1237]=1, [1257]=1,
-                    [1272]=3, [1408]=2, [1485]=2, ["refresh"]=3})
+                    [1272]=3, [1273]=1, [1408]=2, [1485]=2, ["refresh"]=3})
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local refresh = function(player, my_idx, my_card)
@@ -2355,12 +2355,14 @@ end,
 [1241] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
     if my_card.size > 2 then
-      local new_card = Card(300353)
-      player:field_to_exile(my_idx)
       local slot = player:first_empty_field_slot()
-      player.field[slot] = new_card
-      OneBuff(player, slot, {size={"-",1},atk={"+",2},sta={"+",2}}):apply()
-      new_card.active = false
+      if slot then
+        local new_card = Card(300353)
+        player:field_to_exile(my_idx)
+        player.field[slot] = new_card
+        OneBuff(player, slot, {size={"-",1},atk={"+",2},sta={"+",2}}):apply()
+        new_card.active = false
+      end
     elseif pred.V(player.character) then
       player.opponent:field_to_grave(other_idx)
       player:field_to_grave(my_idx)
@@ -2409,17 +2411,19 @@ end,
 [1246] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
     if my_card.size > 3 then
-      local new_card = Card(300356)
-      player:field_to_exile(my_idx)
       local slot = player:first_empty_field_slot()
-      player.field[slot] = new_card
-      OneBuff(player, slot, {size={"-",1}}):apply()
-      new_card.active = false
-      local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
-      if hand_target then
-        local amt = player.opponent.hand[hand_target].size
-        player.opponent:hand_to_grave(hand_target)
-        OneBuff(player.opponent, other_idx, {sta={"-",amt}}):apply()
+      if slot then
+        local new_card = Card(300356)
+        player:field_to_exile(my_idx)
+        player.field[slot] = new_card
+        OneBuff(player, slot, {size={"-",1}}):apply()
+        new_card.active = false
+        local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
+        if hand_target then
+          local amt = player.opponent.hand[hand_target].size
+          player.opponent:hand_to_grave(hand_target)
+          OneBuff(player.opponent, other_idx, {sta={"-",amt}}):apply()
+        end
       end
     elseif pred.A(player.character) then
       player.opponent:field_to_grave(other_idx)
@@ -2459,19 +2463,21 @@ end,
 [1250] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
     if my_card.size < 3 then
-      local new_card = Card(300359)
-      player:field_to_exile(my_idx)
       local slot = player:first_empty_field_slot()
-      player.field[slot] = new_card
-      OneBuff(player, slot, {size={"+",1}}):apply()
-      new_card.active = false
-      local buff = OnePlayerBuff(player)
-      local targets = player:field_idxs_with_preds(pred.follower,
-          function(card) return card ~= new_card end)
-      for _,idx in ipairs(targets) do
-        buff[idx] = {size={"-",2}}
+      if slot then
+        local new_card = Card(300359)
+        player:field_to_exile(my_idx)
+        player.field[slot] = new_card
+        OneBuff(player, slot, {size={"+",1}}):apply()
+        new_card.active = false
+        local buff = OnePlayerBuff(player)
+        local targets = player:field_idxs_with_preds(pred.follower,
+            function(card) return card ~= new_card end)
+        for _,idx in ipairs(targets) do
+          buff[idx] = {size={"-",2}}
+        end
+        buff:apply()
       end
-      buff:apply()
     elseif pred.C(player.character) then
       player.opponent:field_to_grave(other_idx)
       player:field_to_grave(my_idx)
@@ -2506,19 +2512,21 @@ end,
 [1253] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
     if my_card.size > 3 then
-      local new_card = Card(300362)
-      local amt = ceil(my_card.size / 2)
-      player:field_to_exile(my_idx)
       local slot = player:first_empty_field_slot()
-      player.field[slot] = new_card
-      OneBuff(player, slot, {size={"-",1}}):apply()
-      new_card.active = false
-      local buff = OnePlayerBuff(player.opponent)
-      local targets = player.opponent:field_idxs_with_preds(pred.follower)
-      for _,idx in ipairs(targets) do
-        buff[idx] = {sta={"-",amt}}
+      if slot then
+        local new_card = Card(300362)
+        local amt = ceil(my_card.size / 2)
+        player:field_to_exile(my_idx)
+        player.field[slot] = new_card
+        OneBuff(player, slot, {size={"-",1}}):apply()
+        new_card.active = false
+        local buff = OnePlayerBuff(player.opponent)
+        local targets = player.opponent:field_idxs_with_preds(pred.follower)
+        for _,idx in ipairs(targets) do
+          buff[idx] = {sta={"-",amt}}
+        end
+        buff:apply()
       end
-      buff:apply()
     elseif pred.D(player.character) then
       player.opponent:field_to_grave(other_idx)
       player:field_to_grave(my_idx)
@@ -2532,13 +2540,15 @@ end,
 -- edelfelt of the wing, phase shift!
 [1254] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
-    local new_card = Card(300363)
-    player:field_to_exile(my_idx)
     local slot = player:first_empty_field_slot()
-    player.field[slot] = new_card
-    new_card.active = false
-    if player.shuffles == 0 then
-      player.shuffles = 1
+    if slot then
+      local new_card = Card(300363)
+      player:field_to_exile(my_idx)
+      player.field[slot] = new_card
+      new_card.active = false
+      if player.shuffles == 0 then
+        player.shuffles = 1
+      end
     end
   end
 end,
@@ -2589,8 +2599,16 @@ end,
   OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
 end,
 
+-- destruction!
 [1272] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   player:destroy(my_idx)
+end,
+
+-- absolute shield!
+[1273] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if my_card.def < 0 then
+    OneBuff(player, my_idx, {def={"=",-my_card.def}}):apply()
+  end
 end,
 
 -- coin child, all together now!

@@ -80,12 +80,12 @@ function main_select_boss()
     end
   end
   local cbs = {}
-  for i=1,20 do
+  for i=1,40 do
     cbs[i]=mk_cb(i)
   end
   network_init()
   while true do
-    for i=1,2 do
+    for i=1,3 do
       for j=1,10 do
         local floor = (i-1)*10+j
         gprint(floor.."F", 400 + (j-5.5)*50 - 10, 190 + i * 50)

@@ -1227,7 +1227,7 @@ end,
   if ncards >= 7 then
     local buff = OnePlayerBuff(opponent)
     for i=1,5 do
-      if opponent.field[i] then
+      if opponent.field[i] and pred.follower(opponent.field[i]) then
         buff[i] = {def={"-",2},sta={"-",2}}
       end
     end
@@ -2383,7 +2383,7 @@ end,
       local idxs = p:field_idxs_with_preds(pred.follower)
       for _,idx in ipairs(idxs) do
         buff.field[p][idx] = teh_buff
-        teh_buff.sta[2] = teh_buff.sta[2] + p.field[idx].def
+        teh_buff.sta[2] = teh_buff.sta[2] + abs(p.field[idx].def)
       end
     end
     buff:apply()
@@ -3108,8 +3108,10 @@ end,
   for i=1,2 do
     if #player.hand < 5 then
       local target = player:deck_idxs_with_preds(pred.sita)[1]
-      player:deck_to_hand(target)
-      player.hand[#player.hand].size = max(1, player.hand[#player.hand].size - 2)
+      if target then
+        player:deck_to_hand(target)
+        player.hand[#player.hand].size = max(1, player.hand[#player.hand].size - 2)
+      end
     end
   end
 end,
@@ -3849,6 +3851,101 @@ end,
     buff.field[opponent][idx] = {atk={"-",2},sta={"-",2}}
   end
   buff:apply()
+end,
+
+-- perfect sleep
+[200297] = function(player, opponent, my_idx, my_card)
+  while #player.hand > 0 do
+    player:hand_to_top_deck(1)
+  end
+  local targets = player:field_idxs_with_preds()
+  for _,idx in ipairs(targets) do
+    player:field_to_top_deck(idx)
+  end
+  targets = opponent:field_idxs_with_preds()
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].active = false
+  end
+end,
+
+-- destroy evidence
+[200298] = function(player, opponent, my_idx, my_card)
+  while #opponent.grave > 0 do
+    opponent:grave_to_exile(#opponent.grave)
+  end
+end,
+
+-- producing
+[200299] = function(player, opponent, my_idx, my_card)
+  for _,p in ipairs({player, opponent}) do
+    while p:first_empty_field_slot() do
+      p.field[p:first_empty_field_slot()] = Card(200069)
+    end
+  end
+end,
+
+-- youngest's day
+[200300] = function(player, opponent, my_idx, my_card)
+  local buff = OnePlayerBuff(opponent)
+  local sz_amt = 5-#opponent:field_idxs_with_preds()
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    local amt = min(sz_amt, opponent.field[idx].size - 1)
+    buff[idx] = {size={"-",sz_amt},atk={"-",amt},def={"-",amt},sta={"-",amt}}
+  end
+  buff:apply()
+end,
+
+-- forbidden research
+[200313] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds()
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].active = false
+    if pred.spell(opponent.field[idx]) then
+      buff[idx] = {size={"+",1}}
+    else
+      opponent.field[idx].skills = {}
+    end
+  end
+  buff:apply()
+  opponent.shuffles = max(0, opponent.shuffles-1)
+end,
+
+-- shutter chance
+[200314] = function(player, opponent, my_idx, my_card)
+  local targets = player:field_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(targets) do
+    player.field[idx]:gain_skill(1273)
+  end
+end,
+
+-- try being me
+[200315] = function(player, opponent, my_idx, my_card)
+  local buff = GlobalBuff(player)
+  for _,p in ipairs({player, opponent}) do
+    local copy_idx = p:field_idxs_with_preds(pred.follower, pred.conundrum)[1]
+    local targets = p:hand_idxs_with_preds(pred.follower)
+    if copy_idx then
+      local card = p.field[copy_idx]
+      local the_buff = {size={"=",card.size},atk={"=",card.atk},def={"=",card.def},sta={"=",card.sta}}
+      for _,idx in ipairs(targets) do
+        buff.hand[player][idx] = the_buff
+      end
+    end
+  end
+  buff:apply()
+end,
+
+-- disciple's box
+[200317] = function(player, opponent, my_idx, my_card)
+  -- I don't know what cards this can spawn.
+  -- These are sacrifice, push forward, and relieve post
+  local cards = {200035, 200185, 200215}
+  local slot = player:first_empty_field_slot()
+  if slot then
+    player.field[slot] = Card(uniformly(cards))
+  end
 end,
 
 -- steparu
