@@ -3930,7 +3930,7 @@ end,
       local card = p.field[copy_idx]
       local the_buff = {size={"=",card.size},atk={"=",card.atk},def={"=",card.def},sta={"=",card.sta}}
       for _,idx in ipairs(targets) do
-        buff.hand[player][idx] = the_buff
+        buff.hand[p][idx] = the_buff
       end
     end
   end
