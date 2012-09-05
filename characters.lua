@@ -1666,7 +1666,17 @@ end,
     local amt = #opponent.grave
     buff.field[opponent][op_idx] = {atk={"-",amt},sta={"-",amt}}
   end
+  buff:apply()
   recycle_one(player)
+end,
+
+-- youngest knight
+[110162] = function(player, opponent, my_card)
+  local targets = opponent:field_idxs_with_preds(
+      function(card) return card.size <= 5 end)
+  for _,idx in ipairs(targets) do
+    opponent:field_to_grave(idx)
+  end
 end,
 
 -- chirushi
