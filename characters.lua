@@ -1597,13 +1597,10 @@ end,
     opponent.field[target].active = false
   end
   local buff = OnePlayerBuff(player)
-  local the_buff = {atk={"+",0},def={"+",0},sta={"+",0}}
   local targets = player:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(targets) do
-    buff[idx] = the_buff
-    the_buff.atk[2] = the_buff.atk[2] + player.field[idx].def
-    the_buff.def[2] = the_buff.def[2] + player.field[idx].def
-    the_buff.sta[2] = the_buff.sta[2] + player.field[idx].def
+    local amt = 2*player.field[idx].def
+    buff[idx] = {atk={"+",amt},def={"+",amt},sta={"+",amt}}
   end
   buff:apply()
   recycle_one(player)
