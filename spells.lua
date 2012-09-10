@@ -376,7 +376,7 @@ end,
   if target_idx then
     local def = opponent.field[target_idx].def
     if def > 0 then
-      OneBuff(opponent,target_idx,{def={"-",2*def}})
+      OneBuff(opponent,target_idx,{def={"-",2*def}}):apply()
     end
   end
 end,
@@ -1117,7 +1117,7 @@ end,
         opponent.field[i].active = false
       end
     end
-    local target = opponent:hand_idxs_with_preds(pred.spell)
+    local target = opponent:hand_idxs_with_preds(pred.spell)[1]
     if target then
       player.hand[#player.hand+1] = opponent.hand[target]
       opponent.hand[target] = nil
@@ -3408,6 +3408,8 @@ end,
     buff[idx] = {atk={"-",amt},sta={"-",amt}}
   end
   buff:apply()
+  player.shuffles = player.shuffles + 1
+  opponent.shuffles = max(0, opponent.shuffles-1)
 end,
 
 -- witch cadet
@@ -3821,21 +3823,11 @@ end,
   buff:apply()
   targets = opponent:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(targets) do
-    local skills = opponent.field[idx].skills
-    for i=1,3 do
-      if skills[i] and skill_id_to_type[skills[i]] == "attack" then
-        skills[i] = nil
-      end
-    end
+    opponent.field[idx].skills = {}
   end
   targets = opponent:hand_idxs_with_preds(pred.follower)
   for _,idx in ipairs(targets) do
-    local skills = opponent.hand[idx].skills
-    for i=1,3 do
-      if skills[i] and skill_id_to_type[skills[i]] == "attack" then
-        skills[i] = nil
-      end
-    end
+    opponent.hand[idx].skills = {}
   end
 end,
 

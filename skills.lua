@@ -1814,21 +1814,21 @@ end,
 -- seeker melissa, comrade use
 [1164] = member_use(pred.seeker),
 
--- seeker amethystar, ehhance!
+-- seeker amethystar, enhance!
 [1165] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
   my_card:remove_skill(skill_idx)
 end,
 
--- seeker amethystar, ehhance!
+-- seeker amethystar, enhance!
 [1166] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
   my_card:remove_skill(skill_idx)
 end,
 
--- seeker amethystar, ehhance!
+-- seeker amethystar, enhance!
 [1167] = function(player, my_idx, my_card, skill_idx)
-  OneBuff(player, my_idx, {atk={"+",1},sta={"+",1}}):apply()
+  OneBuff(player, my_idx, {atk={"+",2},sta={"+",2}}):apply()
   my_card:remove_skill(skill_idx)
 end,
 
@@ -2360,7 +2360,7 @@ end,
         local new_card = Card(300353)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
-        OneBuff(player, slot, {size={"-",1},atk={"+",2},sta={"+",2}}):apply()
+        OneBuff(player, slot, {size={"=",my_card.size-1},atk={"+",2},sta={"+",2}}):apply()
         new_card.active = false
       end
     elseif pred.V(player.character) then
@@ -2416,7 +2416,7 @@ end,
         local new_card = Card(300356)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
-        OneBuff(player, slot, {size={"-",1}}):apply()
+        OneBuff(player, slot, {size={"=",my_card.size-1}}):apply()
         new_card.active = false
         local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
         if hand_target then
@@ -2468,7 +2468,7 @@ end,
         local new_card = Card(300359)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
-        OneBuff(player, slot, {size={"+",1}}):apply()
+        OneBuff(player, slot, {size={"=",my_card.size+1}}):apply()
         new_card.active = false
         local buff = OnePlayerBuff(player)
         local targets = player:field_idxs_with_preds(pred.follower,
@@ -2518,7 +2518,7 @@ end,
         local amt = ceil(my_card.size / 2)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
-        OneBuff(player, slot, {size={"-",1}}):apply()
+        OneBuff(player, slot, {size={"=",my_card.sizelocal-1}}):apply()
         new_card.active = false
         local buff = OnePlayerBuff(player.opponent)
         local targets = player.opponent:field_idxs_with_preds(pred.follower)

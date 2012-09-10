@@ -1300,14 +1300,16 @@ end,
 -- wanderer luthica
 [100110] = function(player, _, char)
   ex2_recycle(player, char)
-  local buff = {atk={"+",2},sta={"+",2}}
-  if #player.deck <= #player.opponent.deck then
-    buff.sta[2]=3
-    OneBuff(player.opponent, 0, {life={"-",1}}):apply()
-  end
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
-    OneBuff(player, target, buff):apply()
+    OneBuff(player, target, {atk={"+",2},sta={"+",2}}):apply()
+  end
+  if #player.deck <= #player.opponent.deck then
+    OneBuff(player.opponent, 0, {life={"-",1}}):apply()
+    target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player, target, {sta={"+",1}}):apply()
+    end
   end
 end,
 
@@ -1577,7 +1579,7 @@ end,
 
 -- conundrum
 [110155] = function(player, opponent, my_card)
-  if player.character.life <= 10 then
+  if player.character.life <= 7 then
     OneBuff(opponent, 0, {life={"=",0}}):apply()
   end
 end,
@@ -1599,7 +1601,7 @@ end,
   local buff = OnePlayerBuff(player)
   local targets = player:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(targets) do
-    local amt = 2*player.field[idx].def
+    local amt = 2*abs(player.field[idx].def)
     buff[idx] = {atk={"+",amt},def={"+",amt},sta={"+",amt}}
   end
   buff:apply()
