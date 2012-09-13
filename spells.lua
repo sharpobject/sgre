@@ -735,7 +735,7 @@ end,
 
 -- sense of belonging
 [200056] = function(player, opponent)
-  local old_idx = uniformly(opponent:field_idxs_with_preds(
+  local old_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
     function(card) return card.faction ~= opponent.character.faction end))
   local new_idx = player:first_empty_field_slot()
   if old_idx and new_idx then

@@ -1,4 +1,4 @@
 gfx_q = Queue()
 buttons = {}
 DEBUG_MODE = nil
-VERSION = "0014"
+VERSION = "0015"

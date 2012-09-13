@@ -1666,7 +1666,6 @@ end,
     buff.field[opponent][op_idx] = {atk={"-",amt},sta={"-",amt}}
   end
   buff:apply()
-  recycle_one(player)
 end,
 
 -- youngest knight
@@ -1751,6 +1750,7 @@ end,
     buff.field[opponent][op_slot] = {atk={"=",4},def={"=",2},sta={"=",4}}
     opponent.field[op_slot]:gain_skill(1272)
   end
+  buff:apply()
 end,
 
 -- amethystar
