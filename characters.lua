@@ -1747,7 +1747,7 @@ end,
   end
   if op_slot then
     opponent.field[op_slot] = Card(300055)
-    buff.field[opponent][op_slot] = {atk={"=",4},def={"=",2},sta={"=",4}}
+    buff.field[opponent][op_slot] = {size={"=",9},atk={"=",4},def={"=",2},sta={"=",4}}
     opponent.field[op_slot]:gain_skill(1272)
   end
   buff:apply()
