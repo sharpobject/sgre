@@ -19,6 +19,19 @@ local ex2_recycle = function(player, char)
   end
 end
 
+local ep7_recycle = function(player)
+  if player.game.turn % 2 == 0 then
+    local target = uniformly(player:grave_idxs_with_preds())
+    if target then
+      player:grave_to_exile(target)
+    end
+    target = uniformly(player:grave_idxs_with_preds(pred.follower))
+    if target then
+      player:grave_to_bottom_deck(target)
+    end
+  end
+end
+
 local sita_vilosa = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
   local buff = OnePlayerBuff(player.opponent)
@@ -1375,6 +1388,71 @@ end,
       OneBuff(player, target, {atk={"+",1},sta={"+",1}}):apply()
     end
   end
+end,
+
+-- crux knight rosa
+[100119] = function(player, opponent, my_card)
+  if #player.hand == 5 then
+    player:hand_to_top_deck(1)
+  end
+  local amt = min(3,5-#player.hand)
+  local target = player:deck_idxs_with_preds(pred.follower)[1]
+  if target then
+    local buff = GlobalBuff(player)
+    buff.deck[player][target] = {atk={"+",amt},sta={"+",amt}}
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- shaman helena k sync
+[100120] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local amt = 1
+  for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    buff.field[opponent][idx] = {atk={"-",1}}
+    amt = amt + 1
+  end
+  for _,idx in ipairs(opponent:hand_idxs_with_preds(pred.follower)) do
+    buff.hand[opponent][idx] = {atk={"-",1}}
+    amt = amt + 1
+  end
+  amt = min(3, amt)
+  local target = player:deck_idxs_with_preds(pred.follower)[1]
+  if target then
+    buff.deck[player][target] = {atk={"+",amt}}
+  end
+  buff:apply()
+  ep7_recycle(player)
+end,
+
+-- detective asmis
+[100121] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  if #opponent.deck > 0 and pred.spell(opponent.deck[#opponent.deck]) then
+    buff.deck[opponent][#opponent.deck] = {size={"+",1}}
+  end
+  if #player.deck > 0 then
+    if pred.follower(player.deck[#player.deck]) then
+      buff.deck[player][#player.deck] = {size={"-",1},atk={"+",1},sta={"+",1}}
+    else
+      buff.deck[player][#player.deck] = {size={"-",1}}
+    end
+  end
+  ep7_recycle(player)
+end,
+
+-- witch cadet linus falco
+[100122] = function(player, opponent, my_card)
+  for i=1,2 do
+    local buff = GlobalBuff(player)
+    local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
+    if target then
+      buff.deck[opponent][target] = {atk={"-",1},sta={"-",1}}
+    end
+    buff:apply()
+  end
+  ep7_recycle(player)
 end,
 
 -- wafuku sita

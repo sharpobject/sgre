@@ -2518,7 +2518,7 @@ end,
         local amt = ceil(my_card.size / 2)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
-        OneBuff(player, slot, {size={"=",my_card.sizelocal-1}}):apply()
+        OneBuff(player, slot, {size={"=",my_card.size-1}}):apply()
         new_card.active = false
         local buff = OnePlayerBuff(player.opponent)
         local targets = player.opponent:field_idxs_with_preds(pred.follower)
