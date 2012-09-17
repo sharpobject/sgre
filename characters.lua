@@ -1743,7 +1743,7 @@ end,
   local buff = GlobalBuff(player)
   if my_slot then
     player.field[my_slot] = Card(300055)
-    buff.field[player][my_slot] = {atk={"=",14},def={"=",2},sta={"=",14}}
+    buff.field[player][my_slot] = {atk={"=",13},def={"=",2},sta={"=",13}}
   end
   if op_slot then
     opponent.field[op_slot] = Card(300055)
