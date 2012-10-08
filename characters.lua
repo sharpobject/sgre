@@ -2020,8 +2020,10 @@ end,
     return
   end
 
-  local amt = 2*(5-#opponent.hand)
-  OneBuff(opponent, 0, {life={"-",amt}}):apply()
+  if player.game.turn ~= 1 then
+    local amt = 2*(5-#opponent.hand)
+    OneBuff(opponent, 0, {life={"-",amt}}):apply()
+  end
 
   local func = function(card)
     base = Card(card.id)
