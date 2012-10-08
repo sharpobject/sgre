@@ -2611,6 +2611,30 @@ end,
   end
 end,
 
+-- forced tranformation!
+[1286] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  other_card.id = 300139
+  local amt = #opponent:field_idxs_with_preds(pred.rio)
+  OneBuff(opponent, other_idx, {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
+end,
+
+-- fake slumber!
+[1287] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  my_card.active = true
+end,
+
+-- i'm done warming up!
+[1288] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local base = Card(my_card.id)
+  local buff = {}
+  for _,stat in ipairs({"atk","def","sta"}) do
+    if card[stat] < base[stat] then
+      buff[stat] = {"=",base[stat]}
+    end
+  end
+  OneBuff(player, my_idx, buff):apply()
+end,
+
 -- coin child, all together now!
 [1314] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
 end,

@@ -1866,6 +1866,142 @@ end,
   end
 end,
 
+-- magician
+[110175] = function(player, opponent, my_card)
+  if opponent.field[player.game.turn] then
+    OneBuff(opponent, 0, {life={"-",8}}):apply()
+  end
+  if player.game.turn == 5 then
+    player.game.turn = 1
+  end
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- jaina preventer
+[110176] = function(player, opponent, my_card)
+  local func = function(card)
+    base = Card(card.id)
+    return card.atk > base.atk or card.def > base.def or card.sta > base.sta
+  end
+  local targets = opponent:field_idxs_with_preds(pred.follower, func)
+  for _,idx in ipairs(targets) do
+    opponent:destroy(idx)
+  end
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- disciple johana
+[110177] = function(player, opponent, my_card)
+  local amt = #opponent.hand
+  while #opponent.hand > 0 do
+    opponent:hand_to_grave(1)
+  end
+  local buff = GlobalBuff(player)
+  buff.field[player][0] = {life={"+",amt}}
+  buff.field[opponent][0] = {life={"-",amt}}
+  buff:apply()
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- disciple josefina
+[110178] = function(player, opponent, my_card)
+  local my_guys = player:field_idxs_with_preds(pred.follower)
+  local op_guys = opponent:field_idxs_with_preds(pred.follower)
+  if #op_guys > #my_guys then
+    for _,idx in ipairs(op_guys) do
+      local slot = player:first_empty_field_slot()
+      if slot then
+        player.field[slot] = opponent.field[idx]
+        opponent.field[idx] = nil
+        player.field[slot].size = 1
+      end
+    end
+  end
+  if player:field_size() >= 2 then
+    local to_send = player:field_idxs_with_preds(pred.follower,
+        function(card) return card.size > 1 end)
+    for _,idx in ipairs(to_send) do
+      local slot = opponent:first_empty_field_slot()
+      if slot then
+        opponent.field[slot] = player.field[idx]
+        player.field[idx] = nil
+        opponent.field[slot].size = 5
+      end
+    end
+  end
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- fool
+[110179] = function(player, opponent, my_card)
+  local to_steal = uniformly(opponent:field_idxs_with_preds(pred.neg(pred.knight)))
+  if to_steal and player:first_empty_field_slot() then
+    local card = opponent.field[to_steal]
+    card.size = 1
+    opponent.field[to_steal] = nil
+    player.field[player:first_empty_field_slot()] = card
+  end
+  local to_grave = opponent:field_idxs_with_preds(pred.neg(pred.knight))
+  for _,idx in ipairs(to_grave) do
+    opponent:field_to_grave(idx)
+  end
+  while #player.grave > 0 do
+    recycle_one(player)
+  end
+end,
+
+-- chenin blanc
+[110180] = function(player, opponent, my_card)
+  OneBuff(opponent, 0, {life={"=",10}}):apply()
+  for _,p in ipairs({player, opponent}) do
+    for i=1,5 do
+      p.field[i] = Card(200035)
+    end
+  end
+end,
+
+-- famed disciple
+[110182] = function(player, opponent, my_card)
+  local even = opponent:field_idxs_with_preds(
+      function(card) return card.size % 2 == 0 end)
+  for _,idx in ipairs(even) do
+    opponent:destroy(idx)
+  end
+  local targets = opponent:field_idxs_with_preds()
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].size = 4
+  end
+  for i=1,#opponent.hand do
+    opponent.hand[i].size = 4
+  end
+end,
+
+-- disciple shuru
+[110183] = function(player, opponent, my_card)
+  if player.game.turn == 1 then
+    local decks = {V="http://swogitools.com/index.php?deck=100001D2P300007C3P300005C2P300006C3P300004C2P300008C3P300003C3P300002C3P300001C2P200003C2P200002C2P200005C1P200001C2P200004C&compression=false",
+        A="http://swogitools.com/index.php?deck=100002D2P300025C3P300023C2P300024C3P300022C2P300026C3P300021C3P300020C3P300019C2P200012C2P200011C2P200015C1P200014C2P200013C&compression=false",
+        C="http://swogitools.com/index.php?deck=100003D2P300043C3P300041C2P300042C3P300040C2P300044C3P300039C3P300038C3P300037C2P200022C1P200021C2P200025C2P200023C2P200024C&compression=false",
+        D="http://swogitools.com/index.php?deck=100004D3P300061C3P300059C2P300060C2P300058C3P300062C2P300057C3P300056C3P300055C1P200035C2P200033C2P200032C2P200034C2P200031C&compression=false"}
+    local deck_str = decks[opponent.character.faction]
+    if deck_str then
+      local deck = str_to_deck(deck_str)
+      table.remove(deck, 1)
+      deck = map(Card, deck)
+    else
+      opponent.deck = {}
+    end
+  end
+end,
+
 -- true vampire god
 [120010] = function(player, opponent)
   if opponent.character.life >= 15 then
@@ -1874,6 +2010,27 @@ end,
     OneBuff(opponent, 0, {life={"=",0}}):apply()
   end
   recycle_one(player)
+end,
+
+-- ereshkigal
+[120015] = function(player, opponent, my_card)
+  if player.character.life <= 7 or opponent.character.life <= 7 or
+      player.game.turn == 14 then
+    OneBuff(opponent, 0, {life={"=",0}}):apply()
+    return
+  end
+
+  local amt = 2*(5-#opponent.hand)
+  OneBuff(opponent, 0, {life={"-",amt}}):apply()
+
+  local func = function(card)
+    base = Card(card.id)
+    return card.atk > base.atk or card.def > base.def or card.sta > base.sta
+  end
+  local targets = opponent:field_idxs_with_preds(pred.follower, func)
+  for _,idx in ipairs(targets) do
+    opponent:field_to_bottom_deck(idx)
+  end
 end,
 }
 setmetatable(characters_func, {__index = function()return function() end end})

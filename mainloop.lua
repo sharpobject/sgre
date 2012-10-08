@@ -15,17 +15,7 @@ function fmainloop()
   end
 end
 
-local str_to_deck = function(s)
-  local file, err = io.open(ABSOLUTE_PATH.."decks"..PATH_SEP..s..".txt", "r")
-  if file then
-    s = file:read("*a")
-    file:close()
-  else
-    file = love.filesystem.newFile("decks/"..s..".txt")
-    file:open("r")
-    s = file:read(file:getSize())
-  end
-
+function str_to_deck(s)
   s = s:sub(s:find("[%dDPC]+")):split("DPC")
   local t = {}
   t[1] = s[1] + 0
@@ -35,6 +25,19 @@ local str_to_deck = function(s)
     end
   end
   return t
+end
+
+local file_to_deck = function(s)
+  local file, err = io.open(ABSOLUTE_PATH.."decks"..PATH_SEP..s..".txt", "r")
+  if file then
+    s = file:read("*a")
+    file:close()
+  else
+    file = love.filesystem.newFile("decks/"..s..".txt")
+    file:open("r")
+    s = file:read(file:getSize())
+  end
+  return str_to_deck(s)
 end
 
 local char_ids = {}
@@ -85,11 +88,13 @@ function main_select_boss()
   end
   network_init()
   while true do
-    for i=1,3 do
+    for i=1,4 do
       for j=1,10 do
-        local floor = (i-1)*10+j
-        gprint(floor.."F", 400 + (j-5.5)*50 - 10, 190 + i * 50)
-        make_button(cbs[floor], 400 + (j-5.5)*50 - 20, 185 + i * 50, 40, 40, true)
+        if i < 4 or j ~= 7 then
+          local floor = (i-1)*10+j
+          gprint(floor.."F", 400 + (j-5.5)*50 - 10, 190 + i * 50)
+          make_button(cbs[floor], 400 + (j-5.5)*50 - 20, 185 + i * 50, 40, 40, true)
+        end
       end
     end
     gprint(VERSION_MSG, 250, 40)
@@ -104,8 +109,8 @@ function main_select_boss()
 end
 
 function main_play(which)
-  local player = str_to_deck("player")
-  local npc = str_to_deck("floor"..which)
+  local player = file_to_deck("player")
+  local npc = file_to_deck("floor"..which)
   game = Game(player, npc)
   game:run()
 end

@@ -206,7 +206,7 @@ end,
     local target_idxs = player:field_idxs_with_preds(pred.follower)
     local reduced_amount = 0
     for _,idx in ipairs(target_idxs) do
-      reduced_amount = reduced_amount + player.field[idx].size
+      reduced_amount = reduced_amount + player.field[idx].size - 1
       buff[idx] = {size={"=",1}}
     end
     buff:apply()
@@ -3932,11 +3932,80 @@ end,
 -- disciple's box
 [200317] = function(player, opponent, my_idx, my_card)
   -- I don't know what cards this can spawn.
-  -- These are sacrifice, push forward, and relieve post
-  local cards = {200035, 200185, 200215}
+  -- These are sacrifice, push forward, relieve post, reunion
+  local cards = {200035, 200185, 200215, 200047}
   local slot = player:first_empty_field_slot()
   if slot then
     player.field[slot] = Card(uniformly(cards))
+  end
+end,
+
+-- infinite thanks
+[200318] = function(player, opponent, my_idx, my_card)
+  local slot = opponent:first_empty_field_slot()
+  while slot do
+    opponent.field[slot] = Card(200070)
+    opponent.field[slot].active = false
+    slot = opponent:first_empty_field_slot()
+  end
+end,
+
+-- curse of decay
+[200319] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
+  end
+  buff:apply()
+  player.send_spell_to_grave = false
+  my_card.active = false
+end,
+
+-- forbidden book
+[200333] = function(player, opponent, my_idx, my_card)
+  if #opponent.hand > 0 then
+    for i=1,2 do
+      if #opponent.hand < 5 and #opponent.deck > 0 then
+        local card = opponent.deck[#opponent.deck]
+        card.size = card.size + 1
+        opponent:draw_a_card()
+      end
+    end
+  end
+end,
+
+-- endless appetite
+[200334] = function(player, opponent, my_idx, my_card)
+  for _,p in ipairs({player, opponent}) do
+    local targets = p:field_idxs_with_preds(pred.follower,
+        function(card) return card.size ~= 1 end)
+    for _,idx in ipairs(targets) do
+      p.field[idx].active = false
+    end
+    targets = p:field_idxs_with_preds(pred.follower,
+        function(card) return card.size == 5 end)
+    for _,idx in ipairs(targets) do
+      p:destroy(idx)
+    end
+  end
+end,
+
+-- knight selection
+[200335] = function(player, opponent, my_idx, my_card)
+  for _,p in ipairs({player, opponent}) do
+    local targets = p:field_idxs_with_preds(pred.neg(pred.knight))
+    for _,idx in ipairs(targets) do
+      p.field[idx].size = p.field[idx].size + 3
+    end
+  end
+end,
+
+-- obstinance
+[200350] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds()
+  for _,idx in ipairs(targets) do
+    opponent.field[idx].size = 4
   end
 end,
 
