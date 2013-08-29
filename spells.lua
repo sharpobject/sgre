@@ -4098,76 +4098,32 @@ end,
 
 end,
 
--- 
-[200350] = function(player, opponent, my_idx, my_card)
+[200358] = function(player, opponent, my_idx, my_card)
+  if my_card.size > 3 then
+    my_card.size = 3
+  end
+  OneBuff(player, 0, {life={"+", my_card.size + 1}}):apply()
+  if my_card.size > 1 then
+    player.send_spell_to_grave = false
+    my_card.size = my_card.size - 1
+    my_card.active = false
+  end
 end,
 
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- 
-[200350] = function(player, opponent, my_idx, my_card)
+-- time spiral
+[200366] = function(player, opponent, my_idx, my_card)
+  local targets = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    buff[idx] = {}
+    local orig = Card(opponent.field[idx].id)
+    for _,attr in ipairs({"atk","def","sta"}) do
+      if opponent.field[idx][attr] > orig[attr] then
+        buff[idx][attr] = {"-", 2*(opponent.field[idx][attr] - orig[attr])}
+      end
+    end
+  end
+  buff:apply()
 end,
 
 -- relaxation
@@ -4185,6 +4141,23 @@ end,
       buff.field[opponent][op_idx][stat] = {"=",my_card[stat]}
     end
     buff:apply()
+  end
+end,
+
+-- apostle's scheme
+[200436] = function(player, opponent, my_idx, my_card)
+  local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,2 do
+    if targets[i] then
+      buff[targets[i]] = {atk={"-",random(1,3)}}
+    end
+  end
+  buff:apply()
+  if my_card.size < 2 and #player.hand < 5 then
+    my_card.size = my_card.size + 1
+    player.hand[#player.hand+1] = my_card
+    player.field[my_idx] = nil
   end
 end,
 
