@@ -15,7 +15,7 @@ local new_student_orientation = function(player, opponent, my_idx, my_card)
 end
 
 local court_jester = function(group_pred)
-  return function(player, opponend, my_idx, my_card)
+  return function(player, opponent, my_idx, my_card)
     local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
         pred.faction[my_card.faction]}))
     local group_idxs = player:field_idxs_with_preds({pred.follower,
@@ -31,7 +31,7 @@ local court_jester = function(group_pred)
 end
 
 local sitas_suit = function(group_pred)
-  return function(player, opponend, my_idx, my_card)
+  return function(player, opponent, my_idx, my_card)
     local amt = 2
     for _,tar_pred in ipairs({pred[my_card.faction], group_pred}) do
       local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
@@ -3150,7 +3150,7 @@ end,
 
 -- halloween countess
 [200244] = function(player, opponent, my_idx, my_card)
-  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower, pred.skill))
   if target and #player:field_idxs_with_preds(pred.follower) > 0 then
     local idx = opponent.field[target]:first_skill_idx()
     if idx then
@@ -3878,6 +3878,7 @@ end,
 
 -- youngest's day
 [200300] = function(player, opponent, my_idx, my_card)
+  if true then return end -- I think this spell is bugged and actually does nothing...
   local buff = OnePlayerBuff(opponent)
   local sz_amt = 5-#opponent:field_idxs_with_preds()
   local targets = opponent:field_idxs_with_preds(pred.follower)
@@ -3962,6 +3963,62 @@ end,
   my_card.active = false
 end,
 
+-- worries
+[200320] = function(player, opponent, my_idx, my_card)
+  opponent.field[1], opponent.field[5] = opponent.field[5], opponent.field[1]
+  opponent.field[2], opponent.field[4] = opponent.field[4], opponent.field[2]
+  local buff = OnePlayerBuff(opponent)
+  for i=1,2 do
+    if opponent.field[i] and pred.follower(opponent.field[i]) then
+      buff[i] = {sta={"-",2}}
+    end
+  end
+  buff:apply()
+end,
+
+-- event
+[200321] = function(player, opponent, my_idx, my_card)
+  local target_size = 10-player:field_size()
+  local func = function(card) return card.size == target_size end
+  local target = opponent:field_idxs_with_preds(func)[1]
+  if target then
+    OneBuff(opponent, target, {atk={"-",2},sta={"-",2}}):apply()
+    opponent:field_to_top_deck(target)
+  end
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- worries
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
 -- forbidden book
 [200333] = function(player, opponent, my_idx, my_card)
   if #opponent.hand > 0 then
@@ -4001,11 +4058,133 @@ end,
   end
 end,
 
+-- dark sword refinement
+[200347] = function(player, opponent, my_idx, my_card)
+  if pred.D(player.character) then
+    player.shuffles = player.shuffles + 5
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      local amt = opponent.shuffles
+      OneBuff(player, target, 
+          {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
+      opponent.shuffles = opponent.shuffles - 1
+    end
+  end
+  player.field[my_idx] = nil
+end,
+
+-- sage's counsel
+[200348] = function(player, opponent, my_idx, my_card)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if targets[i] then
+      buff[targets[i]] = {atk={"+",3},sta={"+",3}}
+    end
+  end
+  buff:apply()
+end,
+
 -- obstinance
 [200350] = function(player, opponent, my_idx, my_card)
   local targets = opponent:field_idxs_with_preds()
   for _,idx in ipairs(targets) do
     opponent.field[idx].size = 4
+  end
+end,
+
+-- nether visitor
+[200351] = function(player, opponent, my_idx, my_card)
+
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- 
+[200350] = function(player, opponent, my_idx, my_card)
+end,
+
+-- relaxation
+[200407] = function(player, opponent, my_idx, my_card)
+  local my_idx = player:field_idxs_with_preds(pred.follower)[1]
+  local op_guys = opponent:field_idxs_with_preds(pred.follower)
+  local op_idx = op_guys[#op_guys]
+  if my_idx and op_idx then
+    local my_card = player.field[my_idx]
+    local op_card = opponent.field[op_idx]
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx],buff.field[opponent][op_idx] = {},{}
+    for _,stat in ipairs({"atk","def","sta","size"}) do
+      buff.field[player][my_idx][stat] = {"=",op_card[stat]}
+      buff.field[opponent][op_idx][stat] = {"=",my_card[stat]}
+    end
+    buff:apply()
   end
 end,
 

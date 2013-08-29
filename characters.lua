@@ -974,8 +974,8 @@ end,
     end
   end
   if size > 0 then
-    for i=1,5 do
-      while player.hand[i] and player.hand[i].size == size do
+    for i=5,1,-1 do
+      if player.hand[i] and player.hand[i].size == size then
         player:hand_to_bottom_deck(i)
       end
     end
@@ -1379,7 +1379,15 @@ end,
 -- end,
 
 -- apostle l red sun
+
 [100118] = function(player, opponent, my_card)
+  print("OMGGGGG")
+  player:to_bottom_deck(Card(300193))
+  if player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+",1}}):apply()
+  end
+end,
+--[[[100118] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     if #player.deck > 0 and pred.follower(player.deck[#player.deck]) then
@@ -1388,7 +1396,7 @@ end,
       OneBuff(player, target, {atk={"+",1},sta={"+",1}}):apply()
     end
   end
-end,
+end,--]]
 
 -- crux knight rosa
 [100119] = function(player, opponent, my_card)
@@ -1444,6 +1452,7 @@ end,
 
 -- witch cadet linus falco
 [100122] = function(player, opponent, my_card)
+  print("OMGGGGG LINUXXXX")
   for i=1,2 do
     local buff = GlobalBuff(player)
     local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
@@ -1453,6 +1462,50 @@ end,
     buff:apply()
   end
   ep7_recycle(player)
+end,
+
+-- GS 3rd Star
+[100133] = function(player, opponent, my_card)
+  print("OMGGGGG BSD")
+  for i=1,2 do
+    local buff = GlobalBuff(player)
+    local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
+    if target then
+      buff.deck[opponent][target] = {atk={"-",1},sta={"-",1}}
+    end
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+--[[[100133] = function(player, opponent, my_card)
+  print("OMGGGGG")
+  player:to_bottom_deck(Card(300193))
+  if player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+",1}}):apply()
+  end
+end,--]]
+
+--At the start of the turn, Crux cards are sent from the top of your Deck to your Hand until there are four cards in your Hand. Any sent Followers get ATK +1/STA +1. If no cards are sent, a random Follower in your Field gets ATK +1/STA +1.</s
+-- icy glacier
+[100139] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local do_default = true
+  for i=1,4 do
+    local idx = player:deck_idxs_with_preds(pred.C)[1]
+    if #player.hand < 4 and idx then
+      player:deck_to_hand(idx)
+      if pred.follower(player.hand[#player.hand]) then
+        do_default = false
+        buff.hand[player][#player.hand] = {atk={"+",1},sta={"+",1}}
+      end
+    end
+  end
+  if do_default then 
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
+    end
+  end
 end,
 
 -- wafuku sita
@@ -2014,11 +2067,11 @@ end,
 
 -- ereshkigal
 [120015] = function(player, opponent, my_card)
-  if player.character.life <= 7 or opponent.character.life <= 7 or
+  --[[if player.character.life <= 7 or opponent.character.life <= 7 or
       player.game.turn == 14 then
     OneBuff(opponent, 0, {life={"=",0}}):apply()
     return
-  end
+  end--]]
 
   if player.game.turn ~= 1 then
     local amt = 2*(5-#opponent.hand)

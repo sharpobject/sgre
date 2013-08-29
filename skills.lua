@@ -81,11 +81,22 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3, [1205]=2, [1237]=1, [1257]=1,
-                    [1272]=3, [1273]=1, [1408]=2, [1485]=2, ["refresh"]=3})
+                    [1272]=3, [1273]=1, [1408]=2, [1485]=2, 
+                    [1749]=3, [1752]=2,
+                    -- todo: this does not belong in a source file...
+                    ["refresh"]=3})
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local refresh = function(player, my_idx, my_card)
   my_card:refresh()
+end
+
+local lesprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local removed = pred.skill(other_card)
+  other_card.skills = {}
+  if removed then
+    OneBuff(player, my_idx, {atk={"+",2}, def={"+",0}, sta={"+",2}}):apply()
+  end
 end
 
 local esprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -2614,8 +2625,8 @@ end,
 -- forced tranformation!
 [1286] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   other_card.id = 300139
-  local amt = #opponent:field_idxs_with_preds(pred.rio)
-  OneBuff(opponent, other_idx, {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
+  local amt = #player.opponent:field_idxs_with_preds(pred.rio)
+  OneBuff(player.opponent, other_idx, {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
 end,
 
 -- fake slumber!
@@ -2628,7 +2639,7 @@ end,
   local base = Card(my_card.id)
   local buff = {}
   for _,stat in ipairs({"atk","def","sta"}) do
-    if card[stat] < base[stat] then
+    if my_card[stat] < base[stat] then
       buff[stat] = {"=",base[stat]}
     end
   end
@@ -2647,12 +2658,47 @@ end,
 [1316] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
 end,
 
+-- crux knight ibis, balance of power!
+[1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local do_default = true
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {}
+  buff.field[player.opponent][other_idx] = {}
+  if other_card then
+    for _,stat in ipairs({"atk","def","sta"}) do
+      if other_card[stat] > id_to_canonical_card[other_card.id][stat] then
+        do_default = false
+        amt = ceil((other_card[stat] - id_to_canonical_card[other_card.id][stat])/2)
+        buff.field[player][my_idx][stat] = {"+",amt}
+        buff.field[player.opponent][other_idx][stat] = {"-",amt}
+      end
+    end
+  end
+  if do_default then
+    buff.field[player][my_idx] = {sta={"+",2}}
+  end
+  buff:apply()
+end,
+
+-- l. esprit, quest for truth!
+[1389] = lesprit,
+
+-- l. esprit, quest for truth!
+[1390] = lesprit,
+
 -- resistance
 [1408] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     OneBuff(player, my_idx, {sta={"+",floor(other_card.atk/2)}}):apply()
   end
   my_card:remove_skill(skill_idx)
+end,
+
+-- girls' harmony, chrysalis!
+[1425] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and pred.skill(other_card) then
+    OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
+  end
 end,
 
 -- alchemist yi ensan, poison attack
@@ -2707,6 +2753,21 @@ end,
     if pred.D(player.character) and target then
       OneBuff(player.opponent, target, {sta={"-",amt}}):apply()
     end
+  end
+end,
+
+-- rh asmis, cacao's blessing (rh)!
+[1749] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"+",4},sta={"+",4}}):apply()
+end,
+
+-- rh asmis, homunculus power (rh)!
+[1752] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if my_card.sta < id_to_canonical_card[my_card.id].sta then
+    OneBuff(player, my_idx, {sta={"+",3}}):apply()
+  elseif my_card.sta > id_to_canonical_card[my_card.id].sta then
+    my_card.active = true
+    OneBuff(player, my_idx, {atk={"+",2}}):apply()
   end
 end,
 }
