@@ -2222,7 +2222,7 @@ end,
 
 -- tick time
 [200162] = function(player, opponent, my_idx, my_card)
-  local amt = floor(player.game.turn / 2)
+  local amt = floor((player.game.turn % 10) / 2)
   local targets = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,2 do
@@ -4065,7 +4065,7 @@ end,
     local target = uniformly(player:field_idxs_with_preds(pred.follower))
     if target then
       local amt = opponent.shuffles
-      OneBuff(player, target, 
+      OneBuff(player, target,
           {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
       opponent.shuffles = opponent.shuffles - 1
     end
