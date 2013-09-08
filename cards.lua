@@ -14,14 +14,14 @@ function cards_init()
   cards = decoded.id_to_card
   for id,in_card in pairs(cards) do
     id = id + 0
-    print("LOADING "..id)
+    --print("LOADING "..id)
     card = {}
     id_to_canonical_card[id] = card
     card.type = in_card.type:lower()
     card.faction = in_card.faction[1]
     card.name = in_card.name
     card.id = in_card.id + 0
-    if card.type == "npc spell" then
+    if arr_to_set({"npc spell", "material"})[card.type] then
       card.type = "spell"
     end
     if card.type == "npc follower" then
@@ -36,6 +36,7 @@ function cards_init()
       card.skills = in_card.skills or {}
       card.active = true
     elseif card.type == "spell" then
+      if in_card.size == "-" then in_card.size = 0 end
       card.size = in_card.size + 0
       card.active = true
     elseif card.type == "character" then

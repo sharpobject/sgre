@@ -270,7 +270,7 @@ function Player:draw()
       draw_card(self.field[i], x, y, text)
       if not self.field[i].hidden then
         make_button(function()
-            game.hover_card = deepcpy(self.field[i])
+            self.game.hover_card = deepcpy(self.field[i])
           end, x, y, w, h, false, true)
       end
     end
@@ -283,13 +283,17 @@ function Player:draw()
       local idx = i
       draw_card(self.hand[i], x, y)
       make_button(function()
-          game.hover_card = deepcpy(self.hand[idx])
+          self.game.hover_card = deepcpy(self.hand[idx])
         end, x, y, w, h, false, true)
       if self.game.act_buttons then
         make_button(function()
-            print("trying to play card at idx "..idx)
-            if self:can_play_card(idx) then
-              self:play_card(idx)
+            if self.game.PNTL then
+              self.game.PNTL:play_card(idx)
+            else
+              print("trying to play card at idx "..idx)
+              if self:can_play_card(idx) then
+                self:play_card(idx)
+              end
             end
           end, x, y, w, h)
       end
@@ -308,8 +312,8 @@ function Game:draw()
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
   gprint("size "..self.P1:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
   if self.act_buttons then
-    make_button(function() self.ready = true end, 395+55, 400+50, 50, 60, true)
-    make_button(function() self.P1:attempt_shuffle() end, 395+55, 465+50, 50, 20, true)
+    make_button(function() self:ready() end, 395+55, 400+50, 50, 60, true)
+    make_button(function() self:attempt_shuffle() end, 395+55, 465+50, 50, 20, true)
   end
   if self.hover_card then
     draw_hover_card(self.hover_card)

@@ -1,5 +1,8 @@
+require("print_to_stderr")
 socket = require("socket")
 json = require("dkjson")
+require("posix")
+require("popen3")
 require("stridx")
 require("util")
 require("class")
@@ -27,7 +30,7 @@ function love.load(arg)
     if k < min_k then
       min_k = k
     end
-    print(k,v)
+    --print(k,v)
   end
   PATH_SEP = "/"
   if love._os == "Windows" then
@@ -42,11 +45,11 @@ function love.load(arg)
   end
   if last_sep then
     path = path:sub(1,last_sep)
-    print(path)
+    --print(path)
   end
   ABSOLUTE_PATH = path
   for k,v in pairs(love) do
-    print(k,v)
+    --print(k,v)
   end
 
 
@@ -76,7 +79,18 @@ function love.load(arg)
     error("some skills lack types")
   end
   if #s > 0 then
-  --  error("some skills lack descriptions")
+    --error("some skills lack descriptions")
+  end
+end
+
+do
+  local _old_resume = coroutine.resume
+  coroutine.lazier_resume = function(coro, ...)
+    local status, err = _old_resume(coro, ...)
+    if not status then
+      error(err..'\n'..debug.traceback(coro))
+    end
+    return status, err
   end
 end
 

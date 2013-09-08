@@ -2,10 +2,10 @@ local min,max = math.min,math.max
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
-    print("card init "..id)
+    --print("card init "..id)
     for k,v in pairs(id_to_canonical_card[id]) do
       self[k]=deepcpy(v)
-      print(k,v,self[k])
+      --print(k,v,self[k])
     end
     --TODO: apply upgrade
   end)
@@ -720,6 +720,22 @@ Game = class(function(self, ld, rd)
   end)
 
 function Game:update()
+end
+
+function Game:ready()
+  if self.PNTL then
+    self.PNTL:ready()
+  else
+    self.ready = true
+  end
+end
+
+function Game:attempt_shuffle()
+  if self.PNTL then
+    self.PNTL:attempt_shuffle()
+  else
+    self.P1:attempt_shuffle()
+  end
 end
 
 function Game:attack_animation()

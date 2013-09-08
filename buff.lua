@@ -38,9 +38,9 @@ end
 pred = {}
 
 function groups_init()
-  print("GROUPS")
+  --print("GROUPS")
   for group,ids in pairs(group_to_ids) do
-    print(group)
+    --print(group)
     pred[group] = function(card)
       local t = {}
       for k,v in ipairs(ids) do

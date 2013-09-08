@@ -1,18 +1,18 @@
 function love.conf(t)
   t.title = "FakeSG"
   t.author = "sharpobject@gmail.com"
-  t.screen.width = 800
-  t.screen.height = 600
+  t.window.width = 800
+  t.window.height = 600
   t.identity = "FakeSG"
   t.modules.physics = false
 
   -- DEFAULTS FROM HERE DOWN
-  t.version = "0.8.0"         -- The LÖVE version this game was made for (string)
+  t.version = "0.9.0"         -- The LÖVE version this game was made for (string)
   t.console = false           -- Attach a console (boolean, Windows only)
   t.release = false           -- Enable release mode (boolean)
-  t.screen.fullscreen = false -- Enable fullscreen (boolean)
-  t.screen.vsync = true       -- Enable vertical sync (boolean)
-  t.screen.fsaa = 0           -- The number of FSAA-buffers (number)
+  t.window.fullscreen = false -- Enable fullscreen (boolean)
+  t.window.vsync = true       -- Enable vertical sync (boolean)
+  t.window.fsaa = 0           -- The number of FSAA-buffers (number)
   t.modules.joystick = true   -- Enable the joystick module (boolean)
   t.modules.audio = true      -- Enable the audio module (boolean)
   t.modules.keyboard = true   -- Enable the keyboard module (boolean)
