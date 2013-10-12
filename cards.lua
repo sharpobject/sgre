@@ -62,7 +62,6 @@ function cards_init()
   file3:open("r")
   local hikki_txt = file3:read(file3:getSize())
   local hikki_lines = hikki_txt:split("\n")
-  
   group_to_ids = {}
   for group, k_group in pairs(group_json) do
     group_to_ids[group] = {}
@@ -74,9 +73,7 @@ function cards_init()
     local korean_name = elements[3]
     for group, k_group in pairs(group_json) do
       if korean_name:match(k_group) then
-        print(group..eng_name)
         table.insert(group_to_ids[group], card_id)
-
       end
     end
   end
@@ -84,6 +81,4 @@ function cards_init()
   for k,v in pairs(decoded.skill_text) do
     skill_text[0+k] = v
   end
-
-
 end
