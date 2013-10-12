@@ -534,7 +534,7 @@ end,
 
 -- student council justice
 [200041] = function(player, opponent)
-  local n_council = #player:field_idxs_with_preds({pred.follower, pred.council})
+  local n_council = #player:field_idxs_with_preds({pred.follower, pred.student_council})
   local n_vita = #player:field_idxs_with_preds({pred.follower, pred.faction.V})
   if n_council then
     local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
@@ -553,7 +553,7 @@ end,
 
 -- student council kick
 [200042] = function(player, opponent)
-  local kicker = player:field_idxs_with_preds({pred.follower, pred.active, pred.council})[1]
+  local kicker = player:field_idxs_with_preds({pred.follower, pred.active, pred.student_council})[1]
   local target = opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
   if kicker then
     player.field[kicker].active = false
@@ -566,7 +566,7 @@ end,
 
 -- book thief
 [200043] = function(player, opponent)
-  local nlibrarians = #player:field_idxs_with_preds({pred.follower, pred.lib})
+  local nlibrarians = #player:field_idxs_with_preds({pred.follower, pred.library_club})
   local spells = opponent:field_idxs_with_preds(pred.spell)
   local new_idx = player:first_empty_field_slot()
   if nlibrarians > #spells and new_idx then
@@ -980,7 +980,7 @@ end,
 end,
 
 -- court jester
-[200074] = court_jester(pred.council),
+[200074] = court_jester(pred.student_council),
 
 -- sage's sermon
 [200075] = function(player, opponent)
@@ -1603,10 +1603,10 @@ end,
       if pred.cook_club(card) then
         teh_buff.size[2] = teh_buff.size[2] + 1
         teh_buff.sta[2] = teh_buff.sta[2] + 2
-      elseif pred.lib(card) then
+      elseif pred.library_club(card) then
         teh_buff.atk[2] = teh_buff.atk[2] + 1
         teh_buff.sta[2] = teh_buff.sta[2] + 1
-      elseif pred.council(card) then
+      elseif pred.student_council(card) then
         teh_buff.def[2] = teh_buff.def[2] + 1
         teh_buff.sta[2] = teh_buff.sta[2] + 1
       elseif pred.faction.V(card) then
@@ -1959,7 +1959,7 @@ end,
 
 -- fault
 [200143] = function(player, opponent, my_idx, my_card)
-  if #player:field_idxs_with_preds(pred.follower, pred.tennis) > 1 then
+  if #player:field_idxs_with_preds(pred.follower, pred.tennis_club) > 1 then
     OneBuff(opponent, 0, {life={"-",3}}):apply()
   end
 end,
@@ -3228,7 +3228,7 @@ end,
 
 -- double student council kick
 [200251] = function(player, opponent, my_idx, my_card)
-  local kicker = shuffle(player:field_idxs_with_preds({pred.follower, pred.active, pred.council}))
+  local kicker = shuffle(player:field_idxs_with_preds({pred.follower, pred.active, pred.student_council}))
   local damage = 0
   for i=1,2 do
     if kicker[i] then
@@ -3345,7 +3345,7 @@ end,
 
 -- sage's slipper
 [200260] = function(player, opponent, my_idx, my_card)
-  local targets = opponent:field_idxs_with_preds(pred.union(pred.sion, pred.rion))
+  local targets = opponent:field_idxs_with_preds(pred.union(pred.shion, pred.rion))
   for _,idx in ipairs(targets) do
     opponent:destroy(idx)
   end
@@ -3388,7 +3388,7 @@ end,
 
 -- student council unveiling
 [200265] = function(player, opponent, my_idx, my_card)
-  if #player:field_idxs_with_preds(pred.follower, pred.council) > 0 and
+  if #player:field_idxs_with_preds(pred.follower, pred.student_council) > 0 and
       #player.hand > 0 then
     local sz = player.hand[1].size
     player:hand_to_grave(1)
@@ -3600,7 +3600,7 @@ end,
 
 -- library explorer
 [200280] = function(player, opponent, my_idx, my_card)
-  local cards = player:hand_idxs_with_preds(pred.lib)
+  local cards = player:hand_idxs_with_preds(pred.library_club)
   for _,idx in ipairs(cards) do
     player:to_bottom_deck(player.hand[idx])
     player.hand[idx] = nil
