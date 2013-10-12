@@ -52,7 +52,32 @@ function cards_init()
     end
   end
   name_to_ids = decoded.name_to_ids
-  group_to_ids = decoded.group_to_ids
+
+  --construct groups_to_ids
+  local file2 = love.filesystem.newFile("groups.json")
+  file2:open("r")
+  local group_json_raw = file2:read(file2:getSize())
+  local group_json = json.decode(group_json_raw)
+  local file3 = love.filesystem.newFile("hikki.txt")
+  file3:open("r")
+  local hikki_txt = file3:read(file3:getSize())
+  local hikki_lines = hikki_txt:split("\n")
+  group_to_ids = {}
+  for group, k_group in pairs(group_json) do
+    group_to_ids[group] = {}
+  end
+  for k, v in ipairs(hikki_lines) do
+    local elements = v:split("\t")
+    local card_id = elements[1]
+    local eng_name = elements[2]
+    local korean_name = elements[3]
+    for group, k_group in pairs(group_json) do
+      if korean_name:match(k_group) then
+        table.insert(group_to_ids[group], card_id)
+      end
+    end
+  end
+
   for k,v in pairs(decoded.skill_text) do
     skill_text[0+k] = v
   end

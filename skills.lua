@@ -219,7 +219,7 @@ end,
 
 -- lib. serie, wrath of the book!
 [1005] = function(player, my_idx)
-  local libs = #player:hand_idxs_with_preds({pred.lib})
+  local libs = #player:hand_idxs_with_preds({pred.library_club})
   if libs > 0 then
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"+",libs}}
@@ -369,7 +369,7 @@ end,
 
 -- scardel sion flina, sion attack!
 [1021] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.flina, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion, pred.rion), pred.flina, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",1}}
@@ -379,7 +379,7 @@ end,
 
 -- scardel rion flina, rion defense!
 [1022] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.sion, pred.rion), pred.flina, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion, pred.rion), pred.flina, pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",1}}
@@ -441,7 +441,7 @@ end,
 
 -- lib. milka, book return
 [1028] = function(player)
-  local target_idx = uniformly(player:field_idxs_with_preds({pred.lib, pred.follower}))
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.library_club, pred.follower}))
   if target_idx then
     OneBuff(player, target_idx, {sta={"+",2}}):apply()
   end
@@ -456,7 +456,7 @@ end,
 -- council treas. amy, budget time!
 [1030] = function(player, my_idx, my_card, skill_idx)
   local buff = OnePlayerBuff(player)
-  local target_idxs = player:field_idxs_with_preds({pred.council, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.student_council, pred.follower})
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",2}}
   end
@@ -466,7 +466,7 @@ end,
 
 -- council pres. celine, presidential power
 [1031] = function(player, my_idx)
-  local target_idx = uniformly(player:hand_idxs_with_preds({pred.council}))
+  local target_idx = uniformly(player:hand_idxs_with_preds({pred.student_council}))
   if target_idx then
     player:hand_to_top_deck(target_idx)
     OneBuff(player, my_idx, {atk={"+",1}, sta={"+",2}}):apply()
@@ -905,7 +905,7 @@ end,
 
 -- council student, meeting prep!
 [1077] = function(player, my_idx, my_card, skill_idx)
-  local target_idx = player:field_idxs_with_preds({pred.follower, pred.council})[1]
+  local target_idx = player:field_idxs_with_preds({pred.follower, pred.student_council})[1]
   if target_idx then
     OneBuff(player, target_idx, {sta={"+",3}}):apply()
     my_card:remove_skill(skill_idx)
@@ -928,7 +928,7 @@ end,
 
 -- lib. milty, book management?
 [1080] = function(player, my_idx)
-  local sta_buff, atk_buff = #player:hand_idxs_with_preds({pred.lib}), 0
+  local sta_buff, atk_buff = #player:hand_idxs_with_preds({pred.library_club}), 0
   if sta_buff >= 3 then
     atk_buff = 1
   end
@@ -937,7 +937,7 @@ end,
 
 -- council vp tieria, campaign prep
 [1081] = function(player, my_idx, my_card, skill_idx)
-  local buff_size = 1 + #player:field_idxs_with_preds({pred.council})
+  local buff_size = 1 + #player:field_idxs_with_preds({pred.student_council})
   OneBuff(player, my_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
@@ -1118,7 +1118,7 @@ end,
 
 -- rion flina, dress up
 [1096] = function(player, my_idx)
-  local sion_idx = player:deck_idxs_with_preds(pred.sion, pred.flina)[1]
+  local sion_idx = player:deck_idxs_with_preds(pred.shion, pred.flina)[1]
   local dressup_func = function(card) return card.id == 300198 end
   local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if sion_idx and dressup_idx then
@@ -1154,7 +1154,7 @@ end,
   end
   if #player.hand > 0 then
     player:hand_to_bottom_deck(1)
-    local grave_idx = uniformly(player:grave_idxs_with_preds(pred.union(pred.sion, pred.rion)))
+    local grave_idx = uniformly(player:grave_idxs_with_preds(pred.union(pred.shion, pred.rion)))
     if grave_idx then
       player:grave_to_exile(grave_idx)
       local buff = GlobalBuff(player)
@@ -1222,7 +1222,7 @@ end,
 -- lib. serie, mascara
 [1104] = function(player, my_idx, my_card, skill_idx)
   if #player.hand < 5 then
-    local deck_target_idx = player:deck_idxs_with_preds({pred.lib})[1]
+    local deck_target_idx = player:deck_idxs_with_preds({pred.library_club})[1]
     if deck_target_idx then
       player:deck_to_hand(deck_target_idx)
       my_card:remove_skill_until_refresh(skill_idx)
@@ -1232,7 +1232,7 @@ end,
 
 -- lib. milka, guitar!
 [1105] = function(player, my_idx, my_card, skill_idx)
-  local target_idx = player:field_idxs_with_preds({pred.lib, pred.follower})[1]
+  local target_idx = player:field_idxs_with_preds({pred.library_club, pred.follower})[1]
   if target_idx then
     OneBuff(player, target_idx, {sta={"+",2}}):apply()
   end
@@ -1242,11 +1242,11 @@ end,
 -- lib. h.l. tezina, i'll help you.
 [1106] = function(player, my_idx, my_card, skill_idx)
   if player.character.faction == "V" then
-    local lib_target = player:hand_idxs_with_preds({pred.V, pred.lib})[1]
-    local other_target = player:hand_idxs_with_preds({pred.V, function(card) return not pred.lib(card) end})[1]
+    local lib_target = player:hand_idxs_with_preds({pred.V, pred.library_club})[1]
+    local other_target = player:hand_idxs_with_preds({pred.V, function(card) return not pred.library_club(card) end})[1]
     if lib_target and other_target then
       player:hand_to_bottom_deck(lib_target)
-      other_target = player:hand_idxs_with_preds({pred.V, function(card) return not pred.lib(card) end})[1]
+      other_target = player:hand_idxs_with_preds({pred.V, function(card) return not pred.library_club(card) end})[1]
       player:hand_to_bottom_deck(other_target)
       local enemy_target = uniformly(player.opponent:get_follower_idxs())
       if enemy_target then
@@ -1760,10 +1760,10 @@ end,
 end,
 
 -- council press winfield, council scoop
-[1154] = council_scoop(pred.council),
+[1154] = council_scoop(pred.student_council),
 
 -- council press winfield, member use
-[1155] = member_use(pred.council),
+[1155] = member_use(pred.student_council),
 
 -- lunia scentriver, skill copy
 [1156] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -2035,7 +2035,7 @@ end,
 
 -- council press student, let's go, council!
 [1206] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local targets = player:field_idxs_with_preds(pred.follower, pred.council)
+  local targets = player:field_idxs_with_preds(pred.follower, pred.student_council)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(targets) do
     buff[idx] = {atk={"+",1}}
@@ -2045,7 +2045,7 @@ end,
 
 -- council press student, come on, council!
 [1207] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local targets = player:field_idxs_with_preds(pred.follower, pred.council)
+  local targets = player:field_idxs_with_preds(pred.follower, pred.student_council)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(targets) do
     buff[idx] = {sta={"+",1}}
@@ -2189,7 +2189,7 @@ end,
 
 -- lib. explorer rea, summon member!
 [1220] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local target = uniformly(player:grave_idxs_with_preds(pred.lib))
+  local target = uniformly(player:grave_idxs_with_preds(pred.library_club))
   if target then
     player:grave_to_bottom_deck(target)
   end
@@ -2199,7 +2199,7 @@ end,
 [1221] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = 0
   for i=1,min(4,#player.deck) do
-    if pred.lib(player.deck[i]) then
+    if pred.library_club(player.deck[i]) then
       n = n + 1
     end
   end
