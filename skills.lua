@@ -369,7 +369,7 @@ end,
 
 -- scardel sion flina, sion attack!
 [1021] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion, pred.rion), pred.flina, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion_flina, pred.rion_flina), pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",1}}
@@ -379,7 +379,7 @@ end,
 
 -- scardel rion flina, rion defense!
 [1022] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion, pred.rion), pred.flina, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.union(pred.shion_flina, pred.rion_flina), pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",1}}
@@ -1118,7 +1118,7 @@ end,
 
 -- rion flina, dress up
 [1096] = function(player, my_idx)
-  local sion_idx = player:deck_idxs_with_preds(pred.shion, pred.flina)[1]
+  local sion_idx = player:deck_idxs_with_preds(pred.shion_flina)[1]
   local dressup_func = function(card) return card.id == 300198 end
   local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if sion_idx and dressup_idx then

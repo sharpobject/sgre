@@ -20,6 +20,7 @@ function cards_init()
     card.type = in_card.type:lower()
     card.faction = in_card.faction[1]
     card.name = in_card.name
+    card.kr_name = in_card.kr_name
     card.id = in_card.id + 0
     if card.type == "npc spell" then
       card.type = "spell"
@@ -58,22 +59,16 @@ function cards_init()
   file2:open("r")
   local group_json_raw = file2:read(file2:getSize())
   local group_json = json.decode(group_json_raw)
-  local file3 = love.filesystem.newFile("hikki.txt")
-  file3:open("r")
-  local hikki_txt = file3:read(file3:getSize())
-  local hikki_lines = hikki_txt:split("\n")
   group_to_ids = {}
   for group, k_group in pairs(group_json) do
     group_to_ids[group] = {}
   end
-  for k, v in ipairs(hikki_lines) do
-    local elements = v:split("\t")
-    local card_id = elements[1]
-    local eng_name = elements[2]
-    local korean_name = elements[3]
+  for id,card in pairs(id_to_canonical_card) do
+    local korean_name = card.kr_name
     for group, k_group in pairs(group_json) do
       if korean_name:match(k_group) then
-        table.insert(group_to_ids[group], card_id)
+        table.insert(group_to_ids[group], id)
+        print(card.name .. " is a ".. group)
       end
     end
   end
