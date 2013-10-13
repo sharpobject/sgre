@@ -1363,7 +1363,7 @@ end,
 end,
 
 -- council vp tieria
-[100113] = council_vp_tieria(pred.council, pred.V),
+[100113] = council_vp_tieria(pred.student_council, pred.V),
 
 -- maid lesnoa
 [100114] = council_vp_tieria(pred.maid, pred.A),
@@ -1601,13 +1601,13 @@ end,
 
 -- rion flina
 [110139] = function(player)
-  local targets = player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.sion))
+  local targets = player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.shion))
   local buff = OnePlayerBuff(player.opponent)
   for _,idx in ipairs(targets) do
     buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
   end
   buff:apply()
-  if #player.opponent:field_idxs_with_preds(pred.sion) > 0 then
+  if #player.opponent:field_idxs_with_preds(pred.shion) > 0 then
     OneBuff(player, 0, {life={"-",7}}):apply()
   end
   recycle_one(player)
