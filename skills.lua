@@ -81,7 +81,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3, [1205]=2, [1237]=1, [1257]=1,
-                    [1272]=3, [1273]=1, [1408]=2, [1485]=2, 
+                    [1272]=3, [1273]=1, [1408]=2, [1485]=2,
                     [1749]=3, [1752]=2,
                     -- todo: this does not belong in a source file...
                     ["refresh"]=3})
@@ -422,7 +422,7 @@ end,
   OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
 end,
 
--- blue moon beecky flina, chilly blood
+-- blue moon becky flina, chilly blood
 [1027] = function(player, my_idx)
   local target_idxs = shuffle(player:get_follower_idxs())
   local buff = OnePlayerBuff(player)
@@ -1103,7 +1103,7 @@ end,
 
 -- sion flina, dress up
 [1095] = function(player, my_idx)
-  local rion_idx = player:deck_idxs_with_preds(pred.rion, pred.flina)[1]
+  local rion_idx = player:deck_idxs_with_preds(pred.rion_flina)[1]
   local dressup_func = function(card) return card.id == 300198 end
   local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if rion_idx and dressup_idx then
