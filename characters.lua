@@ -979,7 +979,7 @@ end,
         player:hand_to_bottom_deck(i)
       end
     end
-    OneBuff(player, 0, {life={"+",min(4,ceil(size/2))}}):apply()
+    OneBuff(player, 0, {life={"-",min(4,ceil(size/2))}}):apply()
   end
 end,
 
@@ -1500,7 +1500,7 @@ end,--]]
       end
     end
   end
-  if do_default then 
+  if do_default then
     local idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
       OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
