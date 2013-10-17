@@ -979,7 +979,7 @@ end,
         player:hand_to_bottom_deck(i)
       end
     end
-    OneBuff(player, 0, {life={"-",min(4,ceil(size/2))}}):apply()
+    OneBuff(player, 0, {life={"+",min(4,ceil(size/2))}}):apply()
   end
 end,
 
