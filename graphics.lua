@@ -151,7 +151,7 @@ function draw_hover_card(card)
   grectangle("line",x,y,card_width, card_height)
   set_color(255,255,255)
   gfontsize(11)
-  local text = card.text
+  local text = skill_text[card.id]
   if card.type == "follower" then
     text = ""
     local skills = card.skills or {}

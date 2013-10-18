@@ -84,7 +84,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
                     [1272]=3, [1273]=1, [1408]=2, [1485]=2,
                     [1749]=3, [1752]=2,
                     -- todo: this does not belong in a source file...
-                    ["refresh"]=3})
+                    })
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local refresh = function(player, my_idx, my_card)
@@ -179,8 +179,6 @@ local member_use = function(group_pred)
 end
 
 skill_func = {
-["refresh"] = refresh,
-
 -- episode 1 follower skills
 
 -- untested
@@ -884,7 +882,7 @@ end,
 
 -- sweet lady isfeldt, sweet spell
 [1073] = function(player, my_idx, my_card, skill_idx)
-  my_card.skills[skill_idx] = "refresh"
+  my_card.skills[skill_idx] = 1076
 end,
 
 -- sweet lady isfeldt, sweet count
@@ -1554,7 +1552,7 @@ end,
 -- council roroa, memory block
 [1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
-    other_card.skills = {"refresh"}
+    other_card.skills = {1076}
   end
 end,
 
@@ -1920,7 +1918,7 @@ end,
           target_card.skills[i] = nil
         end
       end
-      target_card:gain_skill("refresh")
+      target_card:gain_skill(1076)
     end
     player:deck_to_field(target_idx)
     OneBuff(player, slot, {sta={"+",3}}):apply()
@@ -2161,14 +2159,14 @@ end,
 -- fiona scentriver, delay!
 [1215] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
-    other_card.skills = {"refresh"}
+    other_card.skills = {1076}
   end
 end,
 
 -- fiona scentriver, delay!
 [1216] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
-    other_card.skills = {"refresh"}
+    other_card.skills = {1076}
   end
 end,
 
@@ -2176,7 +2174,7 @@ end,
 [1217] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local target = uniformly(player.opponent:hand_idxs_with_preds(pred.follower))
   if target and pred.skill(player.opponent.hand[target]) then
-    player.opponent.hand[target].skills = {"refresh"}
+    player.opponent.hand[target].skills = {1076}
   end
 end,
 
@@ -2721,7 +2719,7 @@ end,
   if other_card and other_card.sta % 2 == 0 then
     OneBuff(player.opponent, other_idx, {sta={"-",1}}):apply()
     if pred.V(player.character) and pred.skill(other_card) then
-      other_card.skills = {"refresh"}
+      other_card.skills = {1076}
     end
   end
 end,

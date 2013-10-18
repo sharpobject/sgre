@@ -8,7 +8,7 @@ end
 local main_select_boss, main_play, main_go_hard
 
 function fmainloop()
-  local func, arg = main_go_hard, nil
+  local func, arg = main_select_boss, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")

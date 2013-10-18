@@ -3630,7 +3630,7 @@ end,
   if target and slot then
     player:grave_to_field(target)
     OneBuff(player, slot, {atk={"+",2},sta={"+",2}}):apply()
-    player.field[slot].skills = {"refresh"}
+    player.field[slot].skills = {1076}
   end
 end,
 

@@ -19,7 +19,7 @@ function Card:refresh()
 end
 
 function Card:remove_skill_until_refresh(skill_idx)
-  self.skills[skill_idx] = "refresh"
+  self.skills[skill_idx] = 1076
 end
 
 function Card:first_empty_skill_slot()
