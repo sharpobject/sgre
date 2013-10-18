@@ -109,12 +109,12 @@ end
 
 local dressup_skill = function(dressup_id, player, my_idx)
   local dressup = function(card) return card.id == dressup_id end
+  local field_idxs = player:field_idxs_with_preds({dressup})
+  for _,idx in ipairs(field_idxs) do
+    player:field_to_grave(idx)
+  end
   local dressup_target = player:deck_idxs_with_preds({dressup})[1]
   if dressup_target and player:first_empty_field_slot() then
-    local field_idxs = player:field_idxs_with_preds({dressup})
-    for _,idx in ipairs(field_idxs) do
-      player:field_to_grave(idx)
-    end
     player:deck_to_field(dressup_target)
     dressup_target = player:field_idxs_with_preds({dressup})[1]
     OneBuff(player, dressup_target, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
@@ -1111,8 +1111,10 @@ end,
     player:deck_to_grave(rion_idx)
     local field_idx = player:first_empty_field_slot()
     dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
-    player:deck_to_field(dressup_idx)
-    OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+    if dressup_idx then
+      player:deck_to_field(dressup_idx)
+      OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+    end
   end
 end,
 
@@ -1126,8 +1128,10 @@ end,
     player:deck_to_grave(sion_idx)
     local field_idx = player:first_empty_field_slot()
     dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
-    player:deck_to_field(dressup_idx)
-    OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+    if dressup_idx then
+      player:deck_to_field(dressup_idx)
+      OneBuff(player, field_idx, {size={"=",5}, atk={"+",3}, sta={"+",3}}):apply()
+    end
   end
 end,
 
@@ -1135,8 +1139,8 @@ end,
 [1097] = function(player, my_idx, my_card, skill_idx)
   local deck_idx = player:deck_idxs_with_preds({function(card)
     return card.id == 300193 end})[1]
-  if deck_idx then
-    local field_idx = player:first_empty_field_slot()
+  local field_idx = player:first_empty_field_slot()
+  if deck_idx and field_idx then
     player:deck_to_field(deck_idx)
     OneBuff(player, field_idx, {atk={"+",2}}):apply()
   end
@@ -1900,7 +1904,8 @@ end,
 
 -- sword girls sita, position change!
 [1192] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local card_to_skill = {[300320]=1193,[300322]=1194,[300324]=1195,[300326]=1196}
+  local card_to_skill = {[300320]=1193,[300322]=1194,[300324]=1195,[300326]=1196,
+                         [300875]=1822,[300877]=1824,[300879]=1826,[300881]=1828}
   local target_idx = player:deck_idxs_with_preds(pred.follower, pred.sword_girls)[1]
   local slot = player:first_empty_field_slot()
   if target_idx and slot then

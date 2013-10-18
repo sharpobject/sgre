@@ -3982,8 +3982,12 @@ end,
   local func = function(card) return card.size == target_size end
   local target = opponent:field_idxs_with_preds(func)[1]
   if target then
-    OneBuff(opponent, target, {atk={"-",2},sta={"-",2}}):apply()
-    opponent:field_to_top_deck(target)
+    if pred.follower(opponent.field[target]) then
+      OneBuff(opponent, target, {atk={"-",2},sta={"-",2}}):apply()
+    end
+    if opponent.field[target] then
+      opponent:field_to_top_deck(target)
+    end
   end
 end,
 

@@ -805,10 +805,12 @@ end
 function Game:run()
   local P1,P2 = self.P1,self.P2
   local P1_first, P1_first_upkeep = nil, nil
+  local real_turn = 0
   while true do
-    if GO_HARD and self.turn >= 8 then
+    if GO_HARD and real_turn >= 8 then
       return
     end
+    real_turn = real_turn + 1
     self.turn = self.turn+1
     if P1_first_upkeep == nil then
       P1_first_upkeep = self:coin_flip()

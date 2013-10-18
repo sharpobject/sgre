@@ -53,7 +53,7 @@ function groups_init()
 end
 
 pred.faction = {}
-for _,v in ipairs({"V","A","D","C","N"}) do
+for _,v in ipairs({"V","A","D","C","N","E"}) do
   local faction = v
   pred.faction[faction] = function(card) print(card.faction.." is a faction")return card.faction == faction end
   pred[faction] = pred.faction[faction]
