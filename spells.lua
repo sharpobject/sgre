@@ -3991,38 +3991,6 @@ end,
   end
 end,
 
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
--- worries
-[200350] = function(player, opponent, my_idx, my_card)
-end,
-
 -- forbidden book
 [200333] = function(player, opponent, my_idx, my_card)
   if #opponent.hand > 0 then
@@ -4098,9 +4066,9 @@ end,
 end,
 
 -- nether visitor
-[200351] = function(player, opponent, my_idx, my_card)
+--[200351] = function(player, opponent, my_idx, my_card)
 
-end,
+--end,
 
 [200358] = function(player, opponent, my_idx, my_card)
   if my_card.size > 3 then
@@ -4172,6 +4140,26 @@ end,
     opponent.field[target].active = false
     opponent.field[target]:gain_skill(1175)
     opponent.field[target]:gain_skill(1408)
+  end
+end,
+
+[200655] = function(player, opponent, my_idx, my_card)
+  if pred.D(player.character) then
+    local amount = 1+floor(opponent.character.life/10)
+    OneBuff(opponent, 0, {life={"-",amount}}):apply()
+  end
+  local sta_debuff_amount = 3-floor(opponent.character.life/10)
+  local buff = GlobalBuff()
+  local idxs = opponent:deck_idxs_with_preds(pred.follower)
+  for _,idx in ipairs(idxs) do
+    buff.deck[opponent][idx] = {sta={"-",sta_debuff_amount}}
+  end
+  buff:apply()
+  if my_card.size >= 4 then
+    player:field_to_exile(my_idx)
+  else
+    my_card.size = my_card.size + 1
+    player:field_to_top_deck(my_idx)
   end
 end,
 }

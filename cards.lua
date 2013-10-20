@@ -28,7 +28,6 @@ function cards_init()
     if card.type == "npc follower" then
       card.type = "follower"
     end
-    card.text = in_card.ability
     if card.type == "follower" then
       card.atk = in_card.attack + 0
       card.def = in_card.defense + 0
