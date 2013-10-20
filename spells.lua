@@ -4149,7 +4149,7 @@ end,
     OneBuff(opponent, 0, {life={"-",amount}}):apply()
   end
   local sta_debuff_amount = 3-floor(opponent.character.life/10)
-  local buff = GlobalBuff()
+  local buff = GlobalBuff(player)
   local idxs = opponent:deck_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
     buff.deck[opponent][idx] = {sta={"-",sta_debuff_amount}}
