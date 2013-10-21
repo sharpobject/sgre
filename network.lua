@@ -4,6 +4,10 @@ local INITIAL_VERSION_MSG = "Checking for updates..."
 local length = nil
 VERSION_MSG = INITIAL_VERSION_MSG
 
+function coin_msg(P1_first)
+  return {type="coin", P1_first=P1_first}
+end
+
 function flush_socket()
   local junk,err,data = TCP_sock:receive('*a')
   -- lol, if it returned successfully then that's bad!

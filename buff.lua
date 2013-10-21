@@ -38,9 +38,9 @@ end
 pred = {}
 
 function groups_init()
-  print("GROUPS")
+  --print("GROUPS")
   for group,ids in pairs(group_to_ids) do
-    print(group)
+    --print(group)
     pred[group] = function(card)
       local t = {}
       for k,v in ipairs(ids) do
@@ -55,7 +55,10 @@ end
 pred.faction = {}
 for _,v in ipairs({"V","A","D","C","N","E"}) do
   local faction = v
-  pred.faction[faction] = function(card) print(card.faction.." is a faction")return card.faction == faction end
+  pred.faction[faction] = function(card)
+    --print(card.faction.." is a faction")
+    return card.faction == faction
+  end
   pred[faction] = pred.faction[faction]
 end
 for _,v in ipairs({"follower", "spell"}) do

@@ -210,3 +210,27 @@ function shallowcpy(tab)
   end
   return ret
 end
+
+-- pls no table keys
+function deepeq(a,b)
+  if type(a) ~= "table" or type(b) ~= "table" then
+    --print("comparing non-tables "..tostring(a) .." and "..tostring(b))
+    return a==b
+  end
+  local done_k = {}
+  for k,v in pairs(a) do
+    done_k[k] = true
+    if not deepeq(a[k],b[k]) then
+      --print("false because key "..k.." has different values "..tostring(a[k]).." and "..tostring(b[k]))
+      return false
+    end
+  end
+  for k,_ in pairs(b) do
+    if not done_k[k] then
+      --print("false because key "..k.." is missing from a")
+      return false
+    end
+  end
+  --print("true!")
+  return true
+end

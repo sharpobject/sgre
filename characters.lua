@@ -1381,7 +1381,7 @@ end,
 -- apostle l red sun
 
 [100118] = function(player, opponent, my_card)
-  print("OMGGGGG")
+  --print("OMGGGGG")
   player:to_bottom_deck(Card(300193))
   if player.character.life < opponent.character.life then
     OneBuff(player, 0, {life={"+",1}}):apply()
@@ -1452,7 +1452,7 @@ end,
 
 -- witch cadet linus falco
 [100122] = function(player, opponent, my_card)
-  print("OMGGGGG LINUXXXX")
+  --print("OMGGGGG LINUXXXX")
   for i=1,2 do
     local buff = GlobalBuff(player)
     local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
@@ -1466,7 +1466,7 @@ end,
 
 -- GS 3rd Star
 [100133] = function(player, opponent, my_card)
-  print("OMGGGGG BSD")
+  --print("OMGGGGG BSD")
   for i=1,2 do
     local buff = GlobalBuff(player)
     local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))

@@ -14,7 +14,7 @@ function cards_init()
   cards = decoded.id_to_card
   for id,in_card in pairs(cards) do
     id = id + 0
-    print("LOADING "..id)
+    --print("LOADING "..id)
     card = {}
     id_to_canonical_card[id] = card
     card.type = in_card.type:lower()
@@ -40,10 +40,11 @@ function cards_init()
       card.active = true
     elseif card.type == "character" then
       card.life = in_card.life + 0
-      card.skills = in_card.skills
+      card.skills = {card.id}
+      --assert(deepeq(card.skills, {card.id}))
     else
-      print("Got card "..in_card.name.." with id "..in_card.id..
-        " and unexpected type "..card.type)
+      --print("Got card "..in_card.name.." with id "..in_card.id..
+      --  " and unexpected type "..card.type)
     end
   end
   for name,ids in pairs(decoded.name_to_ids) do
@@ -67,7 +68,7 @@ function cards_init()
     for group, k_group in pairs(group_json) do
       if korean_name:match(k_group) then
         table.insert(group_to_ids[group], id)
-        print(card.name .. " is a ".. group)
+        --print(card.name .. " is a ".. group)
       end
     end
   end

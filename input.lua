@@ -1,5 +1,5 @@
 function love.mousepressed(x,y,which)
-  print("mouse pressed!")
+  --print("mouse pressed!")
   if which=="l" then
     mouse_down = true
     mouse_x = x

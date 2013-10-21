@@ -37,7 +37,7 @@ local sitas_suit = function(group_pred)
       local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower,
           tar_pred}))
       local buff = OnePlayerBuff(player)
-      print("Sita's suit found "..#target_idxs.." followers")
+      --print("Sita's suit found "..#target_idxs.." followers")
       for i=1,2 do
         if target_idxs[i] then
           buff[target_idxs[i]] = {atk={"+",amt},sta={"+",amt}}
@@ -325,7 +325,7 @@ end,
     pred.size, {pred.follower})[1]
   -- TODO: can this deactivate an allied follower that is already deactivated?
   -- TODO: can this deactivate an enemy follower that is already deactivated?
-  print("entry denied: ", my_idx, other_idx)
+  --print("entry denied: ", my_idx, other_idx)
   if my_idx and other_idx then
     player.field[my_idx].active = false
     opponent.field[other_idx].active = false
@@ -1187,8 +1187,8 @@ end,
   local target = uniformly(opponent:field_idxs_with_preds({pred.follower,
       function(card) return card.size >= 4 end}))
   while player.hand[1] do
-    print("hand to bottom deck 1")
-    print("foo "..#player.hand)
+    --print("hand to bottom deck 1")
+    --print("foo "..#player.hand)
     player:hand_to_bottom_deck(1)
   end
   if ncards >= 2 and target then

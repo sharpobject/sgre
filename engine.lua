@@ -2,10 +2,10 @@ local min,max = math.min,math.max
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
-    print("card init "..id)
+    --print("card init "..id)
     for k,v in pairs(id_to_canonical_card[id]) do
       self[k]=deepcpy(v)
-      print(k,v,self[k])
+      --print(k,v,self[k])
     end
     --TODO: apply upgrade
   end)
@@ -131,23 +131,26 @@ function Player:upkeep_phase()
     local card = self.field[idx]
     if card and card.skills then
       if pred.spell(card) then
-        print("Something is terribly wrong, a spell has a skill")
+        --print("Something is terribly wrong, a spell has a skill")
+        error("asscom.de")
       end
       for skill_idx = 1,3 do
         local skill_id = card.skills[skill_idx]
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
-          print("About to run skill func for id "..skill_id)
+          --print("About to run skill func for id "..skill_id)
           self:check_hand()
           self.opponent:check_hand()
           card.trigger = true
           wait(50)
           card.trigger = nil
+          self.game:send_trigger(self.player_index, idx, "start")
           if type(skill_id) == "number" and skill_id >= 100000 then
             characters_func[skill_id](self, self.opponent, card)
           else
             skill_func[skill_id](self, idx, card, skill_idx)
           end
+          self.game:snapshot()
           self:check_hand()
           self.opponent:check_hand()
         end
@@ -197,6 +200,8 @@ function Player:attempt_shuffle()
     for i=1,n_cards do
       self:draw_a_card()
     end
+    self.game:send_shuffle(self.player_index)
+    self.game:snapshot()
   end
 end
 
@@ -580,7 +585,7 @@ end
 
 function Player:get_atk_target()
   local followers = self:get_follower_idxs()
-  print(unpack(followers))
+  --print(unpack(followers))
   if #followers > 0 then
     return uniformly(followers)
   end
@@ -607,7 +612,7 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
-            print("About to run skill func for id "..skill_id)
+            --print("About to run skill func for id "..skill_id)
             local other_card = defender
             if other_card ~= defend_player.field[defend_idx] then
               other_card = nil
@@ -617,23 +622,30 @@ function Player:follower_combat_round(idx, target_idx)
             attacker.trigger = true
             wait(50)
             attacker.trigger = nil
+            self.game:send_trigger(attack_player.player_index, attack_idx, "attack")
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
+            self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
             self.game:clean_dead_followers()
+            self.game:snapshot()
           end
         end
       end
       self.game:clean_dead_followers()
-      if self.game.combat_round_interrupted then print("bail that shouldn't happen 1")return end
+      self.game:snapshot()
+      if self.game.combat_round_interrupted then
+        --print("bail that shouldn't happen 1")
+        return
+      end
 
       if defender.type == "follower" then
         for skill_idx=1,3 do
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
-            print("About to run skill func for id "..skill_id)
+            --print("About to run skill func for id "..skill_id)
             local other_card = attacker
             if other_card ~= attack_player.field[attack_idx] then
               other_card = nil
@@ -643,33 +655,47 @@ function Player:follower_combat_round(idx, target_idx)
             defender.trigger = true
             wait(50)
             defender.trigger = nil
+            self.game:send_trigger(defend_player.player_index, defend_idx, "defend")
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
+            self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
             self.game:clean_dead_followers()
+            self.game:snapshot()
           end
         end
       end
       self.game:clean_dead_followers()
-      if self.game.combat_round_interrupted then print("bail that shouldn't happen 2")return end
+      self.game:snapshot()
+      if self.game.combat_round_interrupted then
+        --print("bail that shouldn't happen 2")
+        return
+      end
 
       self.game:attack_animation()
       self.game:defend_animation()
       local damage = math.max(0,attacker.atk-defender.def)
+      self.game:send_attack(attack_player.player_index, attack_idx, defend_idx, damage)
       defender.sta = defender.sta - damage
       self.game:clean_dead_followers()
-      if self.game.combat_round_interrupted then print("bail on combat damage") return end
+      self.game:snapshot()
+      if self.game.combat_round_interrupted then --print("bail on combat damage")
+        return
+      end
     end
   else
+    local attack_player, attack_idx = unpack(self.game.attacker)
     self.game:attack_animation()
     self.game:defend_animation()
+    self.game:send_attack(attack_player.player_index, attack_idx, 0, card.size)
     target_card.life = target_card.life - card.size
+    self.game:snapshot()
   end
 end
 
 function Player:combat_round()
-  print("NO INTERRUPTION")
+  --print("NO INTERRUPTION")
   self.game.combat_round_interrupted = false
   local active = {spell={}, follower={}}
   for i=1,5 do
@@ -687,23 +713,27 @@ function Player:combat_round()
   local card = self.field[idx]
   if card.type == "follower" then
     local target_idx = self.opponent:get_atk_target()
-    print("Got attack target! "..target_idx)
+    --print("Got attack target! "..target_idx)
     self:follower_combat_round(idx, target_idx)
     card.active = false
+    self.game:snapshot()
   else
     self.send_spell_to_grave = true
-    print("About to run spell func for id "..card.id)
+    --print("About to run spell func for id "..card.id)
     self:check_hand()
     self.opponent:check_hand()
     card.trigger = true
     wait(50)
     card.trigger = nil
+    self.game:send_trigger(self.player_index, idx, "spell")
     spell_func[card.id](self, self.opponent, idx, card)
+    self.game:snapshot()
     self:check_hand()
     self.opponent:check_hand()
-    print("Just ran spell func for id "..card.id)
+    --print("Just ran spell func for id "..card.id)
     if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
+      self.game:snapshot()
     end
   end
 end
@@ -759,7 +789,7 @@ function Game:clean_dead_followers()
     local attacker = self.attacker[1].field[self.attacker[2]]
     local defender = self.defender[1].field[self.defender[2]]
     if not (attacker and defender) then
-      print("interrupted")
+      --print("interrupted")
       self.combat_round_interrupted = true
     end
   end
@@ -796,14 +826,221 @@ function Game:apply_buff(buff)
       end
     end
   end
+  local buff_msg = {}
+  for i=1,2 do
+    buff_msg[i] = deepcpy(buff.field[self["P"..i]]) or {}
+  end
+  self:snapshot(buff_msg)
   if anything_happened then
     -- TODO: animation
     self:clean_dead_followers()
   end
+  self:snapshot()
+end
+
+function card_summary(card)
+  if not card then return false end
+  local ret = {}
+  if card.type == "follower" then
+    ret.id = card.id
+    ret.atk = card.atk
+    ret.def = card.def
+    ret.sta = card.sta
+    ret.size = card.size
+    ret.skills = {}
+    for i=1,3 do
+      ret.skills[i] = card.skills[i]
+      if not ret.skills[i] then
+        ret.skills[i] = false
+      end
+    end
+    ret.active = card.active
+  elseif card.type == "spell" then
+    ret.id = card.id
+    ret.size = card.size
+    ret.active = card.active
+  else
+    ret.id = card.id
+    ret.life = card.life
+  end
+  return ret
+end
+
+do
+  local type_to_fields = {
+    spell={"id", "size", "active"},
+    follower={"id", "atk", "def", "sta", "size", "active"},
+    character={"id", "life"},
+  }
+
+  local function id_to_type(id)
+    if id >= 300000 then
+      return "follower"
+    elseif id >= 200000 then
+      return "spell"
+    else
+      return "character"
+    end
+  end
+
+  function card_diff(a,b)
+    if (not a) and (not b) then
+      return nil
+    elseif a and b then
+      local atype = id_to_type(a.id)
+      local btype = id_to_type(b.id)
+      if atype == btype then
+        local ret = {}
+        local modified = false
+        if atype == "follower" then
+          if a.skills[1] ~= b.skills[1] or
+              a.skills[2] ~= b.skills[2] or
+              a.skills[3] ~= b.skills[3] then
+            modified = true
+            ret.skills = b.skills
+          end
+        end
+        for _,attr in ipairs(type_to_fields[atype]) do
+          if a[attr] ~= b[attr] then
+            modified = true
+            ret[attr] = b[attr]
+          end
+        end
+        if modified then
+          return ret
+        else
+          return nil
+        end
+      end
+    end
+    return b
+  end
+
+  function view_diff(a,b)
+    local diff = {}
+    for i=1,2 do
+      local p_diff = {}
+      local av,bv = a[i],b[i]
+      diff[i] = p_diff
+      if av.grave ~= bv.grave then p_diff.grave = bv.grave end
+      if av.shuffles ~= bv.shuffles then p_diff.shuffles = bv.shuffles end
+      if av.deck ~= bv.deck then p_diff.deck = bv.deck end
+      p_diff.character = card_diff(av.character, bv.character)
+      local field = {}
+      local hand = {}
+      local hand_m, field_m, sum = false, false
+      for j=1,5 do
+        sum = card_diff(av.field[j], bv.field[j])
+        if sum ~= nil then
+          field_m = true
+          field[j] = sum
+        end
+        sum = card_diff(av.hand[j], bv.hand[j])
+        if sum ~= nil then
+          hand_m = true
+          hand[j] = sum
+        end
+      end
+      if hand_m then p_diff.hand = hand end
+      if field_m then p_diff.field = field end
+    end
+    return diff
+  end
+
+  function view_diff_apply(view, diff)
+    for i=1,2 do
+      local pv,pd = view[i],diff[i]
+      pv.shuffles = pd.shuffles or pv.shuffles
+      pv.grave = pd.grave or pv.grave
+      pv.deck = pd.deck or pv.deck
+      if pd.character then
+        for k,v in pairs(pd.character) do
+          pv.character[k]=v
+        end
+      end
+      for _,zone in ipairs({"hand","field"}) do
+        if pd[zone] then
+          for j=1,5 do
+            if pd[zone][j] == false then
+              pv[zone][j] = false
+            elseif pd[zone][j] then
+              if pv[zone][j] then
+                if pd[zone][j].id and id_to_type(pd[zone][j].id) == "spell" then
+                  pv[zone][j].atk = nil
+                  pv[zone][j].def = nil
+                  pv[zone][j].sta = nil
+                  pv[zone][j].skills = nil
+                end
+                for k,v in pairs(pd[zone][j]) do
+                  pv[zone][j][k] = v
+                end
+              else
+                pv[zone][j] = pd[zone][j]
+              end
+            end
+          end
+        end
+      end
+    end
+    return view
+  end
+end
+
+function Game:snapshot(buff_msg)
+  local new_view = {}
+  local players = {self.P1, self.P2}
+  for i=1,2 do
+    local p = players[i]
+    local p_view = {}
+    p_view.field = {}
+    p_view.hand = {}
+    p_view.deck = #p.deck
+    p_view.grave = #p.grave
+    p_view.shuffles = p.shuffles
+    p_view.character = card_summary(p.character)
+    for j=1,5 do
+      p_view.field[j] = card_summary(p.field[j])
+      p_view.hand[j] = card_summary(p.hand[j])
+    end
+    new_view[i] = p_view
+  end
+  if not game.state_view then
+    print("snapshot"..json.encode(new_view))
+    game.state_view = new_view
+  end
+  if game.state_view then
+    local diff = view_diff(game.state_view,new_view)
+    --print("state" .. json.encode(new_view))
+    local msg = {type="diff",buff=buff_msg,diff=diff}
+    print("diff" .. json.encode(msg))
+    assert(deepeq(json.decode(json.encode(diff)), diff))
+    assert(deepeq(view_diff_apply(game.state_view, diff), new_view))
+  end
+  game.state_view = new_view
+  --print(json.encode(new_view))
+end
+
+function Game:send_trigger(player, slot, what)
+  local msg = {type="trigger", trigger={player=player, slot=slot, what=what}}
+  print("trigger"..json.encode(msg))
+end
+
+function Game:send_attack(player, atk_slot, def_slot, damage)
+  local msg = {type="attack", trigger={
+      player=player, atk_slot=atk_slot, def_slot=def_slot, damage=damage}}
+  print("attack"..json.encode(msg))
+end
+
+function Game:send_shuffle(player)
+  local msg = {type="shuffle",player=player}
+  print("shuffle"..json.encode(msg))
 end
 
 function Game:run()
+  self.replay = Queue()
   local P1,P2 = self.P1,self.P2
+  P1.player_index = 1
+  P2.player_index = 2
   local P1_first, P1_first_upkeep = nil, nil
   local real_turn = 0
   while true do
@@ -814,14 +1051,17 @@ function Game:run()
     self.turn = self.turn+1
     if P1_first_upkeep == nil then
       P1_first_upkeep = self:coin_flip()
+      self.replay:push(coin_msg(P1_first_upkeep))
     else
       P1_first_upkeep = not P1_first_upkeep
     end
     if self.turn > 1 then
       wait(20)
     end
+    self:snapshot()
     P1:untap_phase()
     P2:untap_phase()
+    self:snapshot()
     if P1_first_upkeep then
       P1:upkeep_phase()
       P2:upkeep_phase()
@@ -831,6 +1071,7 @@ function Game:run()
     end
     P1:draw_phase()
     P2:draw_phase()
+    self:snapshot()
     P2:ai_act()
     P1:user_act()
     P1_first = self:coin_flip()

@@ -27,7 +27,7 @@ function love.load(arg)
     if k < min_k then
       min_k = k
     end
-    print(k,v)
+    --print(k,v)
   end
   PATH_SEP = "/"
   if love._os == "Windows" then
@@ -42,11 +42,11 @@ function love.load(arg)
   end
   if last_sep then
     path = path:sub(1,last_sep)
-    print(path)
+    --print(path)
   end
   ABSOLUTE_PATH = path
   for k,v in pairs(love) do
-    print(k,v)
+    --print(k,v)
   end
 
 
@@ -67,10 +67,10 @@ function love.load(arg)
   end
   table.sort(t)
   for _,k in ipairs(t) do
-    print(tostring(k).." lacks a type")
+    --print(tostring(k).." lacks a type")
   end
   for _,k in ipairs(s) do
-    print(tostring(k).." lacks a description")
+    --print(tostring(k).." lacks a description")
   end
   if #t > 0 then
     error("some skills lack types")
