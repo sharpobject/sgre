@@ -9,7 +9,7 @@ local main_select_boss, main_play, main_go_hard
 local main_mxm
 
 function fmainloop()
-  local func, arg = main_select_boss, nil
+  local func, arg = main_mxm, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
@@ -117,4 +117,6 @@ end
 
 function main_mxm()
   network_init()
+  game = Game(nil, nil, true)
+  game:client_run()
 end

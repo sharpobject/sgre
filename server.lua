@@ -74,8 +74,8 @@ end
 function Connection.J(self, message)
   message = json.decode(message)
   if self.state == "playing" then
-    self.game:receive(self.player_index, message)
-    self:send({type="pong"})
+    self.game["P"..self.player_index]:receive(message)
+    self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
   end
 end
 
@@ -107,6 +107,7 @@ function Connection.data_received(self, data)
       data = data:sub(msg_len+5)
     else
       self:close()
+      return
     end
   end
   self.leftovers = data
@@ -161,6 +162,10 @@ function setup_game(a,b)
   b.game = game
   a.player_index = 1
   b.player_index = 2
+  a.state = "playing"
+  b.state = "playing"
+  a.opponent = b
+  b.opponent = a
   game.thread = coroutine.create(function()
     game:run()
   end)
@@ -186,6 +191,10 @@ function main()
     server_socket:settimeout(0)
     local new_conn = server_socket:accept()
     if new_conn then
+      print("making new connection!")
+      for k,v in pairs(connections) do
+        print(k, v.state)
+      end
       Connection(new_conn)
     end
     local recvt = {server_socket}

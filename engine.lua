@@ -545,6 +545,7 @@ function Player:play_card(n)
   for i=n,5 do
     self.hand[i] = self.hand[i+1]
   end
+  self.game:snapshot()
 end
 
 function Player:ai_act()
@@ -1007,6 +1008,9 @@ do
 end
 
 function Game:snapshot(buff_msg)
+  if self.client then
+    return
+  end
   local new_view = {}
   local players = {self.P1, self.P2}
   for i=1,2 do
@@ -1024,16 +1028,16 @@ function Game:snapshot(buff_msg)
     end
     new_view[i] = p_view
   end
-  if not game.state_view then
+  if not self.state_view then
     local msg = {type="snapshot",snapshot=new_view}
     self:send(msg)
     if love then
       print("snapshot"..json.encode(msg))
     end
-    game.state_view = new_view
+    self.state_view = new_view
   end
-  if game.state_view then
-    local diff = view_diff(game.state_view,new_view)
+  if self.state_view then
+    local diff = view_diff(self.state_view,new_view)
     --print("state" .. json.encode(new_view))
     local msg = {type="diff",buff=buff_msg,diff=diff}
     self:send(msg)
@@ -1041,9 +1045,9 @@ function Game:snapshot(buff_msg)
       print("diff" .. json.encode(msg))
     end
     --assert(deepeq(json.decode(json.encode(diff)), diff))
-    --assert(deepeq(view_diff_apply(game.state_view, diff), new_view))
+    --assert(deepeq(view_diff_apply(self.state_view, diff), new_view))
   end
-  game.state_view = new_view
+  self.state_view = new_view
   --print(json.encode(new_view))
 
   if self.P1.character.life <= 0 then
@@ -1141,6 +1145,22 @@ function Game:send_player_idxs()
   end
 end
 
+function Player:receive(msg)
+  if self.ready then
+    return
+  end
+  if msg.type == "shuffle" then
+    self:attempt_shuffle()
+  elseif msg.type == "ready" then
+    self.ready = true
+  elseif msg.type == "play" then
+    if self:can_play_card(msg.index) then
+      self:play_card(msg.index)
+    end
+  else
+  end
+end
+
 function Game:run()
   local P1,P2 = self.P1,self.P2
   local P1_first, P1_first_upkeep = nil, nil
@@ -1187,8 +1207,23 @@ function Game:run()
     P1:draw_phase()
     P2:draw_phase()
     self:snapshot()
-    P2:ai_act()
-    P1:user_act()
+    if love then
+      P2:ai_act()
+      P1:user_act()
+    else
+      for _,p in ipairs({P1, P2}) do
+        if p.connection then
+          p.ready = false
+          p.connection:send({type="can_act",can_act=true})
+        else
+          p:ai_act()
+          p.ready = true
+        end
+      end
+      while not (P1.ready and P2.ready) do
+        coroutine.yield()
+      end
+    end
     P1_first = self:coin_flip()
     self:send_coin(P1_first and 1 or 2)
     local n_combat_rounds = 0
@@ -1204,6 +1239,83 @@ function Game:run()
         n_combat_rounds = n_combat_rounds + 1
         wait(30)
       end
+    end
+  end
+end
+
+function card_from_view(view)
+  if not view then
+    return nil
+  end
+  local card = Card(view.id)
+  for k,v in pairs(view) do
+    card[k] = v
+  end
+  return card
+end
+
+function Game:from_view(view)
+  local players = {self.P1, self.P2}
+  for i=1,2 do
+    local p = players[i]
+    local pv = view[i]
+    p.field = {}
+    p.hand = {}
+    p.deck = pv.deck
+    p.grave = pv.grave
+    p.shuffles = pv.shuffles
+    p.character = card_from_view(pv.character)
+    for j=1,5 do
+      p.field[j] = card_from_view(pv.field[j])
+      p.hand[j] = card_from_view(pv.hand[j])
+    end
+    p.field[0] = p.character
+  end
+end
+
+function Game:client_run()
+  while true do
+    while net_q:len() == 0 do
+      wait()
+    end
+    local msg = net_q:pop()
+    if msg.type == "game_start" then
+      if msg.player_index == 2 then
+        self.P1.side = "right"
+        self.P2.side = "left"
+      end
+    elseif msg.type == "snapshot" then
+      self.view = msg.snapshot
+      self:from_view(self.view)
+    elseif msg.type == "diff" then
+      view_diff_apply(self.view, msg.diff)
+      self:from_view(self.view)
+      if msg.buff then
+        --TODO
+      end
+    elseif msg.type == "trigger" then
+        --TODO
+    elseif msg.type == "attack" then
+        --TODO
+    elseif msg.type == "shuffle" then
+        --TODO
+    elseif msg.type == "coin" then
+        --TODO
+    elseif msg.type == "game_over" then
+      error("game over~")
+    elseif msg.type == "turn" then
+      self.turn = msg.turn
+    elseif msg.type == "opponent_disconnected" then
+      error("opponent disconnected :((((")
+    elseif msg.type == "can_act" then
+      self.act_buttons = msg.can_act
+    elseif msg.type == "ping" then
+      net_send({type="pong"})
+    elseif msg.type == "pong" then
+      -- do nothing
+    else
+      error(json.encode(msg))
+      error("unknown message type "..msg.type)
     end
   end
 end

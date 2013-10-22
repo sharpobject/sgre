@@ -1,6 +1,7 @@
 local TCP_sock = nil
 local leftovers = ""
 local J
+local char, byte = string.char, string.byte
 net_q = Queue()
 
 function net_send(stuff)
@@ -23,11 +24,12 @@ function net_send(stuff)
 end
 
 function J(stuff)
+  stuff = json.decode(stuff)
   net_q:push(stuff)
 end
 
-function data_received(self, data)
-  if data:len() ~= 2 then
+function data_received(data)
+  if data:len() > 2 then
     print("got raw data "..data)
   end
   data = leftovers .. data
@@ -74,7 +76,7 @@ end
 function network_init()
   TCP_sock = socket.tcp()
   TCP_sock:settimeout(7)
-  if not TCP_sock:connect("burke.ro",49570) then
+  if not TCP_sock:connect("localhost",49570) then
     error("failed to connect yolo")
   end
   TCP_sock:settimeout(0)
