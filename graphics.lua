@@ -287,8 +287,11 @@ function Player:draw()
         end, x, y, w, h, false, true)
       if self.game.act_buttons then
         make_button(function()
-            print("trying to play card at idx "..idx)
-            if self:can_play_card(idx) then
+            --print("trying to play card at idx "..idx)
+            if self.client then
+              net_send({type="play",index=idx})
+              self.game.act_buttons = false
+            elseif self:can_play_card(idx) then
               self:play_card(idx)
             end
           end, x, y, w, h)
@@ -300,16 +303,41 @@ end
 function Game:draw()
   self.P1:draw()
   self.P2:draw()
-  gprint("deck "..#self.P1.deck.."    grave "..#self.P1.grave, 45, 425)
+
+  local left, right = self.P1, self.P2
+  if self.P1.side ~= "left" then
+    left, right = right, left
+  end
+
+  local ldeck, rdeck, lgrave, rgrave = left.deck, right.deck, left.grave, right.grave
+  if type(ldeck) == "table" then
+    ldeck, rdeck, lgrave, rgrave = #ldeck, #rdeck, #lgrave, #rgrave
+  end
+
+  gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
   gprint("turn "..self.turn, 260, 425)
-  gprint("deck "..#self.P2.deck.."    grave "..#self.P2.grave, 405, 425)
+  gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
   gprint("ready", 397+60, 425+50)
-  gprint("shuffle ("..self.P1.shuffles..")", 395+60, 468+50)
+  gprint("shuffle ("..left.shuffles..")", 395+60, 468+50)
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
-  gprint("size "..self.P1:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
+  gprint("size "..left:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
   if self.act_buttons then
-    make_button(function() self.ready = true end, 395+55, 400+50, 50, 60, true)
-    make_button(function() self.P1:attempt_shuffle() end, 395+55, 465+50, 50, 20, true)
+    make_button(function()
+      if self.client then
+        net_send({type="ready"})
+        self.act_buttons = false
+      else
+        self.ready = true
+      end
+    end, 395+55, 400+50, 50, 60, true)
+    make_button(function()
+      if self.client then
+        net_send({type="shuffle"})
+        self.act_buttons = false
+      else
+        left:attempt_shuffle()
+      end
+    end, 395+55, 465+50, 50, 20, true)
   end
   if self.hover_card then
     draw_hover_card(self.hover_card)

@@ -1,4 +1,5 @@
 local min,max = math.min,math.max
+local love = love
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
@@ -15,7 +16,10 @@ function Card:remove_skill(skill_idx)
 end
 
 function Card:refresh()
-  self.skills = deepcpy(id_to_canonical_card[self.id].skills)
+  local orig_skills = id_to_canonical_card[self.id].skills
+  for i=1,3 do
+    self.skills[i] = orig_skills[i]
+  end
 end
 
 function Card:remove_skill_until_refresh(skill_idx)
@@ -174,6 +178,7 @@ function Player:draw_phase()
     self:hand_to_grave(1)
   end
   if #self.deck == 0 then
+    self.lose = true
     --error("I lost the game :(")
   end
   for i=1,math.min(5-#self.hand, #self.deck) do
@@ -696,6 +701,7 @@ end
 
 function Player:combat_round()
   --print("NO INTERRUPTION")
+  self.game.active_player = self.player_index
   self.game.combat_round_interrupted = false
   local active = {spell={}, follower={}}
   for i=1,5 do
@@ -738,7 +744,7 @@ function Player:combat_round()
   end
 end
 
-Game = class(function(self, ld, rd)
+Game = class(function(self, ld, rd, client)
     self.P1 = Player("left", ld)
     self.P2 = Player("right", rd)
     self.P1.game = self
@@ -747,6 +753,11 @@ Game = class(function(self, ld, rd)
     self.P2.opponent = self.P1
     self.turn = 0
     self.time_remaining = 0
+    if client then
+      self.client = true
+      self.P1.client = true
+      self.P2.client = true
+    end
   end)
 
 function Game:update()
@@ -828,9 +839,18 @@ function Game:apply_buff(buff)
   end
   local buff_msg = {}
   for i=1,2 do
-    buff_msg[i] = deepcpy(buff.field[self["P"..i]]) or {}
+    local tmp = {}
+    tmp.field = buff.field[self["P"..i]] or {}
+    -- move this from field[0] to character, so that it is representable in json
+    tmp.character = tmp.field[0]
+    tmp.field[0] = nil
+    buff_msg[i] = tmp
   end
   self:snapshot(buff_msg)
+  for i=1,2 do
+    -- put it back!
+    buff_msg[i].field[0] = buff_msg[i].character
+  end
   if anything_happened then
     -- TODO: animation
     self:clean_dead_followers()
@@ -1005,55 +1025,150 @@ function Game:snapshot(buff_msg)
     new_view[i] = p_view
   end
   if not game.state_view then
-    print("snapshot"..json.encode(new_view))
+    local msg = {type="snapshot",snapshot=new_view}
+    self:send(msg)
+    if love then
+      print("snapshot"..json.encode(msg))
+    end
     game.state_view = new_view
   end
   if game.state_view then
     local diff = view_diff(game.state_view,new_view)
     --print("state" .. json.encode(new_view))
     local msg = {type="diff",buff=buff_msg,diff=diff}
-    print("diff" .. json.encode(msg))
-    assert(deepeq(json.decode(json.encode(diff)), diff))
-    assert(deepeq(view_diff_apply(game.state_view, diff), new_view))
+    self:send(msg)
+    if love then
+      print("diff" .. json.encode(msg))
+    end
+    --assert(deepeq(json.decode(json.encode(diff)), diff))
+    --assert(deepeq(view_diff_apply(game.state_view, diff), new_view))
   end
   game.state_view = new_view
   --print(json.encode(new_view))
+
+  if self.P1.character.life <= 0 then
+    self.P1.lose = true
+  end
+  if self.P2.character.life <= 0 then
+    self.P2.lose = true
+  end
+  local winner = nil
+  if self.P1.lose and self.P2.lose then
+    winner = self.active_player
+  elseif self.P1.lose then
+    winner = 2
+  elseif self.P2.lose then
+    winner = 1
+  end
+
+  if winner then
+    self:game_over(winner)
+  end
 end
 
 function Game:send_trigger(player, slot, what)
   local msg = {type="trigger", trigger={player=player, slot=slot, what=what}}
-  print("trigger"..json.encode(msg))
+  self:send(msg)
+  if love then
+    print("trigger"..json.encode(msg))
+  end
 end
 
 function Game:send_attack(player, atk_slot, def_slot, damage)
   local msg = {type="attack", trigger={
       player=player, atk_slot=atk_slot, def_slot=def_slot, damage=damage}}
-  print("attack"..json.encode(msg))
+  self:send(msg)
+  if love then
+    print("attack"..json.encode(msg))
+  end
 end
 
 function Game:send_shuffle(player)
   local msg = {type="shuffle",player=player}
-  print("shuffle"..json.encode(msg))
+  self:send(msg)
+  if love then
+    print("shuffle"..json.encode(msg))
+  end
+end
+
+function Game:send_coin(player)
+  local msg = {type="coin",player=player}
+  self:send(msg)
+  if love then
+    print("coin"..json.encode(msg))
+  end
+end
+
+function Game:game_over(player)
+  local msg = {type="game_over",winner=player}
+  self:send(msg)
+  if love then
+    print("game_over"..json.encode(msg))
+  end
+  if not GO_HARD then
+    error("game over")
+  end
+end
+
+function Game:send_turn(turn)
+  local msg = {type="turn",turn=turn}
+  self:send(msg)
+  if love then
+    print("turn"..json.encode(msg))
+  end
+end
+
+function Game:send(msg)
+  assert(type(msg) == "table")
+  if love then
+    --error("wtf bro")
+  else
+    if self.P1.connection then
+      self.P1.connection:send(msg)
+    end
+    if self.P2.connection then
+      self.P2.connection:send(msg)
+    end
+  end
+end
+
+function Game:send_player_idxs()
+  if self.P1.connection then
+    self.P1.connection:send({type="game_start",player_index=1})
+  end
+  if self.P2.connection then
+    self.P2.connection:send({type="game_start",player_index=2})
+  end
 end
 
 function Game:run()
-  self.replay = Queue()
   local P1,P2 = self.P1,self.P2
-  P1.player_index = 1
-  P2.player_index = 2
   local P1_first, P1_first_upkeep = nil, nil
   local real_turn = 0
+
+  P1.player_index = 1
+  P2.player_index = 2
+
+  self:send_player_idxs()
+  self:snapshot()
+
   while true do
     if GO_HARD and real_turn >= 8 then
       return
     end
     real_turn = real_turn + 1
-    self.turn = self.turn+1
+    self.turn = self.turn + 1
+    self:send_turn(self.turn)
     if P1_first_upkeep == nil then
       P1_first_upkeep = self:coin_flip()
-      self.replay:push(coin_msg(P1_first_upkeep))
+      self.active_player = P1_first_upkeep and 1 or 2
+      self:send_coin(self.active_player)
     else
       P1_first_upkeep = not P1_first_upkeep
+      self.active_player = P1_first_upkeep and 1 or 2
+    end
+    if real_turn > 100 or self.turn > 100 then
+      self:game_over(self.active_player)
     end
     if self.turn > 1 then
       wait(20)
@@ -1075,14 +1190,18 @@ function Game:run()
     P2:ai_act()
     P1:user_act()
     P1_first = self:coin_flip()
-    while P1:has_active_cards() or P2:has_active_cards() do
-      if P1_first and P1:has_active_cards() then
+    self:send_coin(P1_first and 1 or 2)
+    local n_combat_rounds = 0
+    while (P1:has_active_cards() or P2:has_active_cards()) and n_combat_rounds < 50 do
+      if P1_first and P1:has_active_cards() and n_combat_rounds < 50 then
         P1:combat_round()
+        n_combat_rounds = n_combat_rounds + 1
         wait(30)
       end
       P1_first = true
-      if P2:has_active_cards() then
+      if P2:has_active_cards() and n_combat_rounds < 50 then
         P2:combat_round()
+        n_combat_rounds = n_combat_rounds + 1
         wait(30)
       end
     end

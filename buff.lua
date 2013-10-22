@@ -95,3 +95,5 @@ end
 
 pred.t = function() return true end
 pred.f = function() return false end
+
+groups_init()

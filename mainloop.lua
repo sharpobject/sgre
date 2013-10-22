@@ -6,6 +6,7 @@ function wait(n)
 end
 
 local main_select_boss, main_play, main_go_hard
+local main_mxm
 
 function fmainloop()
   local func, arg = main_select_boss, nil
@@ -86,7 +87,6 @@ function main_select_boss()
   for i=1,40 do
     cbs[i]=mk_cb(i)
   end
-  network_init()
   while true do
     for i=1,4 do
       for j=1,10 do
@@ -97,7 +97,7 @@ function main_select_boss()
         end
       end
     end
-    gprint(VERSION_MSG, 250, 40)
+    gprint("whoa dude", 250, 40)
     wait()
     if which then
       if (""..which):len() == 1 then
@@ -113,4 +113,8 @@ function main_play(which)
   local npc = file_to_deck("floor"..which)
   game = Game(player, npc)
   game:run()
+end
+
+function main_mxm()
+  network_init()
 end

@@ -234,3 +234,12 @@ function deepeq(a,b)
   --print("true!")
   return true
 end
+
+function file_contents(filename)
+  if love then
+    local file = love.filesystem.newFile(filename)
+    file:open("r")
+    return file:read(file:getSize())
+  end
+  return io.open(filename):read("*a")
+end

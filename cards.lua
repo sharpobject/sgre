@@ -4,9 +4,7 @@ group_to_ids = {}
 skill_text = {}
 
 function cards_init()
-  local file = love.filesystem.newFile("swogi.json")
-  file:open("r")
-  local teh_json = file:read(file:getSize())
+  local teh_json = file_contents("swogi.json")
   decoded = json.decode(teh_json)
   decoded.id_to_card.ID = nil
   decoded.name_to_ids.NAME = nil
@@ -22,7 +20,7 @@ function cards_init()
     card.name = in_card.name
     card.kr_name = in_card.kr_name
     card.id = in_card.id + 0
-    if card.type == "npc spell" then
+    if card.type == "npc spell" or card.type == "material" then
       card.type = "spell"
     end
     if card.type == "npc follower" then
@@ -43,8 +41,8 @@ function cards_init()
       card.skills = {card.id}
       --assert(deepeq(card.skills, {card.id}))
     else
-      --print("Got card "..in_card.name.." with id "..in_card.id..
-      --  " and unexpected type "..card.type)
+      error("Got card "..in_card.name.." with id "..in_card.id..
+        " and unexpected type "..card.type)
     end
   end
   for name,ids in pairs(decoded.name_to_ids) do
@@ -55,9 +53,8 @@ function cards_init()
   name_to_ids = decoded.name_to_ids
 
   --construct groups_to_ids
-  local file2 = love.filesystem.newFile("groups.json")
-  file2:open("r")
-  local group_json_raw = file2:read(file2:getSize())
+
+  local group_json_raw = file_contents("groups.json")
   local group_json = json.decode(group_json_raw)
   group_to_ids = {}
   for group, k_group in pairs(group_json) do
@@ -77,3 +74,5 @@ function cards_init()
     skill_text[0+k] = v
   end
 end
+
+cards_init()
