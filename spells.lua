@@ -2615,6 +2615,7 @@ end,
 end,
 
 -- recruitment ad
+-- FIXME: Your Character gets LIFE +1.
 [200194] = function(player, opponent, my_idx, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
@@ -3079,6 +3080,77 @@ end,
   end
 end,
 
+-- Nightmare
+-- A random Follower on your Field gets ATK +1.
+-- That Follower's ATK and a random Follower on the enemy Field's STA
+-- are swapped.
+[200225] = function(player, opponent)
+  -- get my random follower and opponent's random follower
+  local my_target = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local buff = GlobalBuff()
+  if my_target and op_target then
+    -- store my follower's ATK and opponent's STA
+    local my_atk = player.field[my_target].atk + 1
+    local op_sta = opponent.field[op_target].sta
+    -- swap ATK and STA
+    buff.field[player][my_target] = {atk={"=",op_sta}}
+    buff.field[opponent][op_target] = {sta={"=",my_atk}}
+  elseif my_target then
+    buff.field[player][my_target] = {atk={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- One Afternoon
+-- All followers on your Field get DEF -3. The first Vita Follower
+-- on your Field with the highest SIZE gets DEF increased by 1
+-- plus half the total DEF reduction (rounding up).
+[200226] = function(player)
+  local big_vita
+  local def_reduction = 0
+  local buff = GlobalBuff()
+  -- FIXME does this work???
+  for i=1, player:field_size() do
+    -- all your followers on field get DEF -3
+    buff.field[player][i] = {def={"-",3}}
+    def_reduction = def_reduction + 3
+    -- find first vita follower with largest size
+    local is_vita = pred.V(player.field[i])
+    local is_larger = not big_vita or
+        player.field[big_vita].size < player.field[i].size
+    if is_vita and is_larger then
+      big_vita = i
+    end
+  end
+  buff:apply()
+  -- increase big vita def
+  local def_inc = 1 + ceil(def_reduction / 2)
+  OneBuff(player, big_vita, {def={"+",def_inc}}):apply()
+end,
+
+-- TODO: Beginning of a Lady
+-- Any of the first Academy Follower on your Field's ATK/DEF/STA
+-- that are lower than their original values are changed to their
+-- original values.
+[200227] = function(player)
+  local followers = player:field_idxs_with_preds(pred.follower)
+  local a_followers = {}
+  for _,idx in ipairs(followers) do
+    if pred.A(player.field[idx]) then 
+      a_followers = idx
+      break
+    end
+  end
+  if a_follower then
+    local buff = GlobalBuff()
+  end
+end,
+
+--200228
+--200229
+--200230
+
 -- string of emotion
 [200231] = function(player, opponent, my_idx, my_card)
   local target = player:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
@@ -3099,6 +3171,13 @@ end,
     buff:apply()
   end
 end,
+
+--200233
+--200234
+--200235
+--200236
+--200237
+--200238
 
 -- sita's suit
 [200239] = sitas_suit(pred.sita),
@@ -3889,6 +3968,19 @@ end,
   buff:apply()
 end,
 
+--200301
+--200302
+--200303
+--200304
+--200305
+--200306
+--200307
+--200308
+--200309
+--200310
+--200311
+--200312
+
 -- forbidden research
 [200313] = function(player, opponent, my_idx, my_card)
   local targets = opponent:field_idxs_with_preds()
@@ -3990,6 +4082,120 @@ end,
     end
   end
 end,
+
+--200322
+--200323
+--200324
+--200325
+--200326
+--200327
+--200328
+--200329
+--200330
+--200331
+--200332
+--200336
+--200337
+--200338
+--200339
+--200340
+--200341
+--200342
+--200343
+--200344
+--200345
+--200346
+--200349
+--200351
+--200352
+--200353
+--200354
+--200355
+--200356
+--200357
+--200359
+--200360
+--200361
+--200362
+--200363
+--200364
+--200365
+--200367
+--200368
+--200369
+--200370
+--200371
+--200372
+--200373
+--200374
+--200375
+--200376
+--200377
+--200378
+--200379
+--200380
+--200381
+--200382
+--200383
+--200384
+--200385
+--200386
+--200387
+--200388
+--200389
+--200390
+--200391
+--200392
+--200393
+--200394
+--200395
+--200396
+--200397
+--200398
+--200399
+--200400
+--200401
+--200402
+--200403
+--200404
+--200405
+--200406
+--200408
+--200409
+--200410
+--200411
+--200412
+--200413
+--200414
+--200415
+--200416
+--200417
+--200418
+--200419
+--200420
+--200421
+--200422
+--200423
+--200424
+--200425
+--200426
+--200427
+--200428
+--200429
+--200430
+--200431
+--200432
+--200433
+--200434
+--200435
+--200437
+--200438
+--200439
+--200441
+--200442
+--200443
+--200444
+--200445
 
 -- forbidden book
 [200333] = function(player, opponent, my_idx, my_card)
