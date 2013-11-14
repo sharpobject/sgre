@@ -2049,6 +2049,7 @@ end,
       local deck = str_to_deck(deck_str)
       table.remove(deck, 1)
       deck = map(Card, deck)
+      opponent.deck = shuffle(deck)
     else
       opponent.deck = {}
     end
