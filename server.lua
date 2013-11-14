@@ -11,9 +11,11 @@ require("buff")
 require("skills")
 require("spells")
 require("characters")
+require("dumbprint")
 
 local byte = string.byte
 local char = string.char
+local floor = math.floor
 local pairs = pairs
 local ipairs = ipairs
 local random = math.random
@@ -38,13 +40,17 @@ Connection = class(function(s, socket)
 end)
 
 function Connection.send(self, stuff)
+  print("CONNECTION SEND")
   assert(type(stuff) == "table")
   if type(stuff) == "table" then
     local json = json.encode(stuff)
     local len = json:len()
-    local prefix = "J"..char(len/65536)..char((len/256)%256)..char(len%256)
+    local prefix = "J"..char(floor(len/65536))..char(floor((len/256)%256))..char(len%256)
     print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
     print("sending json "..json)
+    local computed_length = (byte(prefix[2])*65536 + byte(prefix[3])*256 + byte(prefix[4]))
+    print("length "..len.." computed length "..computed_length)
+    assert(len == computed_length)
     stuff = prefix..json
   end
   local foo = {self.socket:send(stuff)}
@@ -57,12 +63,14 @@ function Connection.send(self, stuff)
 end
 
 function Connection.opponent_disconnected(self)
+  print("OP DIS")
   self.opponent = nil
   --self.state = "lobby"
   self:send({type="opponent_disconnected"})
 end
 
 function Connection.close(self)
+  print("CONN CLOSE")
   if self.opponent then
     self.opponent:opponent_disconnected()
   end
@@ -72,6 +80,7 @@ function Connection.close(self)
 end
 
 function Connection.J(self, message)
+  print("CONN J")
   message = json.decode(message)
   if self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -81,10 +90,9 @@ end
 
 -- TODO: this should not be O(n^2) lol
 function Connection.data_received(self, data)
+  print("CONN DATA RECv")
   self.last_read = time()
-  if data:len() ~= 2 then
-    print("got raw data "..data)
-  end
+  print("got raw data "..data)
   data = self.leftovers .. data
   local idx = 1
   while data:len() > 0 do
@@ -114,9 +122,14 @@ function Connection.data_received(self, data)
 end
 
 function Connection.read(self)
+  print("CONN READ")
   local junk, err, data = self.socket:receive("*a")
   if not err then
     error("shitfuck")
+  end
+  if err == "closed" then
+    self:close()
+    return
   end
   if data and data:len() > 0 then
     self:data_received(data)
@@ -155,6 +168,7 @@ end
 print("read "..#decks.." decks")
 
 function setup_game(a,b)
+  print("SETUP")
   local game = Game(uniformly(decks), uniformly(decks))
   game.P1.connection = a
   game.P2.connection = b
@@ -173,6 +187,7 @@ function setup_game(a,b)
 end
 
 function resume_game(game)
+  print("RESUME GAME")
   if coroutine.status(game.thread) == "suspended" then
     local status, err = coroutine.resume(game.thread)
     if not status then
@@ -184,10 +199,11 @@ end
 function wait() end
 
 function main()
-  local server_socket = socket.bind("localhost", 49570)
+  local server_socket = socket.bind("burke.ro", 49570)
 
   local prev_now = time()
   while true do
+    print("MAINLOOP")
     server_socket:settimeout(0)
     local new_conn = server_socket:accept()
     if new_conn then
@@ -202,6 +218,7 @@ function main()
       recvt[#recvt+1] = v.socket
     end
     local ready = socket.select(recvt, nil, 1)
+    socket.sleep(.01)
     assert(type(ready) == "table")
     for _,v in ipairs(ready) do
       if socket_to_idx[v] then

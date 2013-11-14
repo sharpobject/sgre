@@ -1,7 +1,10 @@
+require("dumbprint")
+
 local TCP_sock = nil
 local leftovers = ""
 local J
 local char, byte = string.char, string.byte
+local floor = math.floor
 net_q = Queue()
 
 function net_send(stuff)
@@ -9,7 +12,7 @@ function net_send(stuff)
   if type(stuff) == "table" then
     local json = json.encode(stuff)
     local len = json:len()
-    local prefix = "J"..char(len/65536)..char((len/256)%256)..char(len%256)
+    local prefix = "J"..char(floor(len/65536))..char(floor((len/256)%256))..char(len%256)
     print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
     print("sending json "..json)
     stuff = prefix..json
@@ -29,8 +32,10 @@ function J(stuff)
 end
 
 function data_received(data)
-  if data:len() > 2 then
-    print("got raw data "..data)
+  print("got raw data "..data)
+  if data:len() == 0 then
+    print("got nothing")
+    return
   end
   data = leftovers .. data
   local idx = 1
@@ -40,10 +45,12 @@ function data_received(data)
     --assert(type(msg_type) == "string")
     if msg_type == "J" then
       if data:len() < 4 then
+        print("breaking, dont have 4 bytes")
         break
       end
       local msg_len = byte(data[2])*65536 + byte(data[3])*256 + byte(data[4])
       if data:len() < 4 + msg_len then
+        print("breaking, have "..data:len().." bytes but need "..msg_len)
         break
       end
       local jmsg = data:sub(5, msg_len+4)
@@ -76,7 +83,7 @@ end
 function network_init()
   TCP_sock = socket.tcp()
   TCP_sock:settimeout(7)
-  if not TCP_sock:connect("localhost",49570) then
+  if not TCP_sock:connect("burke.ro",49570) then
     error("failed to connect yolo")
   end
   TCP_sock:settimeout(0)
