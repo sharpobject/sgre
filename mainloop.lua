@@ -9,7 +9,7 @@ local main_select_boss, main_play, main_go_hard
 local main_mxm
 
 function fmainloop()
-  local func, arg = main_mxm, nil
+  local func, arg = main_go_hard, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
