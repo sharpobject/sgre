@@ -27,6 +27,22 @@ function load_img(s)
   return ret,gray,w,h
 end
 
+function load_asset(s)
+  if not pcall(function() s = love.image.newImageData("sg_assets/"..s) end) then
+    local file, err = io.open(ABSOLUTE_PATH.."sg_assets"..PATH_SEP..s, "rb")
+    if not file then
+      error(err)
+    end
+    local contents = file:read("*a")
+    file:close()
+    local data = love.filesystem.newFileData(contents, "foo.png", "file")
+    s = love.image.newImageData(data)
+  end
+  local w, h = s:getWidth(), s:getHeight()
+  local ret = love.graphics.newImage(s)
+  return ret,w,h
+end
+
 do
   local real_load_img = load_img
   load_img = function(s)
@@ -102,6 +118,7 @@ function graphics_init()
 end
 
 function draw_hover_card(card)
+  set_color(255, 255, 255)
   local id = card.id
   if not IMG_card[id] then
     IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
@@ -123,11 +140,12 @@ function draw_hover_card(card)
     gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
   end
   if card.faction then
-    set_color(28,28,28)
-    grectangle("fill",x,y,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.faction, x, y+3, gray_shit_width, "center")
+    -- set_color(28,28,28)
+    -- grectangle("fill",x,y,
+    --   gray_shit_width, gray_shit_height)
+    -- set_color(255,255,255)
+    -- gprintf(card.faction, x, y+3, gray_shit_width, "center")
+    draw_faction(card.faction, x, y, 0, 1, 1)
   end
   if card.type == "follower" then
     set_color(28,28,28)
@@ -149,7 +167,7 @@ function draw_hover_card(card)
     set_color(180,50,180)
   end
   grectangle("line",x,y,card_width, card_height)
-  set_color(255,255,255)
+  set_color(28 ,28 ,28)
   gfontsize(11)
   local text = skill_text[card.id]
   if card.type == "follower" then
@@ -169,6 +187,29 @@ function draw_hover_card(card)
   end
   gprintf(text, x, y+card_height+10, card_width, "left")
   gfontsize(12)
+end
+
+function draw_background()
+  local bkg_grad, bkg_width, bkg_height = load_asset("opaque-yellow-gradient.png")
+  bkg_grad:setWrap('repeat','repeat')
+  local window_width = love.graphics.getWidth()
+  local window_height = love.graphics.getHeight()
+  local bkg_frame = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
+  gfx_q:push({love.graphics.drawq, {bkg_grad, bkg_frame, 0, 0}})
+end
+
+function draw_faction(faction, x, y, rot, x_scale, y_scale)
+  rot = rot or 0
+  x_scale = x_scale or 1
+  y_scale = y_scale or 1
+  local faction_gfx = {['E'] = "empire.png",
+    ['D'] = "darklore.png",
+    ['N'] = "sg.png",
+    ['V'] = "vita.png",
+    ['C'] = "crux.png",
+    ['A'] = "academy.png"}
+  local faction_img = load_asset(faction_gfx[faction])
+  draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
 function draw_card(card, x, y, text)
@@ -199,11 +240,12 @@ function draw_card(card, x, y, text)
     gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
   end
   if card.faction and not card.hidden then
-    set_color(28,28,28)
-    grectangle("fill",x,y,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.faction, x, y+3, gray_shit_width, "center")
+    -- set_color(28,28,28)
+    -- grectangle("fill",x,y,
+    --   gray_shit_width, gray_shit_height)
+    -- set_color(255,255,255)
+    -- gprintf(card.faction, x, y+3, gray_shit_width, "center")
+    draw_faction(card.faction, x, y, 0, 0.5, 0.5)
   end
   if text then
     set_color(28,28,28)
@@ -301,6 +343,7 @@ function Player:draw()
 end
 
 function Game:draw()
+  draw_background()
   self.P1:draw()
   self.P2:draw()
 
@@ -313,7 +356,7 @@ function Game:draw()
   if type(ldeck) == "table" then
     ldeck, rdeck, lgrave, rgrave = #ldeck, #rdeck, #lgrave, #rgrave
   end
-
+  set_color(28, 28, 28)
   gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
   gprint("turn "..self.turn, 260, 425)
   gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
