@@ -4,6 +4,7 @@ require("stridx")
 require("util")
 require("class")
 require("queue")
+require("loveframes")
 require("globals")
 require("network")
 require("engine")
@@ -78,7 +79,7 @@ function love.load(arg)
   end
 end
 
-function love.update()
+function love.update(dt)
   gfx_q:clear()
   --print("FRAME BEGIN")
   local status, err = coroutine.resume(mainloop)
@@ -91,6 +92,7 @@ function love.update()
   end
   do_input()
   do_messages()
+  loveframes.update(dt)
 end
 
 function love.draw()
@@ -99,4 +101,5 @@ function love.draw()
     gfx_q[i][1](unpack(gfx_q[i][2]))
   end
   --love.graphics.print("FPS: "..love.timer.getFPS(),315,15)
+  loveframes.draw()
 end

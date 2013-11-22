@@ -9,7 +9,7 @@ local main_select_boss, main_play, main_go_hard
 local main_mxm
 
 function fmainloop()
-  local func, arg = main_mxm, nil
+  local func, arg = main_select_boss, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
@@ -83,25 +83,27 @@ function main_select_boss()
       which = n
     end
   end
+  local buttons = {}
   local cbs = {}
   for i=1,40 do
     cbs[i]=mk_cb(i)
+    local x,y = (i-1)%10+1, math.floor((i-1)/10)
+    buttons[i] = loveframes.Create("button")
+    local button = buttons[i]
+    button:SetPos(400+(x-5.5)*50 - 20, 185+y*50)
+    button:SetWidth(40)
+    button:SetHeight(40)
+    button:SetText(i.."F")
+    button.OnClick = cbs[i]
   end
   while true do
-    for i=1,4 do
-      for j=1,10 do
-        if i < 4 or j ~= 7 then
-          local floor = (i-1)*10+j
-          gprint(floor.."F", 400 + (j-5.5)*50 - 10, 190 + i * 50)
-          make_button(cbs[floor], 400 + (j-5.5)*50 - 20, 185 + i * 50, 40, 40, true)
-        end
-      end
-    end
-    gprint("whoa dude", 250, 40)
     wait()
     if which then
       if (""..which):len() == 1 then
         which = "0"..which
+      end
+      for i=1,40 do
+        buttons[i]:Remove()
       end
       return main_play, {""..which}
     end
