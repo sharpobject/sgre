@@ -140,11 +140,6 @@ function draw_hover_card(card)
     gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
   end
   if card.faction then
-    -- set_color(28,28,28)
-    -- grectangle("fill",x,y,
-    --   gray_shit_width, gray_shit_height)
-    -- set_color(255,255,255)
-    -- gprintf(card.faction, x, y+3, gray_shit_width, "center")
     draw_faction(card.faction, x, y, 0, 1, 1)
   end
   if card.type == "follower" then
@@ -240,11 +235,6 @@ function draw_card(card, x, y, text)
     gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
   end
   if card.faction and not card.hidden then
-    -- set_color(28,28,28)
-    -- grectangle("fill",x,y,
-    --   gray_shit_width, gray_shit_height)
-    -- set_color(255,255,255)
-    -- gprintf(card.faction, x, y+3, gray_shit_width, "center")
     draw_faction(card.faction, x, y, 0, 0.5, 0.5)
   end
   if text then
