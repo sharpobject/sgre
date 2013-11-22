@@ -60,6 +60,11 @@ local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
 
+local function yolo()
+--  local foo = gfx_q[gfx_q.last]
+--  foo[1](unpack(foo[2]))
+end
+
 function draw(img, x, y, rot, x_scale,y_scale)
   rot = rot or 0
   x_scale = x_scale or 1
@@ -67,18 +72,22 @@ function draw(img, x, y, rot, x_scale,y_scale)
   --print("DRAW AN IMAGE")
   gfx_q:push({love.graphics.draw, {img, x*GFX_SCALE, y*GFX_SCALE,
     rot, x_scale*GFX_SCALE, y_scale*GFX_SCALE}})
+  yolo()
 end
 
 function grectangle(mode,x,y,w,h)
   gfx_q:push({love.graphics.rectangle, {mode, x, y, w, h}})
+  yolo()
 end
 
 function gprint(str, x, y)
   gfx_q:push({love.graphics.print, {str, x, y}})
+  yolo()
 end
 
 function gprintf(...)
   gfx_q:push({love.graphics.printf, {...}})
+  yolo()
 end
 
 local fonts = {}
@@ -93,6 +102,7 @@ function gfontsize(...)
     love.graphics.setFont(font)
   end
   gfx_q:push({func, {...}})
+  yolo()
 end
 
 local _r, _g, _b, _a = nil, nil, nil, nil
@@ -103,6 +113,7 @@ function set_color(r, g, b, a)
       _r,_g,_b,_a = r,g,b,a
       --print("SET COLOR TO "..r..", "..g..", "..b)
       gfx_q:push({love.graphics.setColor, {r, g, b, a}})
+      yolo()
   end
 end
 
@@ -190,7 +201,8 @@ function draw_background()
   local window_width = love.graphics.getWidth()
   local window_height = love.graphics.getHeight()
   local bkg_frame = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
-  gfx_q:push({love.graphics.drawq, {bkg_grad, bkg_frame, 0, 0}})
+  gfx_q:push({love.graphics.draw, {bkg_grad, bkg_frame, 0, 0}})
+  yolo()
 end
 
 function draw_faction(faction, x, y, rot, x_scale, y_scale)
