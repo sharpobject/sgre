@@ -1,3 +1,5 @@
+require "gradient"
+
 function load_img(s)
   if not pcall(function() s = love.image.newImageData("swordgirlsimages/"..s) end) then
     local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
@@ -27,20 +29,26 @@ function load_img(s)
   return ret,gray,w,h
 end
 
-function load_asset(s)
-  if not pcall(function() s = love.image.newImageData("sg_assets/"..s) end) then
-    local file, err = io.open(ABSOLUTE_PATH.."sg_assets"..PATH_SEP..s, "rb")
-    if not file then
-      error(err)
+do
+  local asset_map = {}
+  function load_asset(s)
+    local orig_s = s
+    if asset_map[s] then return unpack(asset_map[s]) end
+    if not pcall(function() s = love.image.newImageData("sg_assets/"..s) end) then
+      local file, err = io.open(ABSOLUTE_PATH.."sg_assets"..PATH_SEP..s, "rb")
+      if not file then
+        error(err)
+      end
+      local contents = file:read("*a")
+      file:close()
+      local data = love.filesystem.newFileData(contents, "foo.png", "file")
+      s = love.image.newImageData(data)
     end
-    local contents = file:read("*a")
-    file:close()
-    local data = love.filesystem.newFileData(contents, "foo.png", "file")
-    s = love.image.newImageData(data)
+    local w, h = s:getWidth(), s:getHeight()
+    local ret = love.graphics.newImage(s)
+    asset_map[orig_s] = {ret, w, h}
+    return ret,w,h
   end
-  local w, h = s:getWidth(), s:getHeight()
-  local ret = love.graphics.newImage(s)
-  return ret,w,h
 end
 
 do
@@ -143,36 +151,26 @@ function draw_hover_card(card)
   local gray_shit_x = x + gray_shit_dx
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
-  if card.size then
-    set_color(28,28,28)
-    grectangle("fill",gray_shit_x,y,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
-  end
-  if card.faction then
-    draw_faction(card.faction, x, y, 0, 1, 1)
-  end
   if card.type == "follower" then
     set_color(28,28,28)
     grectangle("fill",x,y + card_height - gray_shit_height,
       card_width, gray_shit_height)
     set_color(255, 255, 255)
+  end
+  draw(load_asset("m-"..card.type..".png"), x, y)
+  if card.type == "character" then
+    gprintf(card.life, gray_shit_x+4, y+212, gray_shit_width, "center")
+  elseif card.type == "follower" then
     gprintf(card.atk, x, y+223, card_width/3, "center")
     gprintf(card.def, x+card_width/3, y+223, card_width/3, "center")
     gprintf(card.sta, x+2*card_width/3, y+223, card_width/3, "center")
-    set_color(255,50,50)
-  elseif card.type == "spell" then
-    set_color(50,50,255)
-  else
-    set_color(28,28,28)
-    grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.life, gray_shit_x, y+223, gray_shit_width, "center")
-    set_color(180,50,180)
   end
-  grectangle("line",x,y,card_width, card_height)
+  if card.size then
+    gprintf(card.size, gray_shit_x+5, y+15, gray_shit_width, "center")
+  end
+  if card.faction then
+    draw_faction(card.faction, x+3, y+3, 0, 1, 1)
+  end
   set_color(28 ,28 ,28)
   gfontsize(11)
   local text = skill_text[card.id]
@@ -195,14 +193,27 @@ function draw_hover_card(card)
   gfontsize(12)
 end
 
+local bkg_grad, bkg_quad = nil, nil
 function draw_background()
-  local bkg_grad, bkg_width, bkg_height = load_asset("opaque-yellow-gradient.png")
-  bkg_grad:setWrap('repeat','repeat')
-  local window_width = love.graphics.getWidth()
-  local window_height = love.graphics.getHeight()
-  local bkg_frame = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
-  gfx_q:push({love.graphics.draw, {bkg_grad, bkg_frame, 0, 0}})
+  bkg_grad = bkg_grad or gradient({direction="horizontal", {254, 248, 164, 0}, {254, 248, 164}})
+  local bkg, bkg_width, bkg_height = load_asset("background.png")
+  bkg:setWrap('repeat','repeat')
+  if not bkg_quad then
+    local window_width = love.graphics.getWidth()
+    local window_height = love.graphics.getHeight()
+    bkg_quad = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
+  end
+  gfx_q:push({love.graphics.draw, {bkg, bkg_quad, 0, 0}})
   yolo()
+  gfx_q:push({love.graphics.draw, {bkg_grad, 0, -love.graphics.getHeight()/2, 0, love.graphics.getWidth()/bkg_grad:getWidth(), love.graphics.getHeight()*2/bkg_grad:getHeight()}})
+  yolo()
+end
+
+local field_quad = nil
+function draw_field()
+  local field_img, field_w, field_h = load_asset("field.png")
+  draw(field_img, 27, 17)
+  draw(load_asset("field_hud.png"), 31, 357)
 end
 
 function draw_faction(faction, x, y, rot, x_scale, y_scale)
@@ -239,16 +250,6 @@ function draw_card(card, x, y, text)
   local gray_shit_x = x + gray_shit_dx
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
-  if card.size and not card.hidden then
-    set_color(28,28,28)
-    grectangle("fill",gray_shit_x,y,
-      gray_shit_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(card.size, gray_shit_x, y+3, gray_shit_width, "center")
-  end
-  if card.faction and not card.hidden then
-    draw_faction(card.faction, x, y, 0, 0.5, 0.5)
-  end
   if text then
     set_color(28,28,28)
     grectangle("fill",x,middle,
@@ -265,37 +266,37 @@ function draw_card(card, x, y, text)
       gprintf(card.atk, x, y+103, card_width/3, "center")
       gprintf(card.def, x+card_width/3, y+103, card_width/3, "center")
       gprintf(card.sta, x+2*card_width/3, y+103, card_width/3, "center")
-      set_color(255,50,50)
-    elseif card.type == "spell" then
-      set_color(50,50,255)
-    else
-      set_color(28,28,28)
-      grectangle("fill",gray_shit_x,y + card_height - gray_shit_height,
-        gray_shit_width, gray_shit_height)
-      set_color(255,255,255)
-      gprintf(card.life, gray_shit_x, y+103, gray_shit_width, "center")
-      set_color(180,50,180)
     end
-    grectangle("line",x,y,card_width, card_height)
+    draw(load_asset("s-"..card.type..".png"), x, y)
+    if card.size then
+      gprintf(card.size, gray_shit_x + 2, y+4, gray_shit_width, "center")
+    end
+    if card.type == "character" then
+      gprintf(card.life, gray_shit_x + 2, y+102, gray_shit_width, "center")
+    end
+    if card.faction then
+      draw_faction(card.faction, x+1, y+1, 0, 0.5, 0.5)
+    end
   end
-  set_color(255,255,255)
 end
 
-local slot_to_dxdy = {left={[0]={0,1},{0,0},{1,0},{1,1},{1,2},{0,2}},
-                   right={[0]={1,1},{1,0},{0,0},{0,1},{0,2},{1,2}}}
+local slot_to_dxdy = {
+  left={[0]={34,136},
+            {11,8},
+            {99,8},
+            {122,136},
+            {99,264},
+            {11,264}},
+  right={[0]={449,136},
+            {472,8},
+            {384,8},
+            {361,136},
+            {384,264},
+            {472,264}}}
 
 function Player:draw()
-  local leftcol, rightcol = {},{}
-  local y_anchor = 25
-  local x_anchor = 25
-  if self.side == "left" then
-    leftcol = {self.field[1], self.character, self.field[5]}
-    rightcol = {self.field[2], self.field[3], self.field[4]}
-  else
-    rightcol = {self.field[1], self.character, self.field[5]}
-    leftcol = {self.field[2], self.field[3], self.field[4]}
-    x_anchor = x_anchor +  350
-  end
+  local y_anchor = 17
+  local x_anchor = 27
   for i=0,5 do
     local text = nil
     if self.game.print_attack_info then
@@ -310,7 +311,7 @@ function Player:draw()
     end
     local dx,dy = unpack(slot_to_dxdy[self.side][i])
     if self.field[i] then
-      local x, y, w, h = x_anchor+85*dx, y_anchor+125*dy, card_width, card_height
+      local x, y, w, h = x_anchor+dx, y_anchor+dy, card_width, card_height
       draw_card(self.field[i], x, y, text)
       if not self.field[i].hidden then
         make_button(function()
@@ -346,6 +347,7 @@ end
 
 function Game:draw()
   draw_background()
+  draw_field()
   self.P1:draw()
   self.P2:draw()
 
@@ -359,11 +361,20 @@ function Game:draw()
     ldeck, rdeck, lgrave, rgrave = #ldeck, #rdeck, #lgrave, #rgrave
   end
   set_color(28, 28, 28)
-  gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
-  gprint("turn "..self.turn, 260, 425)
-  gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
+  --gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
+  --gprint("turn "..self.turn, 260, 425)
+  --gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
+  local field_hud_left_start_x, field_hud_y = 162, 417
+  local field_hud_right_start_x = 399
+  gprint(ldeck, field_hud_left_start_x, field_hud_y)
+  gprint(lgrave, field_hud_left_start_x + 38, field_hud_y)
+  gprint(left.shuffles, field_hud_left_start_x + 70, field_hud_y)
+  gprint(rdeck, field_hud_right_start_x, field_hud_y)
+  gprint(rgrave, field_hud_right_start_x + 38, field_hud_y)
+  gprint(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
+  gprint(self.turn, 308, 383)
   gprint("ready", 397+60, 425+50)
-  gprint("shuffle ("..left.shuffles..")", 395+60, 468+50)
+  gprint("shuffle", 395+60, 468+50)
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
   gprint("size "..left:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
   if self.act_buttons then
