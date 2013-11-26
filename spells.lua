@@ -2615,13 +2615,13 @@ end,
 end,
 
 -- recruitment ad
--- FIXME: Your Character gets LIFE +1.
 [200194] = function(player, opponent, my_idx, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     player:field_to_grave(target)
     OneBuff(opponent, 0, {life={"-",1}}):apply()
     opponent.shuffles = max(0, opponent.shuffles-1)
+    OneBuff(player, 0, {life={"+",1}}):apply()
   end
 end,
 
@@ -3088,7 +3088,7 @@ end,
   -- get my random follower and opponent's random follower
   local my_target = uniformly(player:field_idxs_with_preds(pred.follower))
   local op_target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  local buff = GlobalBuff()
+  local buff = GlobalBuff(player)
   if my_target and op_target then
     -- store my follower's ATK and opponent's STA
     local my_atk = player.field[my_target].atk + 1
@@ -3107,26 +3107,17 @@ end,
 -- on your Field with the highest SIZE gets DEF increased by 1
 -- plus half the total DEF reduction (rounding up).
 [200226] = function(player)
-  local big_vita
-  local def_reduction = 0
-  local buff = GlobalBuff()
-  -- FIXME does this work???
-  for i=1, player:field_size() do
-    -- all your followers on field get DEF -3
-    buff.field[player][i] = {def={"-",3}}
-    def_reduction = def_reduction + 3
-    -- find first vita follower with largest size
-    local is_vita = pred.V(player.field[i])
-    local is_larger = not big_vita or
-        player.field[big_vita].size < player.field[i].size
-    if is_vita and is_larger then
-      big_vita = i
-    end
+  local folls = player:field_idxs_with_preds(pred.follower)
+  local target = player:field_idxs_with_most_and_preds(pred.size, pred.follower, pred.V)[1]
+  local buff = OnePlayerBuff(player)
+  local buff_amt = ceil((3*#folls)/2) + 1
+  for _,idx in ipairs(folls) do
+    buff[idx] = {def={"-",3}}
   end
   buff:apply()
-  -- increase big vita def
-  local def_inc = 1 + ceil(def_reduction / 2)
-  OneBuff(player, big_vita, {def={"+",def_inc}}):apply()
+  if target then
+    OneBuff(player, target, {def={"+",buff_amt}}):apply()
+  end
 end,
 
 -- TODO: Beginning of a Lady
@@ -3134,16 +3125,16 @@ end,
 -- that are lower than their original values are changed to their
 -- original values.
 [200227] = function(player)
-  local followers = player:field_idxs_with_preds(pred.follower)
-  local a_followers = {}
-  for _,idx in ipairs(followers) do
-    if pred.A(player.field[idx]) then 
-      a_followers = idx
-      break
+  local target = player:field_idxs_with_preds(pred.follower, pred.A)[1]
+  if target then
+    local buff = {}
+    local orig = Card(player.field[target].id)
+    for _,stat in ipairs({"atk","def","sta"}) do
+      if player.field[target][stat] < orig[stat] then
+        buff[stat] = {"=",orig[stat]}
+      end
     end
-  end
-  if a_follower then
-    local buff = GlobalBuff()
+    OneBuff(player, target, buff):apply()
   end
 end,
 
