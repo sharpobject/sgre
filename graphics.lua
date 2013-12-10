@@ -230,17 +230,17 @@ function draw_faction(faction, x, y, rot, x_scale, y_scale)
   draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
-function draw_faction_loveframe(faction, x, y, rot, x_scale, y_scale)
+function draw_faction_loveframe(faction, x, y, rot, x_scale, y_scale, suffix)
   rot = rot or 0
   x_scale = x_scale or 1
   y_scale = y_scale or 1
-  local faction_gfx = {['E'] = "empire.png",
-    ['D'] = "darklore.png",
-    ['N'] = "sg.png",
-    ['V'] = "vita.png",
-    ['C'] = "crux.png",
-    ['A'] = "academy.png"}
-  local faction_img = load_asset(faction_gfx[faction])
+  local faction_gfx = {['E'] = "empire",
+    ['D'] = "darklore",
+    ['N'] = "sg",
+    ['V'] = "vita",
+    ['C'] = "crux",
+    ['A'] = "academy"}
+  local faction_img = load_asset(faction_gfx[faction]..suffix..".png")
   love.graphics.draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
@@ -300,10 +300,14 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
       love.graphics.printf(card.def, x+card_width/3, y+103, card_width/3, "center")
       love.graphics.printf(card.sta, x+2*card_width/3, y+103, card_width/3, "center")
     end
+    local suffix = ""
+    if not (card.type == "character" or card.active) then
+      suffix = "-g"
+    end
     if hover_frame then
       love.graphics.draw(load_asset("s-highlight-"..card.type..".png"), x, y)
     else
-      love.graphics.draw(load_asset("s-"..card.type..".png"), x, y)
+      love.graphics.draw(load_asset("s-"..card.type..suffix..".png"), x, y)
     end
     if card.size then
       love.graphics.printf(card.size, gray_shit_x + 2, y+4, gray_shit_width, "center")
@@ -312,7 +316,7 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
       love.graphics.printf(card.life, gray_shit_x + 2, y+102, gray_shit_width, "center")
     end
     if card.faction then
-      draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5)
+      draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5, suffix)
     end
   end
 end
