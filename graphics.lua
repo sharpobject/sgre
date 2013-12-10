@@ -203,7 +203,7 @@ function draw_background()
     local window_height = love.graphics.getHeight()
     bkg_quad = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
   end
-  gfx_q:push({love.graphics.draw, {bkg, bkg_quad, 0, 0}})
+  gfx_q:push({love.graphics.drawq or love.graphics.draw, {bkg, bkg_quad, 0, 0}})
   yolo()
   gfx_q:push({love.graphics.draw, {bkg_grad, 0, -love.graphics.getHeight()/2, 0, love.graphics.getWidth()/bkg_grad:getWidth(), love.graphics.getHeight()*2/bkg_grad:getHeight()}})
   yolo()
@@ -230,54 +230,18 @@ function draw_faction(faction, x, y, rot, x_scale, y_scale)
   draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
-function draw_card(card, x, y, text)
-  local id = card.id
-  if card.hidden then
-    id = 200099
-  end
-  if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
-  end
-  if card.type == "character" or card.active then
-    draw(IMG_card[id], x, y, 0, card_scale, card_scale)
-  else
-    draw(IMG_gray_card[id], x, y, 0, card_scale, card_scale)
-  end
-  local card_width = card_width
-  local card_height = card_height
-  local gray_shit_height = card_height - 100
-  local gray_shit_dx = math.floor(card_width*2/3)
-  local gray_shit_x = x + gray_shit_dx
-  local gray_shit_width = card_width - gray_shit_dx
-  local middle = y+(card_height-gray_shit_height)/2
-  if text then
-    set_color(28,28,28)
-    grectangle("fill",x,middle,
-      card_width, gray_shit_height)
-    set_color(255,255,255)
-    gprintf(text, x, middle+3, card_width, "center")
-  end
-  if not card.hidden then
-    if card.type == "follower" then
-      set_color(28,28,28)
-      grectangle("fill",x,y + card_height - gray_shit_height,
-        card_width, gray_shit_height)
-      set_color(255, 255, 255)
-      gprintf(card.atk, x, y+103, card_width/3, "center")
-      gprintf(card.def, x+card_width/3, y+103, card_width/3, "center")
-      gprintf(card.sta, x+2*card_width/3, y+103, card_width/3, "center")
-    end
-    draw(load_asset("s-"..card.type..".png"), x, y)
-    if card.size then
-      gprintf(card.size, gray_shit_x + 2, y+4, gray_shit_width, "center")
-    end
-    if card.type == "character" then
-      gprintf(card.life, gray_shit_x + 2, y+102, gray_shit_width, "center")
-    end
-    if card.faction then
-      draw_faction(card.faction, x+1, y+1, 0, 0.5, 0.5)
-    end
-  end
+function draw_faction_loveframe(faction, x, y, rot, x_scale, y_scale)
+  rot = rot or 0
+  x_scale = x_scale or 1
+  y_scale = y_scale or 1
+  local faction_gfx = {['E'] = "empire.png",
+    ['D'] = "darklore.png",
+    ['N'] = "sg.png",
+    ['V'] = "vita.png",
+    ['C'] = "crux.png",
+    ['A'] = "academy.png"}
+  local faction_img = load_asset(faction_gfx[faction])
+  love.graphics.draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
 local slot_to_dxdy = {
@@ -292,68 +256,185 @@ local slot_to_dxdy = {
             {384,8},
             {361,136},
             {384,264},
-            {472,264}}}
+            {472,264}},
+  hand = {{25,450},
+          {110,450},
+          {195,450},
+          {280,450},
+          {365,450}}}
 
-function Player:draw()
-  local y_anchor = 17
-  local x_anchor = 27
-  for i=0,5 do
-    local text = nil
-    if self.game.print_attack_info then
-      if self==self.game.attacker[1] and i==self.game.attacker[2] then
-        text = "attack"
-      elseif self==self.game.defender[1] and i==self.game.defender[2] then
-        text = "defend"
-      end
-    end
-    if self.field[i] and self.field[i].trigger then
-      text = "trigger"
-    end
-    local dx,dy = unpack(slot_to_dxdy[self.side][i])
-    if self.field[i] then
-      local x, y, w, h = x_anchor+dx, y_anchor+dy, card_width, card_height
-      draw_card(self.field[i], x, y, text)
-      if not self.field[i].hidden then
-        make_button(function()
-            game.hover_card = deepcpy(self.field[i])
-          end, x, y, w, h, false, true)
-      end
-    end
+function draw_card_loveframe(card, x, y, hover_frame, text)
+  local id = card.id
+  if card.hidden then
+    id = 200099
   end
-  if self.side == "left" then
-    for i=1,#self.hand do
-      local img = IMG_card[self.hand[i].id]
-      local w,h = card_width, card_height
-      local x,y = 25+85*(i-1), 450
-      local idx = i
-      draw_card(self.hand[i], x, y)
-      make_button(function()
-          game.hover_card = deepcpy(self.hand[idx])
-        end, x, y, w, h, false, true)
-      if self.game.act_buttons then
-        make_button(function()
-            --print("trying to play card at idx "..idx)
-            if self.client then
-              net_send({type="play",index=idx})
-              self.game.act_buttons = false
-            elseif self:can_play_card(idx) then
-              self:play_card(idx)
-            end
-          end, x, y, w, h)
-      end
+  if not IMG_card[id] then
+    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
+  end
+  if card.type == "character" or card.active then
+    love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
+  else
+    love.graphics.draw(IMG_gray_card[id], x, y, 0, card_scale, card_scale)
+  end
+  local card_width = card_width
+  local card_height = card_height
+  local gray_shit_height = card_height - 100
+  local gray_shit_dx = math.floor(card_width*2/3)
+  local gray_shit_x = x + gray_shit_dx
+  local gray_shit_width = card_width - gray_shit_dx
+  local middle = y+(card_height-gray_shit_height)/2
+  if text then
+    love.graphics.setColor(28,28,28)
+    love.graphics.rectangle("fill",x,middle,
+      card_width, gray_shit_height)
+    love.graphics.setColor(255,255,255)
+    love.graphics.printf(text, x, middle+3, card_width, "center")
+  end
+  if not card.hidden then
+    if card.type == "follower" then
+      love.graphics.setColor(28,28,28)
+      love.graphics.rectangle("fill",x,y + card_height - gray_shit_height,
+        card_width, gray_shit_height)
+      love.graphics.setColor(255, 255, 255)
+      love.graphics.printf(card.atk, x, y+103, card_width/3, "center")
+      love.graphics.printf(card.def, x+card_width/3, y+103, card_width/3, "center")
+      love.graphics.printf(card.sta, x+2*card_width/3, y+103, card_width/3, "center")
+    end
+    if hover_frame then
+      love.graphics.draw(load_asset("s-highlight-"..card.type..".png"), x, y)
+    else
+      love.graphics.draw(load_asset("s-"..card.type..".png"), x, y)
+    end
+    if card.size then
+      love.graphics.printf(card.size, gray_shit_x + 2, y+4, gray_shit_width, "center")
+    end
+    if card.type == "character" then
+      love.graphics.printf(card.life, gray_shit_x + 2, y+102, gray_shit_width, "center")
+    end
+    if card.faction then
+      draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5)
     end
   end
 end
 
+function card_button(side,idx,x,y)
+  local button = loveframes.Create("imagebutton")
+  button:SetSize(80, 120)
+  button:SetX(x)
+  button:SetY(y)
+  button.Draw = function(self)
+    local x = self:GetX()
+    local y = self:GetY()
+    local hover = self:GetHover()
+    local down = self.down
+    local hand = side == "hand"
+    local hover_frame = hover and hand
+
+    if down and hand then
+      x,y = x+1,y+1
+    end
+
+    if self.card then
+      local text = nil
+      if self.card.trigger then
+        text = "trigger"
+      elseif game.print_attack_info and not hand then
+        if self.player == game.attacker[1] and idx == game.attacker[2] then
+          text = "attack"
+        elseif self.player == game.defender[1] and idx == game.defender[2] then
+          text = "defend"
+        end
+      end
+      love.graphics.setColor(255, 255, 255, 255)
+      draw_card_loveframe(self.card, x, y, hover_frame, text)
+    end
+  end
+  button.Update = function(self)
+    local hand = side == "hand"
+    local player = game.P1
+    if player.side == "right" then player = player.opponent end
+    if side == "right" then player = player.opponent end
+
+    local member = "field"
+    if hand then member = "hand" end
+
+    self.player = player
+    self.card = player[member][idx]
+    if self.card and self:GetHover() then
+      game.hover_card = self.card
+    end
+  end
+  if side == "hand" then
+    button.OnClick = function(self)
+      if self.client then
+        net_send({type="play",index=idx})
+        self.player.game.act_buttons = false
+      elseif self.player:can_play_card(idx) then
+        self.player:play_card(idx)
+      end
+    end
+  end
+  return button
+end
+
 function Game:draw()
-  draw_background()
   draw_field()
-  self.P1:draw()
-  self.P2:draw()
 
   local left, right = self.P1, self.P2
   if self.P1.side ~= "left" then
     left, right = right, left
+  end
+
+  if not self.loveframes_buttons then
+    self.loveframes_buttons = {}
+    self.loveframes_buttons.hand = {}
+    for i=1,5 do
+      self.loveframes_buttons.hand[i] = 
+        card_button("hand", i, unpack(slot_to_dxdy.hand[i]))
+    end
+    for _,side in ipairs({"left", "right"}) do
+      self.loveframes_buttons[side] = {}
+      for i=0,5 do
+        local x = slot_to_dxdy[side][i][1] + 27
+        local y = slot_to_dxdy[side][i][2] + 17
+        self.loveframes_buttons[side][i] = card_button(side, i, x, y)
+      end
+    end
+
+    local ready = loveframes.Create("button")
+    ready:SetText("Ready")
+    ready:SetPos(395+55, 400+50)
+    ready:SetSize(50, 60)
+    ready.OnClick = function()
+        if game.client then
+          net_send({type="ready"})
+          game.act_buttons = false
+        else
+          game.ready = true
+        end
+      end
+    ready.Update = function(self)
+        self.enabled = game.act_buttons
+      end
+
+    local shuffle = loveframes.Create("button")
+    shuffle:SetText("Shuffle")
+    shuffle:SetPos(395+55, 465+50)
+    shuffle:SetSize(50, 20)
+    shuffle.OnClick = function()
+        if self.client then
+          net_send({type="shuffle"})
+          self.act_buttons = false
+        else
+          left:attempt_shuffle()
+        end
+      end
+    shuffle.Update = function(self)
+        self.enabled = game.act_buttons
+      end
+
+    self.loveframes_buttons.ready = ready
+    self.loveframes_buttons.shuffle = shuffle
   end
 
   local ldeck, rdeck, lgrave, rgrave = left.deck, right.deck, left.grave, right.grave
@@ -377,30 +458,7 @@ function Game:draw()
   gprint("shuffle", 395+60, 468+50)
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
   gprint("size "..left:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
-  if self.act_buttons then
-    make_button(function()
-      if self.client then
-        net_send({type="ready"})
-        self.act_buttons = false
-      else
-        self.ready = true
-      end
-    end, 395+55, 400+50, 50, 60, true)
-    make_button(function()
-      if self.client then
-        net_send({type="shuffle"})
-        self.act_buttons = false
-      else
-        left:attempt_shuffle()
-      end
-    end, 395+55, 465+50, 50, 20, true)
-  end
   if self.hover_card then
     draw_hover_card(self.hover_card)
   end
-end
-
-function Button:draw_outline(...)
-  set_color(...)
-  grectangle("line", self.x1, self.y1, self.w, self.h)
 end

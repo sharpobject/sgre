@@ -81,6 +81,7 @@ end
 
 function love.update(dt)
   gfx_q:clear()
+  draw_background()
   --print("FRAME BEGIN")
   local status, err = coroutine.resume(mainloop)
   if not status then
@@ -90,7 +91,6 @@ function love.update(dt)
     game:update()
     game:draw()
   end
-  do_input()
   do_messages()
   loveframes.update(dt)
 end
