@@ -1158,6 +1158,7 @@ function Player:receive(msg)
       self:play_card(msg.index)
     end
   else
+    print("Got an unexpected message in player:receive "..json.encode(msg))
   end
 end
 

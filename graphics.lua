@@ -283,13 +283,6 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
   local gray_shit_x = x + gray_shit_dx
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
-  if text then
-    love.graphics.setColor(28,28,28)
-    love.graphics.rectangle("fill",x,middle,
-      card_width, gray_shit_height)
-    love.graphics.setColor(255,255,255)
-    love.graphics.printf(text, x, middle+3, card_width, "center")
-  end
   if not card.hidden then
     if card.type == "follower" then
       love.graphics.setColor(28,28,28)
@@ -318,6 +311,13 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
     if card.faction then
       draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5, suffix)
     end
+  end
+  if text then
+    love.graphics.setColor(28,28,28)
+    love.graphics.rectangle("fill",x,middle,
+      card_width, gray_shit_height)
+    love.graphics.setColor(255,255,255)
+    love.graphics.printf(text, x, middle+3, card_width, "center")
   end
 end
 

@@ -12,6 +12,7 @@ require("skills")
 require("spells")
 require("characters")
 require("dumbprint")
+hash = require("lib.hash")
 
 local byte = string.byte
 local char = string.char
@@ -20,12 +21,67 @@ local pairs = pairs
 local ipairs = ipairs
 local random = math.random
 local time = os.time
+local type = type
+local socket = socket
+local json = json
+local hash = hash
 local TIMEOUT = 10
 
 
 local INDEX = 1
 local connections = {}
+local uid_to_connection = {}
 local socket_to_idx = {}
+
+local function sha1(s)
+  local sha = hash.sha1()
+  sha:process(s)
+  return sha:finish()
+end
+
+function file_exists()
+  -- TODO: check whether file exists !
+end
+
+function rmkdir()
+  -- TODO: Recursive mkdir??
+end
+
+function try_register(msg)
+  local email, username, password = msg.email, msg.username, msg.password
+  if type(email) ~= "string" or
+      type(username) ~= "string" or
+      type(password) ~= "string" or
+      not email:match(".+@.+") or
+      username:len() < 3 or
+      password:len() < 8 then
+    return false
+  end
+  local uid = sha1(email)
+  if uid_to_connection[uid] then
+    return false
+  end
+  local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
+  if file_exists(path) then
+    return false
+  end
+  rmkdir("db/"..uid:sub(1,2))
+  -- TODO: bcrypt da password
+  set_file(path, json.encode({
+    username = username,
+    email = email,
+    password = password,
+    tokens = 0,
+    wins = 0,
+    losses = 0,
+    dungeon_clears = {},
+    collection = {},
+    decks = {},
+    cafe_characters = {},
+    friends = {},
+    }))
+  return true
+end
 
 Connection = class(function(s, socket)
   s.index = INDEX
@@ -35,11 +91,11 @@ Connection = class(function(s, socket)
   s.socket = socket
   socket:settimeout(0)
   s.leftovers = ""
-  s.state = "lobby"
+  s.state = "connected"
   s.last_read = time()
 end)
 
-function Connection.send(self, stuff)
+function Connection:send(stuff)
   print("CONNECTION SEND")
   assert(type(stuff) == "table")
   if type(stuff) == "table" then
@@ -62,14 +118,14 @@ function Connection.send(self, stuff)
   end
 end
 
-function Connection.opponent_disconnected(self)
+function Connection:opponent_disconnected()
   print("OP DIS")
   self.opponent = nil
   --self.state = "lobby"
   self:send({type="opponent_disconnected"})
 end
 
-function Connection.close(self)
+function Connection:close()
   print("CONN CLOSE")
   if self.opponent then
     self.opponent:opponent_disconnected()
@@ -79,17 +135,25 @@ function Connection.close(self)
   self.socket:close()
 end
 
-function Connection.J(self, message)
+function Connection:J(message)
   print("CONN J")
   message = json.decode(message)
-  if self.state == "playing" then
+  if self.state == "connected" then
+    if message.type == "register" then
+      local res = try_register(message)
+      self:send({type="register_result", success=res})
+    elseif message.type == "login" then
+      yolo = yolo
+    else
+    end
+  elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
     self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
   end
 end
 
 -- TODO: this should not be O(n^2) lol
-function Connection.data_received(self, data)
+function Connection:data_received(data)
   print("CONN DATA RECv")
   self.last_read = time()
   print("got raw data "..data)
@@ -121,7 +185,7 @@ function Connection.data_received(self, data)
   self.leftovers = data
 end
 
-function Connection.read(self)
+function Connection:read()
   print("CONN READ")
   local junk, err, data = self.socket:receive("*a")
   if not err then
@@ -199,7 +263,7 @@ end
 function wait() end
 
 function main()
-  local server_socket = socket.bind("burke.ro", 49570)
+  local server_socket = socket.bind("localhost", 49570)
 
   local prev_now = time()
   while true do

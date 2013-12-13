@@ -19,7 +19,7 @@ function fmainloop()
 end
 
 function str_to_deck(s)
-  s = s:sub(s:find("[%dDPC]+")):split("DPC")
+  s = s:sub(s:find("%d%d%d%d[%dDPC]+")):split("DPC")
   local t = {}
   t[1] = s[1] + 0
   for i=2,#s,2 do
@@ -150,6 +150,7 @@ function main_login(email)
 end
 
 local from_register = nil
+local registering = false
 function main_register(email)
   email = email or ""
   local frame, text1, textinput1, text2, textinput2,
@@ -204,7 +205,11 @@ function main_register(email)
     registerbutton:SetWidth(143)
     registerbutton:SetText("Register forrealz")
     registerbutton.OnClick = function()
-      --TODO: reigster-m9
+      net_send({type="register",
+        username=textinput1:GetText(),
+        email=textinput2:GetText(),
+        password=textinput3:GetText()})
+      registering=true
     end
   end
 
@@ -213,7 +218,11 @@ function main_register(email)
   
   while true do
     wait()
-    if from_register then
+    if registering then
+      if net_q:len() ~= 0 then
+        print(json.encode(net_q:pop()))
+      end
+    elseif from_register then
       local ret = from_register
       from_register = nil
       return unpack(ret)

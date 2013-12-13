@@ -243,3 +243,9 @@ function file_contents(filename)
   end
   return io.open(filename):read("*a")
 end
+
+function set_file(filename, contents)
+  local file = io.open(filename, "w")
+  file:write(contents)
+  file:close()
+end
