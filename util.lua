@@ -249,3 +249,12 @@ function set_file(filename, contents)
   file:write(contents)
   file:close()
 end
+
+function arr_to_counter(t)
+  local ret = {}
+  for i=1,#t do
+    local elem = t[i]
+    ret[elem] = (ret[elem] or 0) + 1
+  end
+  return ret
+end

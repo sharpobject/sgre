@@ -13,6 +13,10 @@ require("spells")
 require("characters")
 require("dumbprint")
 hash = require("lib.hash")
+print"requiring the thing"
+bcrypt = require("bcrypt")
+print"required it"
+require("validate")
 
 local byte = string.byte
 local char = string.char
@@ -25,13 +29,49 @@ local type = type
 local socket = socket
 local json = json
 local hash = hash
+local bcrypt = bcrypt
 local TIMEOUT = 10
 
 
 local INDEX = 1
 local connections = {}
 local uid_to_connection = {}
+local uid_to_data = {}
 local socket_to_idx = {}
+local users = json.decode(file_contents("db/users"))
+users.filename = "db/users"
+users.last_modified = nil
+users.username_to_uid = users.username_to_uid or {}
+users.uid_to_username = users.uid_to_username or {}
+users.uid_to_email = users.uid_to_email or {}
+
+local file_q = Queue()
+
+function modified_file(t)
+  if not t.last_modified then
+    file_q:push(t)
+  end
+  t.last_modified = os.time()
+end
+
+function write_a_file()
+  if file_q:len() > 0 then
+    local t = file_q:pop()
+    set_file(t.filename, json.encode(t))
+    t.last_modified = nil
+  end
+end
+
+function load_user_data(uid)
+  if uid_to_data[uid] then
+    return
+  end
+  local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
+  local data = json.decode(file_contents(path))
+  data.filename = "path"
+  data.last_modified = nil
+  uid_to_data[uid] = data
+end
 
 local function sha1(s)
   local sha = hash.sha1()
@@ -39,47 +79,35 @@ local function sha1(s)
   return sha:finish()
 end
 
-function file_exists()
-  -- TODO: check whether file exists !
-end
-
-function rmkdir()
-  -- TODO: Recursive mkdir??
-end
-
 function try_register(msg)
   local email, username, password = msg.email, msg.username, msg.password
-  if type(email) ~= "string" or
-      type(username) ~= "string" or
-      type(password) ~= "string" or
-      not email:match(".+@.+") or
-      username:len() < 3 or
-      password:len() < 8 then
+  if (not check_username(username)) or
+      (not check_email(email)) or
+      (not check_password(password)) or
+      users.username_to_uid[username] then
     return false
   end
   local uid = sha1(email)
-  if uid_to_connection[uid] then
+  if users.uid_to_email[uid] then
     return false
   end
   local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
-  if file_exists(path) then
-    return false
-  end
-  rmkdir("db/"..uid:sub(1,2))
-  -- TODO: bcrypt da password
   set_file(path, json.encode({
     username = username,
     email = email,
-    password = password,
+    password = bcrypt.digest(password, bcrypt.salt(10)),
     tokens = 0,
     wins = 0,
     losses = 0,
     dungeon_clears = {},
     collection = {},
     decks = {},
-    cafe_characters = {},
     friends = {},
     }))
+  users.uid_to_email[uid] = email
+  users.uid_to_username[uid] = username
+  users.username_to_uid[username] = uid
+  modified_file(users)
   return true
 end
 
@@ -143,8 +171,9 @@ function Connection:J(message)
       local res = try_register(message)
       self:send({type="register_result", success=res})
     elseif message.type == "login" then
-      yolo = yolo
+      self:try_login(message)
     else
+      print("got unexpected message in connected state with type "..tostring(message.type))
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -200,8 +229,50 @@ function Connection:read()
   end
 end
 
+function Connection:try_login(msg)
+  local function failure(reason)
+    self:send({type="login_result", success=false, reason=reason})
+  end
+  local email, password = msg.email, msg.password
+  local check_res, check_reason = check_email(email)
+  if check_res then
+    check_res, check_reason = check_password(password)
+  end
+  if not check_res then
+    return failure(check_reason)
+  end
+  local uid = sha1(email)
+  if not users.uid_to_email[uid] then
+    return failure("that email is not registered")
+  end
+  load_user_data(uid)
+  local data = uid_to_data[uid]
+  local correct_password = bcrypt.verify(password, data.password)
+  if not correct_password then
+    return failure("incorrect password")
+  end
+  self.uid = uid
+  uid_to_connection[uid] = self
+  self.state = "lobby"
+  self:send({type="login_result", success=true})
+  self:send({type="user_data", value={
+    username = data.username,
+    email = data.email,
+    tokens = data.tokens,
+    wins = data.wins,
+    losses = data.losses,
+    dungeon_clears = data.dungeon_clears,
+    collection = data.collection,
+    decks = data.decks,
+    friends = data.friends,
+  }})
+end
+
+function Connection:try_select_faction(msg)
+end
+
 function str_to_deck(s)
-  s = s:sub(s:find("[%dDPC]+")):split("DPC")
+  s = s:sub(s:find("%d%d%d[%dDPC]+")):split("DPC")
   local t = {}
   t[1] = s[1] + 0
   for i=2,#s,2 do
@@ -263,7 +334,8 @@ end
 function wait() end
 
 function main()
-  local server_socket = socket.bind("localhost", 49570)
+  local server_socket,qq,qqq,qqqq = socket.bind("localhost", 49570)
+  print(server_socket,qq,qqq,qqqq)
 
   local prev_now = time()
   while true do
@@ -302,6 +374,8 @@ function main()
         resume_game(v.game)
       end
     end
+
+    write_a_file()
 
     --[[local now = time()
     if now ~= prev_now then

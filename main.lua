@@ -16,6 +16,7 @@ require("characters")
 require("input")
 require("graphics")
 require("mainloop")
+require("validate")
 
 local N_FRAMES = 0
 local min = math.min

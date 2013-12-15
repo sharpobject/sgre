@@ -7,11 +7,12 @@ end
 
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
+local main_modal_notice, main_select_faction
 
 local frames = {}
 
 function fmainloop()
-  local func, arg = main_select_boss, nil
+  local func, arg = main_login, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
@@ -79,9 +80,11 @@ function main_go_hard()
 end
 
 local from_login = nil
-function main_login(email)
+local doing_login = false
+function main_login(email, password)
   network_init()
   email = email or ""
+  password = password or ""
 
   if not frames.login then
     frames.login = {}
@@ -110,38 +113,81 @@ function main_login(email)
     local textinput2 = loveframes.Create("textinput", frame)
     textinput2:SetPos(80, 60)
     textinput2:SetWidth(215)
+    frames.login.password_input = textinput2
     
     local loginbutton = loveframes.Create("button", frame)
     loginbutton:SetPos(5, 90)
     loginbutton:SetWidth(290)
     loginbutton:SetText("Login to the SG~")
     loginbutton.OnClick = function()
-      -- TODO: actually log in to the SG
+      net_send({type="login",
+        email=textinput1:GetText(),
+        password=textinput2:GetText()})
+      doing_login = true
+      frames.login.login_button.enabled = false
+      frames.login.register_button.enabled = false
+      frames.login.forgot_button.enabled = false
     end
+    frames.login.login_button = loginbutton
 
     local donebutton = loveframes.Create("button", frame)
     donebutton:SetPos(5, 120)
     donebutton:SetWidth(143)
     donebutton:SetText("Register")
     donebutton.OnClick = function()
-      from_login = {main_register, {textinput1:GetText()}}
+      from_login = {main_register, {textinput1:GetText(),
+        textinput2:GetText()}}
     end
+    frames.login.register_button = donebutton
     
     local clearbutton = loveframes.Create("button", frame)
     clearbutton:SetPos(152, 120)
     clearbutton:SetWidth(143)
     clearbutton:SetText("Forgot Password")
     clearbutton.OnClick = function()
-      from_login = {main_forgot_password, {textinput1:GetText()}}
+      from_login = {main_forgot_password, {textinput1:GetText(),
+        textinput2:GetText()}}
     end
+    frames.login.forgot_button = clearbutton
   end
 
   frames.login.email_input:SetText(email)
+  frames.login.password_input:SetText(password)
   loveframes.SetState("login")
   
   while true do
     wait()
-    if from_login then
+    if doing_login then
+      if net_q:len() ~= 0 then
+        local resp = net_q:pop()
+        print(json.encode(resp))
+        if resp.type=="login_result" then
+          if resp.success then
+            while true do
+              if net_q:len() ~= 0 then
+                resp = net_q:pop()
+                if resp.type=="user_data" then
+                  user_data = resp.value
+                  doing_login = false
+                  from_login = {main_select_faction}
+                  break
+                end
+              end
+            end
+          else
+            doing_login = false
+            from_login = {main_modal_notice,
+              {"Login failed "..(resp.reason or ":("), 
+                {main_login, {frames.login.email_input:GetText(),
+                  frames.login.password_input:GetText()}}}}
+          end
+        end
+      end
+    end
+    if (not doing_login) and from_login then
+      frames.login.login_button.enabled = true
+      frames.login.register_button.enabled = true
+      frames.login.forgot_button.enabled = true
       local ret = from_login
       from_login = nil
       return unpack(ret)
@@ -151,13 +197,14 @@ end
 
 local from_register = nil
 local registering = false
-function main_register(email)
+function main_register(email, password)
   email = email or ""
-  local frame, text1, textinput1, text2, textinput2,
-    text3, textinput3, backbutton, registerbutton
+  password = password or ""
 
   if not frames.register then
     frames.register = {}
+    local frame, text1, textinput1, text2, textinput2,
+      text3, textinput3, backbutton, registerbutton
 
     frame = loveframes.Create("frame")
     frame:SetName("Let's register for the SG~")
@@ -191,36 +238,57 @@ function main_register(email)
     textinput3 = loveframes.Create("textinput", frame)
     textinput3:SetPos(80, 90)
     textinput3:SetWidth(215)
+    frames.register.password_input = textinput3
     
     backbutton = loveframes.Create("button", frame)
     backbutton:SetPos(5, 120)
     backbutton:SetWidth(143)
     backbutton:SetText("Back")
     backbutton.OnClick = function()
-      from_register = {main_login, {textinput2:GetText()}}
+      from_register = {main_login, {textinput2:GetText(), textinput3:GetText()}}
     end
+    frames.register.back_button = backbutton
     
     registerbutton = loveframes.Create("button", frame)
     registerbutton:SetPos(152, 120)
     registerbutton:SetWidth(143)
     registerbutton:SetText("Register forrealz")
-    registerbutton.OnClick = function()
+    registerbutton.OnClick = function(self)
       net_send({type="register",
         username=textinput1:GetText(),
         email=textinput2:GetText(),
         password=textinput3:GetText()})
-      registering=true
+      registering = true
+      frames.register.register_button.enabled = false
+      frames.register.back_button.enabled = false
     end
+    frames.register.register_button = registerbutton
   end
 
   frames.register.email_input:SetText(email)
+  frames.register.password_input:SetText(password)
   loveframes.SetState("register")
   
   while true do
     wait()
     if registering then
       if net_q:len() ~= 0 then
-        print(json.encode(net_q:pop()))
+        local resp = net_q:pop()
+        print(json.encode(resp))
+        if resp.type=="register_result" then
+          frames.register.register_button.enabled = true
+          frames.register.back_button.enabled = true
+          registering = false
+          if resp.success then
+            from_register = {main_modal_notice, {"Registration succeeded~", 
+              {main_login, {frames.register.email_input:GetText(),
+                frames.register.password_input:GetText()}}}}
+          else
+            from_register = {main_modal_notice, {"Registration failed :(", 
+              {main_register, {frames.register.email_input:GetText(),
+                frames.register.password_input:GetText()}}}}
+          end
+        end
       end
     elseif from_register then
       local ret = from_register
@@ -231,8 +299,9 @@ function main_register(email)
 end
 
 local from_forgot_password = nil
-function main_forgot_password(email)
+function main_forgot_password(email, password)
   email = email or ""
+  password = password or ""
 
   if not frames.forgot_password then
     frames.forgot_password = {}
@@ -259,7 +328,8 @@ function main_forgot_password(email)
     donebutton:SetWidth(143)
     donebutton:SetText("Back")
     donebutton.OnClick = function()
-      from_forgot_password = {main_login, {textinput1:GetText()}}
+      from_forgot_password = {main_login, {textinput1:GetText(),
+        frames.forgot_password.password}}
     end
     
     local clearbutton = loveframes.Create("button", frame)
@@ -292,12 +362,14 @@ function main_forgot_password(email)
       loginbutton:SetText("Back")
       loginbutton.OnClick = function()
         modal:Remove()
-        from_forgot_password = {main_login, {textinput1:GetText()}}
+        from_forgot_password = {main_login, {textinput1:GetText(),
+          frames.forgot_password.password}}
       end
       -- TODO from_login = {main_forgot_password, {textinput1:GetText()}}
     end
   end
 
+  frames.forgot_password.password = password
   frames.forgot_password.email_input:SetText(email)
   loveframes.SetState("forgot_password")
   
@@ -307,6 +379,72 @@ function main_forgot_password(email)
       local ret = from_forgot_password
       from_forgot_password = nil
       return unpack(ret)
+    end
+  end
+end
+
+local from_modal_notice = nil
+function main_modal_notice(text, to_ret)
+  if not frames.modal_notice then
+    frames.modal_notice = {}
+
+    local frame = loveframes.Create("frame")
+    frame:SetName("Notice~")
+    frame:SetSize(300, 90)
+    frame:ShowCloseButton(false)
+    frame:SetDraggable(false)
+    frame:Center()
+    frame:SetState("modal_notice")
+    
+    local text1 = loveframes.Create("text", frame)
+    frames.modal_notice.text = text1
+    
+    local okbutton = loveframes.Create("button", frame)
+    okbutton:SetPos(5, 60)
+    okbutton:SetWidth(290)
+    frames.modal_notice.ok_button = okbutton
+  end
+
+  frames.modal_notice.text:SetText(text)
+  frames.modal_notice.text:Center()
+  frames.modal_notice.text:SetY(35)
+  frames.modal_notice.ok_button:SetText("OK")
+  frames.modal_notice.ok_button.OnClick = function()
+    from_modal_notice = to_ret
+  end
+  loveframes.SetState("modal_notice")
+  
+  while true do
+    wait()
+    if from_modal_notice then
+      local ret = from_modal_notice
+      from_modal_notice = nil
+      return unpack(ret)
+    end
+  end
+end
+
+function main_select_faction()
+  if user_data.active_deck then
+    return main_lobby
+  end
+
+  if not frames.select_faction then
+    frames.select_faction = {}
+    for idx,faction in ipairs({"D","V","A","C"}) do
+      idx = idx - 1
+      local button = faction_button(faction, 16+(180+16)*idx, 165)
+      button:SetState("select_faction")
+    end
+  end
+
+  loveframes.SetState("select_faction")
+  
+  while true do
+    draw(load_asset("select_faction.png"), 153, 58)
+    wait()
+    if user_data.active_deck then
+      return main_lobby
     end
   end
 end

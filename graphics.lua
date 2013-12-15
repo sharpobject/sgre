@@ -381,6 +381,35 @@ function card_button(side,idx,x,y)
   return button
 end
 
+function faction_button(faction, x, y)
+  local button = loveframes.Create("imagebutton")
+  button:SetSize(180, 270)
+  button:SetX(x)
+  button:SetY(y)
+  button.Draw = function(self)
+    local x = self:GetX()
+    local y = self:GetY()
+    local hover = self:GetHover()
+    local down = self.down
+
+    if down then
+      x,y = x+1,y+1
+    end
+
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.draw(load_asset("start_"..faction..".png"), x, y)
+    if not hover then
+      love.graphics.setColor(0,0,0,92)
+      love.graphics.rectangle("fill",x,y,180,270)
+      love.graphics.setColor(255, 255, 255, 255)
+    end
+  end
+  button.OnClick = function(self)
+    net_send({type="select_faction",faction=faction})
+  end
+  return button
+end
+
 function Game:draw()
   draw_field()
 
