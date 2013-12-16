@@ -165,6 +165,7 @@ function main_login(email, password)
         if resp.type=="login_result" then
           if resp.success then
             while true do
+              wait()
               if net_q:len() ~= 0 then
                 resp = net_q:pop()
                 if resp.type=="user_data" then
