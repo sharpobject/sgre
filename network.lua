@@ -5,6 +5,7 @@ local leftovers = ""
 local J
 local char, byte = string.char, string.byte
 local floor = math.floor
+local handlers = {}
 net_q = Queue()
 
 function net_send(stuff)
@@ -28,7 +29,11 @@ end
 
 function J(stuff)
   stuff = json.decode(stuff)
-  net_q:push(stuff)
+  if handlers[stuff.type] then
+    handlers[stuff.type](stuff)
+  else
+    net_q:push(stuff)
+  end
 end
 
 function data_received(data)
@@ -83,7 +88,7 @@ end
 function network_init()
   TCP_sock = socket.tcp()
   TCP_sock:settimeout(7)
-  if not TCP_sock:connect("localhost",49570) then
+  if not TCP_sock:connect("burke.ro",49570) then
     error("failed to connect yolo")
   end
   TCP_sock:settimeout(0)
@@ -93,4 +98,30 @@ end
 function do_messages()
   if not TCP_sock then return end
   flush_socket()
+end
+
+function handlers.update_collection(msg)
+  local diff = fix_num_keys(msg.diff)
+  for k,v in pairs(diff) do
+    user_data.collection[k] = (user_data.collection[k] or 0) + v
+    if user_data.collection[k] == 0 then
+      user_data.collection[k] = nil
+    end
+  end
+end
+
+function handlers.set_deck(msg)
+  local deck = fix_num_keys(msg.deck)
+  user_data.decks[msg.idx] = msg.deck
+end
+
+function handlers.set_active_deck(msg)
+  user_data.active_deck = msg.idx
+end
+
+function handlers.general_chat(msg)
+  if frames.lobby then
+    frames.lobby.text:SetText(frames.lobby.text:GetText().."\n"..
+      msg.from..": "..msg.text)
+  end
 end

@@ -258,3 +258,12 @@ function arr_to_counter(t)
   end
   return ret
 end
+
+-- for fixing json encoded numeric dicts
+function fix_num_keys(t)
+  local ret = {}
+  for k,v in pairs(t) do
+    ret[tonumber(k) or k] = v
+  end
+  return ret
+end

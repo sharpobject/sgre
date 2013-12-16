@@ -46,6 +46,12 @@ users.uid_to_username = users.uid_to_username or {}
 users.uid_to_email = users.uid_to_email or {}
 
 local file_q = Queue()
+local chat_q = Queue()
+
+starter_decks = json.decode(file_contents("starter_decks.json"))
+for k,v in pairs(starter_decks) do
+  starter_decks[k] = fix_num_keys(v)
+end
 
 function modified_file(t)
   if not t.last_modified then
@@ -68,7 +74,7 @@ function load_user_data(uid)
   end
   local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
   local data = json.decode(file_contents(path))
-  data.filename = "path"
+  data.filename = path
   data.last_modified = nil
   uid_to_data[uid] = data
 end
@@ -100,6 +106,7 @@ function try_register(msg)
     wins = 0,
     losses = 0,
     dungeon_clears = {},
+    dungeon_floors = {},
     collection = {},
     decks = {},
     friends = {},
@@ -166,6 +173,10 @@ end
 function Connection:J(message)
   print("CONN J")
   message = json.decode(message)
+  if message.type == "general_chat" and self.state ~= "connected" then
+    self:try_chat(message)
+    return
+  end
   if self.state == "connected" then
     if message.type == "register" then
       local res = try_register(message)
@@ -174,6 +185,10 @@ function Connection:J(message)
       self:try_login(message)
     else
       print("got unexpected message in connected state with type "..tostring(message.type))
+    end
+  elseif self.state == "lobby" then
+    if message.type == "select_faction" then
+      self:try_select_faction(message)
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -262,13 +277,102 @@ function Connection:try_login(msg)
     wins = data.wins,
     losses = data.losses,
     dungeon_clears = data.dungeon_clears,
+    dungeon_floors = data.dungeon_floors,
     collection = data.collection,
     decks = data.decks,
     friends = data.friends,
+    active_deck = data.active_deck,
   }})
 end
 
 function Connection:try_select_faction(msg)
+  local data = uid_to_data[self.uid]
+  if (not data.active_deck) and
+      msg.faction and
+      starter_decks[msg.faction] then
+    self:update_collection(starter_decks[msg.faction])
+    self:set_deck(1, starter_decks[msg.faction])
+    self:set_active_deck(1)
+  end
+end
+
+function Connection:update_collection(diff)
+  local data = uid_to_data[self.uid]
+  for k,v in pairs(diff) do
+    if (data.collection[k] or 0) + v < 0 then
+      return false
+    end
+  end
+  for k,v in pairs(diff) do
+    data.collection[k] = (data.collection[k] or 0) + v
+    if data.collection[k] == 0 then
+      data.collection[k] = nil
+    end
+  end
+  self:send({type="update_collection",diff=diff})
+  modified_file(data)
+  return true
+end
+
+function Connection:set_deck(idx, deck)
+  local char,other=0,0
+  local data = uid_to_data[self.uid]
+  for k,v in pairs(deck) do
+    if deck[k] < 1 or
+        deck[k] > (data.collection[k] or 0) or
+        deck[k] > id_to_canonical_card[k].limit then
+      return false
+    end
+    if k < 200000 then
+      char = char + v
+    else
+      other = other + v
+    end
+  end
+  if char > 1 or other > 30 or
+      idx ~= floor(idx) or
+      idx < 1 or
+      idx > 100 or
+      idx > #data.decks+1 then
+    return false
+  end
+  data.decks[idx] = deck
+  self:send({type="set_deck",idx=idx,deck=deck})
+  modified_file(data)
+  return true
+end
+
+function Connection:set_active_deck(idx)
+  local char,other=0,0
+  local data = uid_to_data[self.uid]
+  if not idx then return false end
+  local deck = data.decks[idx]
+  if not deck then return false end
+  for k,v in pairs(deck) do
+    if k < 200000 then
+      char = char + v
+    else
+      other = other + v
+    end
+  end
+  if char ~= 1 or other ~= 30 then
+    return false
+  end
+  data.active_deck = idx
+  self:send({type="set_active_deck",idx=idx})
+  modified_file(data)
+  return true
+end
+
+function Connection:try_chat(msg)
+  local data = uid_to_data[self.uid]
+  if type(msg.text) ~= "string" or
+      msg.text:len() < 1 or
+      msg.text:len() > 200 then
+    return false
+  end
+  chat_q:push({type="general_chat", from=data.username, text=msg.text})
+  return true
 end
 
 function str_to_deck(s)
@@ -334,7 +438,7 @@ end
 function wait() end
 
 function main()
-  local server_socket,qq,qqq,qqqq = socket.bind("localhost", 49570)
+  local server_socket,qq,qqq,qqqq = socket.bind("burke.ro", 49570)
   print(server_socket,qq,qqq,qqqq)
 
   local prev_now = time()
@@ -362,7 +466,16 @@ function main()
       end
     end
 
-    local waiting = nil
+    while chat_q:len() ~= 0 do
+      local msg = chat_q:pop()
+      for k,connection in pairs(connections) do
+        if connection.state ~= "connected" then
+          connection:send(msg)
+        end
+      end
+    end
+
+    --[[local waiting = nil
     for _,v in pairs(connections) do
       if v.state == "lobby" then
         if waiting then
@@ -373,7 +486,7 @@ function main()
       elseif v.state == "playing" then
         resume_game(v.game)
       end
-    end
+    end--]]
 
     write_a_file()
 

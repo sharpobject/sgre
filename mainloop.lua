@@ -7,9 +7,10 @@ end
 
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
-local main_modal_notice, main_select_faction
+local main_modal_notice, main_select_faction, main_lobby
 
-local frames = {}
+frames = {}
+local frames = frames
 
 function fmainloop()
   local func, arg = main_login, nil
@@ -446,6 +447,47 @@ function main_select_faction()
     if user_data.active_deck then
       return main_lobby
     end
+  end
+end
+
+function main_lobby()
+  if not frames.lobby then
+    frames.lobby = {}
+    local frame, text, textinput
+
+    frame = loveframes.Create("frame")
+    frame:SetName("Let's talk about the SG~~")
+    frame:SetSize(700, 500)
+    frame:ShowCloseButton(false)
+    frame:SetDraggable(false)
+    frame:Center()
+    frame:SetState("lobby")
+    
+    text = loveframes.Create("textinput", frame)
+    text:SetMultiline(true)
+    text.linenumbers = false
+    text:SetSize(690, 435)
+    text:SetPos(5, 30)
+    text:SetText("")
+    text:SetLimit(200)
+    text:SetEditable(false)
+    frames.lobby.text = text
+    
+    textinput = loveframes.Create("textinput", frame)
+    textinput:SetWidth(690)
+    textinput:Center()
+    textinput:SetY(470)
+    function textinput:OnEnter()
+      local text = self:GetText()
+      self:Clear()
+      net_send({type="general_chat",text=text})
+    end
+  end
+
+  loveframes.SetState("lobby")
+  
+  while true do
+    wait()
   end
 end
 
