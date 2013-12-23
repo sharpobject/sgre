@@ -16,6 +16,7 @@ hash = require("lib.hash")
 print"requiring the thing"
 bcrypt = require("bcrypt")
 print"required it"
+require("ssl")
 require("validate")
 
 local byte = string.byte
@@ -52,6 +53,13 @@ starter_decks = json.decode(file_contents("starter_decks.json"))
 for k,v in pairs(starter_decks) do
   starter_decks[k] = fix_num_keys(v)
 end
+
+ssl_context = assert(ssl.newcontext({
+    mode="server",
+    protocol="tlsv1",
+    key="keys/key.pem",
+    certificate="keys/cert.pem"
+  }))
 
 function modified_file(t)
   if not t.last_modified then
@@ -121,16 +129,25 @@ end
 Connection = class(function(s, socket)
   s.index = INDEX
   INDEX = INDEX + 1
+  socket:settimeout(0)
+  socket = ssl.wrap(socket, ssl_context)
+  socket:settimeout(0)
   connections[s.index] = s
   socket_to_idx[socket] = s.index
   s.socket = socket
-  socket:settimeout(0)
   s.leftovers = ""
-  s.state = "connected"
+  s.state = "handshake"
   s.last_read = time()
 end)
 
+function Connection:dohandshake()
+  if self.socket:dohandshake() then
+    self.state = "connected"
+  end
+end
+
 function Connection:send(stuff)
+  if self.state=="handshake" then return end
   print("CONNECTION SEND")
   assert(type(stuff) == "table")
   if type(stuff) == "table" then
@@ -230,6 +247,7 @@ function Connection:data_received(data)
 end
 
 function Connection:read()
+  if self.state == "handshake" then return end
   print("CONN READ")
   local junk, err, data = self.socket:receive("*a")
   if not err then
@@ -438,7 +456,7 @@ end
 function wait() end
 
 function main()
-  local server_socket,qq,qqq,qqqq = socket.bind("burke.ro", 49570)
+  local server_socket,qq,qqq,qqqq = socket.bind("*", 49570)
   print(server_socket,qq,qqq,qqqq)
 
   local prev_now = time()
@@ -455,6 +473,9 @@ function main()
     end
     local recvt = {server_socket}
     for _,v in pairs(connections) do
+      if v.state == "handshake" then
+        v:dohandshake()
+      end
       recvt[#recvt+1] = v.socket
     end
     local ready = socket.select(recvt, nil, 1)

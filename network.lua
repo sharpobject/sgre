@@ -1,4 +1,11 @@
 require("dumbprint")
+--[[require"util"
+require"stridx"
+require"class"
+require"queue"
+socket = require"socket"
+json = require"dkjson"-]]
+require"ssl"
 
 local TCP_sock = nil
 local leftovers = ""
@@ -88,9 +95,15 @@ end
 function network_init()
   TCP_sock = socket.tcp()
   TCP_sock:settimeout(7)
-  if not TCP_sock:connect("burke.ro",49570) then
+  if not TCP_sock:connect("localhost",49570) then
     error("failed to connect yolo")
   end
+  local params = {
+     mode = "client",
+     protocol = "tlsv1",
+  }
+  TCP_sock = assert(ssl.wrap(TCP_sock, params))
+  TCP_sock:dohandshake()
   TCP_sock:settimeout(0)
   network_init = function() end
 end
