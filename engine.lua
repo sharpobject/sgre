@@ -1122,16 +1122,52 @@ function Game:send_turn(turn)
   end
 end
 
+function Game:censor(t)
+  local ret = {}
+  for k,v in pairs(t) do
+    ret[k] = v
+  end
+  if ret.hand then
+    ret.hand = {}
+  end
+  if ret.field and self.censor_field then
+    ret.field = {}
+    for i=1,5 do
+      if type(t.field[i]) == "table" then
+        ret.field[i] = true
+      else
+        ret.field[i] = t.field[i]
+      end
+    end
+  end
+  return ret
+end
+
 function Game:send(msg)
   assert(type(msg) == "table")
   if love then
     --error("wtf bro")
   else
+    local typ = msg.type
     if self.P1.connection then
-      self.P1.connection:send(msg)
+      if typ == "diff" or typ == "snapshot" then
+        tmp = msg[typ][2]
+        msg[typ][2] = self:censor(tmp)
+        self.P1.connection:send(msg)
+        msg[typ][2] = tmp
+      else
+        self.P1.connection:send(msg)
+      end
     end
     if self.P2.connection then
-      self.P2.connection:send(msg)
+      if typ == "diff" or typ == "snapshot" then
+        tmp = msg[typ][1]
+        msg[typ][1] = self:censor(tmp)
+        self.P2.connection:send(msg)
+        msg[typ][1] = tmp
+      else
+        self.P2.connection:send(msg)
+      end
     end
   end
 end
@@ -1208,6 +1244,7 @@ function Game:run()
     P1:draw_phase()
     P2:draw_phase()
     self:snapshot()
+    self.censor_field = true
     if love then
       P2:ai_act()
       P1:user_act()
@@ -1225,6 +1262,9 @@ function Game:run()
         coroutine.yield()
       end
     end
+    self.censor_field = false
+    self.state_view = nil
+    self:snapshot()
     P1_first = self:coin_flip()
     self:send_coin(P1_first and 1 or 2)
     local n_combat_rounds = 0
@@ -1247,6 +1287,11 @@ end
 function card_from_view(view)
   if not view then
     return nil
+  end
+  if view == true then
+    local ret = Card(200099)
+    ret.hidden = true
+    return ret
   end
   local card = Card(view.id)
   for k,v in pairs(view) do

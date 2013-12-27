@@ -22,6 +22,7 @@ local N_FRAMES = 0
 local min = math.min
 
 function love.load(arg)
+  GLOBAL_EMAIL, GLOBAL_PASSWORD = arg[2], arg[3]
   local min_k = 99
   for k,v in pairs(arg) do
     if k < min_k then

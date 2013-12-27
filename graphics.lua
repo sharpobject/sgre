@@ -326,6 +326,8 @@ function card_button(side,idx,x,y)
   button:SetSize(80, 120)
   button:SetX(x)
   button:SetY(y)
+  button:SetState("playing")
+  button.client = game.client
   button.Draw = function(self)
     local x = self:GetX()
     local y = self:GetY()
@@ -364,7 +366,7 @@ function card_button(side,idx,x,y)
 
     self.player = player
     self.card = player[member][idx]
-    if self.card and self:GetHover() then
+    if self.card and self:GetHover() and not self.card.hidden then
       game.hover_card = self.card
     end
   end
@@ -438,6 +440,7 @@ function Game:draw()
     ready:SetText("Ready")
     ready:SetPos(395+55, 400+50)
     ready:SetSize(50, 60)
+    ready:SetState("playing")
     ready.OnClick = function()
         if game.client then
           net_send({type="ready"})
@@ -454,6 +457,7 @@ function Game:draw()
     shuffle:SetText("Shuffle")
     shuffle:SetPos(395+55, 465+50)
     shuffle:SetSize(50, 20)
+    shuffle:SetState("playing")
     shuffle.OnClick = function()
         if self.client then
           net_send({type="shuffle"})

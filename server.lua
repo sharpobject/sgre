@@ -45,6 +45,7 @@ users.last_modified = nil
 users.username_to_uid = users.username_to_uid or {}
 users.uid_to_username = users.uid_to_username or {}
 users.uid_to_email = users.uid_to_email or {}
+local uid_waiting_for_fight = nil
 
 local file_q = Queue()
 local chat_q = Queue()
@@ -184,6 +185,12 @@ function Connection:close()
   end
   socket_to_idx[self.socket] = nil
   connections[self.index] = nil
+  if self.uid then
+    uid_to_connection[self.uid] = nil
+    if uid_waiting_for_fight == self.uid then
+      uid_waiting_for_fight = nil
+    end
+  end
   self.socket:close()
 end
 
@@ -206,6 +213,9 @@ function Connection:J(message)
   elseif self.state == "lobby" then
     if message.type == "select_faction" then
       self:try_select_faction(message)
+    end
+    if message.type == "join_fight" then
+      self:try_join_fight(message)
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -285,6 +295,9 @@ function Connection:try_login(msg)
     return failure("incorrect password")
   end
   self.uid = uid
+  if uid_to_connection[uid] then
+    uid_to_connection[uid]:close()
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -312,6 +325,20 @@ function Connection:try_select_faction(msg)
     self:set_deck(1, starter_decks[msg.faction])
     self:set_active_deck(1)
   end
+end
+
+function Connection:try_join_fight(msg)
+  if not uid_waiting_for_fight then
+    uid_waiting_for_fight = self.uid
+  elseif uid_waiting_for_fight ~= self.uid then
+    start_fight(self.uid, uid_waiting_for_fight)
+    uid_waiting_for_fight = nil
+  end
+end
+
+function start_fight(aid, bid)
+  local a,b = uid_to_connection[aid], uid_to_connection[bid]
+  setup_game(a,b)
 end
 
 function Connection:update_collection(diff)
@@ -393,7 +420,7 @@ function Connection:try_chat(msg)
   return true
 end
 
-function str_to_deck(s)
+--[[function str_to_deck(s)
   s = s:sub(s:find("%d%d%d[%dDPC]+")):split("DPC")
   local t = {}
   t[1] = s[1] + 0
@@ -422,11 +449,23 @@ for i=1,40 do
     decks[#decks+1] = file_to_deck(i)
   end
 end
-print("read "..#decks.." decks")
+print("read "..#decks.." decks")--]]
+
+function prep_deck(uid)
+  local data = uid_to_data[uid]
+  local t = data.decks[data.active_deck]
+  local ret = {}
+  for id, count in pairs(t) do
+    for i=1,count do
+      ret[#ret+1] = id+0
+    end
+  end
+  return ret
+end
 
 function setup_game(a,b)
   print("SETUP")
-  local game = Game(uniformly(decks), uniformly(decks))
+  local game = Game(prep_deck(a.uid), prep_deck(b.uid))
   game.P1.connection = a
   game.P2.connection = b
   a.game = game
@@ -437,6 +476,8 @@ function setup_game(a,b)
   b.state = "playing"
   a.opponent = b
   b.opponent = a
+  a:send({type="game_start"})
+  b:send({type="game_start"})
   game.thread = coroutine.create(function()
     game:run()
   end)
@@ -496,18 +537,11 @@ function main()
       end
     end
 
-    --[[local waiting = nil
     for _,v in pairs(connections) do
-      if v.state == "lobby" then
-        if waiting then
-          setup_game(v, waiting)
-        else
-          waiting = v
-        end
-      elseif v.state == "playing" then
+      if v.state == "playing" then
         resume_game(v.game)
       end
-    end--]]
+    end
 
     write_a_file()
 

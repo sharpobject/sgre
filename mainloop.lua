@@ -8,6 +8,7 @@ end
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
 local main_modal_notice, main_select_faction, main_lobby
+local main_fight
 
 frames = {}
 local frames = frames
@@ -84,8 +85,8 @@ local from_login = nil
 local doing_login = false
 function main_login(email, password)
   network_init()
-  email = email or ""
-  password = password or ""
+  email = email or GLOBAL_EMAIL or ""
+  password = password or GLOBAL_PASSWORD or ""
 
   if not frames.login then
     frames.login = {}
@@ -114,6 +115,8 @@ function main_login(email, password)
     local textinput2 = loveframes.Create("textinput", frame)
     textinput2:SetPos(80, 60)
     textinput2:SetWidth(215)
+    textinput2:SetMasked(true)
+    textinput2:SetMaskChar("*")
     frames.login.password_input = textinput2
     
     local loginbutton = loveframes.Create("button", frame)
@@ -240,6 +243,8 @@ function main_register(email, password)
     textinput3 = loveframes.Create("textinput", frame)
     textinput3:SetPos(80, 90)
     textinput3:SetWidth(215)
+    textinput3:SetMasked(true)
+    textinput3:SetMaskChar("*")
     frames.register.password_input = textinput3
     
     backbutton = loveframes.Create("button", frame)
@@ -451,6 +456,7 @@ function main_select_faction()
   end
 end
 
+local from_lobby = nil
 function main_lobby()
   if not frames.lobby then
     frames.lobby = {}
@@ -483,12 +489,32 @@ function main_lobby()
       self:Clear()
       net_send({type="general_chat",text=text})
     end
+
+    local button = loveframes.Create("button")
+    button:SetPos(0,0)
+    button:SetSize(50, 50)
+    button:SetText("Fite")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="join_fight"})
+    end
   end
 
   loveframes.SetState("lobby")
-  
+
   while true do
     wait()
+    if net_q:len() ~= 0 then
+      local msg = net_q:pop()
+      if msg.type=="game_start" then
+        from_lobby = {main_fight}
+      end
+    end
+    if from_lobby then
+      local ret = from_lobby
+      from_lobby = nil
+      return unpack(ret)
+    end
   end
 end
 
@@ -535,6 +561,13 @@ end
 
 function main_mxm()
   network_init()
+  game = Game(nil, nil, true)
+  game:client_run()
+end
+
+local from_fight = nil
+function main_fight()
+  loveframes.SetState("playing")
   game = Game(nil, nil, true)
   game:client_run()
 end
