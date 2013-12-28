@@ -498,6 +498,33 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="join_fight"})
     end
+
+    local button = loveframes.Create("button")
+    button:SetPos(50,0)
+    button:SetSize(50, 50)
+    button:SetText("NOLD")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="dungeon", idx=1})
+    end
+
+    local button = loveframes.Create("button")
+    button:SetPos(100,0)
+    button:SetSize(50, 50)
+    button:SetText("SHORTY")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="dungeon", idx=2})
+    end
+
+    local button = loveframes.Create("button")
+    button:SetPos(150,0)
+    button:SetSize(50, 50)
+    button:SetText("GARTS")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="dungeon", idx=3})
+    end
   end
 
   loveframes.SetState("lobby")
@@ -553,6 +580,7 @@ function main_select_boss()
 end
 
 function main_play(which)
+  loveframes.SetState("playing")
   local player = file_to_deck("player")
   local npc = file_to_deck("floor"..which)
   game = Game(player, npc)
@@ -570,4 +598,5 @@ function main_fight()
   loveframes.SetState("playing")
   game = Game(nil, nil, true)
   game:client_run()
+  return main_lobby
 end

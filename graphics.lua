@@ -491,8 +491,6 @@ function Game:draw()
   gprint(rgrave, field_hud_right_start_x + 38, field_hud_y)
   gprint(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
   gprint(self.turn, 308, 383)
-  gprint("ready", 397+60, 425+50)
-  gprint("shuffle", 395+60, 468+50)
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
   gprint("size "..left:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
   if self.hover_card then

@@ -1008,7 +1008,7 @@ do
 end
 
 function Game:snapshot(buff_msg)
-  if self.client then
+  if self.client or self.winner then
     return
   end
   local new_view = {}
@@ -1109,9 +1109,7 @@ function Game:game_over(player)
   if love then
     print("game_over"..json.encode(msg))
   end
-  if not GO_HARD then
-    error("game over")
-  end
+  self.winner = player
 end
 
 function Game:send_turn(turn)
@@ -1145,29 +1143,28 @@ end
 
 function Game:send(msg)
   assert(type(msg) == "table")
-  if love then
-    --error("wtf bro")
-  else
-    local typ = msg.type
-    if self.P1.connection then
-      if typ == "diff" or typ == "snapshot" then
-        tmp = msg[typ][2]
-        msg[typ][2] = self:censor(tmp)
-        self.P1.connection:send(msg)
-        msg[typ][2] = tmp
-      else
-        self.P1.connection:send(msg)
-      end
+  if love or self.winner then
+    return
+  end
+  local typ = msg.type
+  if self.P1.connection then
+    if typ == "diff" or typ == "snapshot" then
+      tmp = msg[typ][2]
+      msg[typ][2] = self:censor(tmp)
+      self.P1.connection:send(msg)
+      msg[typ][2] = tmp
+    else
+      self.P1.connection:send(msg)
     end
-    if self.P2.connection then
-      if typ == "diff" or typ == "snapshot" then
-        tmp = msg[typ][1]
-        msg[typ][1] = self:censor(tmp)
-        self.P2.connection:send(msg)
-        msg[typ][1] = tmp
-      else
-        self.P2.connection:send(msg)
-      end
+  end
+  if self.P2.connection then
+    if typ == "diff" or typ == "snapshot" then
+      tmp = msg[typ][1]
+      msg[typ][1] = self:censor(tmp)
+      self.P2.connection:send(msg)
+      msg[typ][1] = tmp
+    else
+      self.P2.connection:send(msg)
     end
   end
 end
@@ -1244,6 +1241,9 @@ function Game:run()
     P1:draw_phase()
     P2:draw_phase()
     self:snapshot()
+    if self.winner then
+      return self.winner
+    end
     self.censor_field = true
     if love then
       P2:ai_act()
@@ -1340,15 +1340,23 @@ function Game:client_run()
         --TODO
       end
     elseif msg.type == "trigger" then
-        --TODO
+      local card = self["P"..msg.trigger.player].field[msg.trigger.slot]
+      card.trigger = true
+      wait(50)
+      card.trigger = nil
     elseif msg.type == "attack" then
-        --TODO
+      self.attacker = {self["P"..msg.trigger.player], msg.trigger.atk_slot}
+      self.defender = {self.attacker[1].opponent, msg.trigger.def_slot}
+      self.print_attack_info = true
+      wait(50)
+      self.print_attack_info = nil
     elseif msg.type == "shuffle" then
-        --TODO
+      --TODO PLAY A SHUFFLING SOUND?????
     elseif msg.type == "coin" then
         --TODO
     elseif msg.type == "game_over" then
-      error("game over~")
+      game = nil
+      return
     elseif msg.type == "turn" then
       self.turn = msg.turn
     elseif msg.type == "opponent_disconnected" then

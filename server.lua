@@ -22,6 +22,8 @@ require("validate")
 local byte = string.byte
 local char = string.char
 local floor = math.floor
+local min = math.min
+local max = math.max
 local pairs = pairs
 local ipairs = ipairs
 local random = math.random
@@ -54,6 +56,17 @@ starter_decks = json.decode(file_contents("starter_decks.json"))
 for k,v in pairs(starter_decks) do
   starter_decks[k] = fix_num_keys(v)
 end
+
+npc_decks = json.decode(file_contents("npc_decks.json"))
+for k,v in pairs(npc_decks) do
+  npc_decks[k] = fix_num_keys(v)
+end
+npc_decks = fix_num_keys(npc_decks)
+for k,v in pairs(npc_decks) do
+  v[k] = 1
+end
+
+dungeons = json.decode(file_contents("dungeons.json"))
 
 ssl_context = assert(ssl.newcontext({
     mode="server",
@@ -217,6 +230,9 @@ function Connection:J(message)
     if message.type == "join_fight" then
       self:try_join_fight(message)
     end
+    if message.type == "dungeon" then
+      self:try_dungeon(message)
+    end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
     self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
@@ -298,6 +314,13 @@ function Connection:try_login(msg)
   if uid_to_connection[uid] then
     uid_to_connection[uid]:close()
   end
+  if #data.dungeon_clears < #dungeons then
+    for i=#data.dungeon_clears+1, #dungeons do
+      data.dungeon_clears[i] = 0
+      data.dungeon_floors[i] = 1
+    end
+    modified_file(data)
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -334,6 +357,35 @@ function Connection:try_join_fight(msg)
     start_fight(self.uid, uid_waiting_for_fight)
     uid_waiting_for_fight = nil
   end
+end
+
+function Connection:try_dungeon(msg)
+  local which = msg.idx
+  if (not which) or (not dungeons[which]) then
+    return
+  end
+  local dungeon = dungeons[which]
+  local data = uid_to_data[self.uid]
+  local my_floor = data.dungeon_floors[which]
+  my_floor = min(#dungeon, my_floor)
+  local npc_id = uniformly(dungeon[min(#dungeon, my_floor)])
+  local lose_floor, win_floor = 1,1
+  if my_floor ~= #dungeon then
+    lose_floor = max(my_floor-1, 1)
+    win_floor = my_floor+1
+  end
+  data.dungeon_floors[which] = lose_floor
+  modified_file(data)
+  function self:on_game_over(win)
+    if win then
+      if my_floor == #dungeon then
+        data.dungeon_clears[which] = data.dungeon_clears[which] + 1
+      end
+      data.dungeon_floors[which] = win_floor
+      modified_file(data)
+    end
+  end
+  setup_pve(self, npc_id)
 end
 
 function start_fight(aid, bid)
@@ -452,8 +504,13 @@ end
 print("read "..#decks.." decks")--]]
 
 function prep_deck(uid)
-  local data = uid_to_data[uid]
-  local t = data.decks[data.active_deck]
+  local t
+  if type(uid) == "string" then
+    local data = uid_to_data[uid]
+    t = data.decks[data.active_deck]
+  else -- passed an NPC ID as uid
+    t = npc_decks[uid]
+  end
   local ret = {}
   for id, count in pairs(t) do
     for i=1,count do
@@ -461,6 +518,17 @@ function prep_deck(uid)
     end
   end
   return ret
+end
+
+function destroy_game(a, win)
+  a.game = nil
+  a.player_index = nil
+  a.opponent = nil
+  a.state = "lobby"
+  if a.on_game_over then
+    a:on_game_over(win)
+  end
+  a.on_game_over = nil
 end
 
 function setup_game(a,b)
@@ -478,6 +546,20 @@ function setup_game(a,b)
   b.opponent = a
   a:send({type="game_start"})
   b:send({type="game_start"})
+  game.thread = coroutine.create(function()
+    game:run()
+  end)
+  resume_game(game)
+end
+
+function setup_pve(a,b)
+  print("SETUP PVE")
+  local game = Game(prep_deck(a.uid), prep_deck(b))
+  game.P1.connection = a
+  a.game = game
+  a.player_index = 1
+  a.state = "playing"
+  a:send({type="game_start"})
   game.thread = coroutine.create(function()
     game:run()
   end)
@@ -540,6 +622,9 @@ function main()
     for _,v in pairs(connections) do
       if v.state == "playing" then
         resume_game(v.game)
+        if v.game.winner then
+          destroy_game(v, v.player_index == v.game.winner)
+        end
       end
     end
 
