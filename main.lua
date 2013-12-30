@@ -50,7 +50,7 @@ function love.load(arg)
     --print(k,v)
   end
 
-
+  default_font = love.graphics.getFont()
 
   math.randomseed(os.time())
   for i=1,4 do math.random() end

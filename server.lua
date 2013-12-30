@@ -187,7 +187,7 @@ end
 function Connection:opponent_disconnected()
   print("OP DIS")
   self.opponent = nil
-  --self.state = "lobby"
+  self.game:game_over(self.player_index)
   self:send({type="opponent_disconnected"})
 end
 
@@ -368,7 +368,7 @@ function Connection:try_dungeon(msg)
   local data = uid_to_data[self.uid]
   local my_floor = data.dungeon_floors[which]
   my_floor = min(#dungeon, my_floor)
-  local npc_id = uniformly(dungeon[min(#dungeon, my_floor)])
+  local npc_id = uniformly(dungeon[my_floor])
   local lose_floor, win_floor = 1,1
   if my_floor ~= #dungeon then
     lose_floor = max(my_floor-1, 1)
@@ -472,37 +472,6 @@ function Connection:try_chat(msg)
   return true
 end
 
---[[function str_to_deck(s)
-  s = s:sub(s:find("%d%d%d[%dDPC]+")):split("DPC")
-  local t = {}
-  t[1] = s[1] + 0
-  for i=2,#s,2 do
-    for j=1,s[i]+0 do
-      t[#t+1] = s[i+1]+0
-    end
-  end
-  return t
-end
-
-file_to_deck = function(s)
-  local file, err = io.open("decks/floor"..s..".txt", "r")
-  if file then
-    s = file:read("*a")
-    file:close()
-    return str_to_deck(s)
-  end
-end
-
-decks = {}
-for i=1,40 do
-  if i < 10 then
-    decks[#decks+1] = file_to_deck("0"..i)
-  elseif i ~= 37 then
-    decks[#decks+1] = file_to_deck(i)
-  end
-end
-print("read "..#decks.." decks")--]]
-
 function prep_deck(uid)
   local t
   if type(uid) == "string" then
@@ -544,8 +513,8 @@ function setup_game(a,b)
   b.state = "playing"
   a.opponent = b
   b.opponent = a
-  a:send({type="game_start"})
-  b:send({type="game_start"})
+  a:send({type="game_start", opponent_name=users.uid_to_username[b.uid]})
+  b:send({type="game_start", opponent_name=users.uid_to_username[a.uid]})
   game.thread = coroutine.create(function()
     game:run()
   end)
@@ -559,7 +528,7 @@ function setup_pve(a,b)
   a.game = game
   a.player_index = 1
   a.state = "playing"
-  a:send({type="game_start"})
+  a:send({type="game_start", opponent_name=Card(b).name})
   game.thread = coroutine.create(function()
     game:run()
   end)

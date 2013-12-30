@@ -534,7 +534,7 @@ function main_lobby()
     if net_q:len() ~= 0 then
       local msg = net_q:pop()
       if msg.type=="game_start" then
-        from_lobby = {main_fight}
+        from_lobby = {main_fight, {msg.opponent_name}}
       end
     end
     if from_lobby then
@@ -593,10 +593,29 @@ function main_mxm()
   game:client_run()
 end
 
+function get_active_char()
+  local deck = user_data.decks[user_data.active_deck]
+  print(user_data.active_deck)
+  for k,v in pairs(user_data.decks) do
+    print(k,v)
+  end
+  print(deck)
+  for k,v in pairs(deck) do
+    k = k + 0
+    if k < 200000 then
+      return k
+    end
+  end
+end
+
 local from_fight = nil
-function main_fight()
+function main_fight(opponent_name)
   loveframes.SetState("playing")
-  game = Game(nil, nil, true)
+  game = Game(nil, nil, true, get_active_char())
+  game.opponent_name = opponent_name
+  game.my_name = user_data.username
+  game.P1.name = game.my_name
+  game.P2.name = game.opponent_name
   game:client_run()
   return main_lobby
 end

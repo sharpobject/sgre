@@ -97,6 +97,7 @@ Player = class(function(self, side, deck)
     setmetatable(self.grave, grave_mt)
     self.exile = {}
     self.shuffles = 2
+    self.name = self.character.name
   end)
 
 function Player:check_hand()
@@ -745,7 +746,7 @@ function Player:combat_round()
   end
 end
 
-Game = class(function(self, ld, rd, client)
+Game = class(function(self, ld, rd, client, active_character)
     self.P1 = Player("left", ld)
     self.P2 = Player("right", rd)
     self.P1.game = self
@@ -754,6 +755,7 @@ Game = class(function(self, ld, rd, client)
     self.P2.opponent = self.P1
     self.turn = 0
     self.time_remaining = 0
+    self.hover_card = Card(active_character or 200099)
     if client then
       self.client = true
       self.P1.client = true
@@ -1104,6 +1106,7 @@ function Game:send_coin(player)
 end
 
 function Game:game_over(player)
+  if self.winner then return end
   local msg = {type="game_over",winner=player}
   self:send(msg)
   if love then
@@ -1329,6 +1332,8 @@ function Game:client_run()
       if msg.player_index == 2 then
         self.P1.side = "right"
         self.P2.side = "left"
+        self.P1.name = self.opponent_name
+        self.P2.name = self.my_name
       end
     elseif msg.type == "snapshot" then
       self.view = msg.snapshot

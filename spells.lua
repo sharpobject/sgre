@@ -232,7 +232,7 @@ end,
   local target_idx = player:field_idxs_with_preds({pred.faction.A, pred.follower})[1]
   local how_much = #(player:hand_idxs_with_preds({pred.faction.A}))
   if target_idx then
-    buff.field[player][target_idx] = {def={"+", how_much}}
+    buff.field[player][target_idx] = {def={"=", how_much}}
     buff:apply()
   end
 end,
