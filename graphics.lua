@@ -7,6 +7,7 @@ do
     ["sg_assets/fonts/dmgwan.png"] = "0123456789",
     ["sg_assets/fonts/equalwan_s.png"] = "=0123456789",
     ["sg_assets/fonts/equalwan.png"] = "=0123456789",
+    ["sg_assets/fonts/lifewan_rs.png"] = "0123456789",
     ["sg_assets/fonts/lifewan_s.png"] = "0123456789",
     ["sg_assets/fonts/lifewan.png"] = "?0123456789",
     ["sg_assets/fonts/minuswan_s.png"] = "-0123456789",
@@ -17,7 +18,7 @@ do
     ["sg_assets/fonts/sizewan.png"] = "0123456789",
     ["sg_assets/fonts/statwan_s.png"] = "-0123456789",
     ["sg_assets/fonts/statwan.png"] = "-0123456789",
-    ["sg_assets/fonts/timewan.png"] = "0123456789",
+    ["sg_assets/fonts/turnwan.png"] = "0123456789",
   }
 
   function load_font(name)
@@ -187,8 +188,12 @@ function draw_hover_card(card, text_obj)
   local middle = y+(card_height-gray_shit_height)/2
   draw(load_asset("m-"..card.type..".png"), x, y)
   if card.type == "character" then
-    set_font(load_font("sg_assets/fonts/lifewan.png"))
-    gprintf(card.life, gray_shit_x+4, y+208, gray_shit_width, "center")
+    if card.life >= 10 then
+      set_font(load_font("sg_assets/fonts/lifewan.png"))
+    else
+      set_font(load_font("sg_assets/fonts/lifewan_rs.png"))
+    end
+    gprintf(card.life, gray_shit_x+5, y+207, gray_shit_width, "center")
   elseif card.type == "follower" then
     set_font(load_font("sg_assets/fonts/statwan.png"))
     gprintf(card.atk, x, y+208, card_width/3, "center")
@@ -339,11 +344,11 @@ local slot_to_dxdy = {
             {361,136},
             {384,264},
             {472,264}},
-  hand = {{25,450},
-          {110,450},
-          {195,450},
-          {280,450},
-          {365,450}}}
+  hand = {{28,458},
+          {112,458},
+          {196,458},
+          {280,458},
+          {364,458}}}
 
 function draw_card_loveframe(card, x, y, hover_frame, text)
   local id = card.id
@@ -387,8 +392,13 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
       love.graphics.printf(card.size, gray_shit_x + 3, y+2, gray_shit_width, "center")
     end
     if card.type == "character" then
-      love.graphics.setFont(load_font("sg_assets/fonts/lifewan_s.png"))
-      love.graphics.printf(card.life, gray_shit_x + 2, y+100, gray_shit_width, "center")
+      if card.life >= 10 then
+        love.graphics.setFont(load_font("sg_assets/fonts/lifewan_s.png"))
+        love.graphics.printf(card.life, gray_shit_x + 2, y+100, gray_shit_width, "center")
+      else
+        love.graphics.setFont(load_font("sg_assets/fonts/lifewan_rs.png"))
+        love.graphics.printf(card.life, gray_shit_x + 2, y+98, gray_shit_width, "center")
+      end
     end
     if card.faction then
       draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5, suffix)
@@ -602,8 +612,11 @@ function Game:draw()
   gprint(rgrave, field_hud_right_start_x + 38, field_hud_y)
   gprint(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
   set_color(255, 255, 255)
-  set_font(load_font("sg_assets/fonts/sizewan.png"))
-  gprintf(self.turn, field_x+3, 358+field_y, fw, "center")
+  set_font(load_font("sg_assets/fonts/turnwan.png"))
+  local draw_turn = self.turn..""
+  if draw_turn:len() < 2 then draw_turn = "0"..draw_turn end
+  gprintf(draw_turn[1], field_x+268, 358+field_y, 999)
+  gprintf(draw_turn[2], field_x+282, 358+field_y, 999)
   set_color(28, 28, 28)
   set_font(default_font)
   gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)

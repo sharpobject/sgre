@@ -1287,7 +1287,7 @@ function Game:run()
   end
 end
 
-function card_from_view(view)
+function card_from_view(view, other)
   if not view then
     return nil
   end
@@ -1297,6 +1297,9 @@ function card_from_view(view)
     return ret
   end
   local card = Card(view.id)
+  if other and view.id == other.id then
+    card = other
+  end
   for k,v in pairs(view) do
     card[k] = v
   end
@@ -1313,10 +1316,10 @@ function Game:from_view(view)
     p.deck = pv.deck
     p.grave = pv.grave
     p.shuffles = pv.shuffles
-    p.character = card_from_view(pv.character)
+    p.character = card_from_view(pv.character, p.character)
     for j=1,5 do
-      p.field[j] = card_from_view(pv.field[j])
-      p.hand[j] = card_from_view(pv.hand[j])
+      p.field[j] = card_from_view(pv.field[j], p.field[j])
+      p.hand[j] = card_from_view(pv.hand[j], p.hand[j])
     end
     p.field[0] = p.character
   end
