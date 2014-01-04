@@ -33,6 +33,9 @@ local ep7_recycle = function(player)
 end
 
 local sita_vilosa = function(player)
+  if player.opponent:is_npc() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
   local target_idxs = player.opponent:get_follower_idxs()
   local buff = OnePlayerBuff(player.opponent)
   for _,idx in ipairs(target_idxs) do
@@ -44,15 +47,22 @@ local sita_vilosa = function(player)
 end
 
 local cinia_pacifica = function(player)
+  if player.opponent:is_npc() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
   local target_idxs = player.opponent:get_follower_idxs()
   if #target_idxs == 0 then
     return
   end
   local target_idx = uniformly(target_idxs)
   OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+
 end
 
 local luthica_preventer = function(player)
+  if player.opponent:is_npc() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
   local target_idxs = player:field_idxs_with_preds(pred[player.character.faction], pred.follower)
   if #target_idxs == 0 then
     return
@@ -62,6 +72,9 @@ local luthica_preventer = function(player)
 end
 
 local iri_flina = function(player)
+  if player.opponent:is_npc() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
   if player:field_size() > player.opponent:field_size() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
@@ -214,6 +227,31 @@ local hanbok_iri = function(player, opponent, my_card)
     end
     OneBuff(opponent, target, the_buff):apply()
   end
+end
+
+local buff_random = function(player, opponent, my_card, my_buff)
+  local target_idxs = player:field_idxs_with_preds(pred.follower)
+  if #target_idxs == 0 then
+    return
+  end
+  local target_idx = uniformly(target_idxs)
+  OneBuff(player,target_idx,my_buff):apply()
+end
+
+local buff_all = function(player, opponent, my_card, my_buff)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+    buff[idx] = my_buff
+  end
+  buff:apply()
+end
+
+local wind_forestier = function(player)
+  local target_idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  if #target_idxs == 0 then
+    return
+  end
+  OneBuff(player.opponent, uniformly(target_idxs), {sta={"-",floor(player.game.turn/2)}}):apply()
 end
 
 characters_func = {
@@ -1532,13 +1570,174 @@ end,
 -- hero iri
 [100185] = hanbok_iri,
 
--- rio
-[110133] = function(player)
-  local buff = OnePlayerBuff(player)
-  for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff[idx] = {atk={"+",3},sta={"+",3}}
+-- Wind Shear
+[110002] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {sta={"+",1}})
+end,
+
+-- Winged Seeker
+[110003] = function(player, opponent)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    if (opponent.field[idx].size + idx) % 2 == 0 then
+      buff[idx] = {atk={"-",1},sta={"-",1}}
+    end
   end
   buff:apply()
+end,
+
+-- Enchantress
+[110004] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",1}})
+end,
+
+-- Trickster
+[110005] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",1}})
+end,
+
+-- Myo Observer
+[110006] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",1}})
+end,
+
+-- True Bunny Lady 
+[110007] = function(player, opponent, mycard)
+  buff_all(player, opponent, my_card, {sta={"+",1}})
+end,
+
+-- True Wind Shear
+[110008] = function(player, opponent, mycard)
+  buff_all(player, opponent, my_card, {sta={"+",1}})
+end,
+
+-- Wind Breaker  
+[110009] = function(player)
+  local target_idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  if #target_idxs == 0 then
+    return
+  end
+  OneBuff(player.opponent, uniformly(target_idxs), {sta={"-",2}}):apply()
+end,
+
+-- Wind Sneaker
+[110010] = function(player)
+  if #player.hand == 0 then
+    return
+  end
+  local buff = GlobalBuff(player)
+  buff.hand[player][math.random(#player.hand)] = {size={"-",1}}
+  buff:apply()
+end,
+
+-- Wind Forestier  
+[110011] = wind_forestier,
+
+-- True Enchantress
+[110012] = function(player, opponent, mycard)
+  buff_all(player, opponent, my_card, {atk={"+",1}})
+end,
+
+-- True Trickster
+[110013] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {size={"-",2}})
+end,
+
+-- True Myo Observer
+[110014] = function(player, opponent, mycard)
+  buff_all(player, opponent, my_card, {atk={"+",1}})
+end,
+
+-- True Wind Breaker
+[110015] = function(player, opponent)
+  local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
+  if target_idxs[1] then
+    OneBuff(opponent, target_idxs[1], {sta={"-",2}}):apply()
+  end
+  local target_idxs2 = shuffle(opponent:field_idxs_with_preds({pred.follower}))
+  if target_idxs2[1] then
+    OneBuff(opponent, target_idxs2[1], {sta={"-",1}}):apply()
+  end
+end,
+
+-- True Wind Sneaker
+[110016] = function(player)
+  if #player.hand == 1 then
+    local buff = GlobalBuff(player)
+    buff.hand[player][math.random(#player.hand)] = {size={"-",1}}
+    buff:apply()
+  elseif #player.hand > 1 then
+    local buff = GlobalBuff(player)
+    local idxs = {}
+    for i=1,#player.hand do
+      idxs[i] = i
+    end
+    local target_idxs = shuffle(idxs)
+    buff.hand[player][target_idxs[1]] = {size={"-",1}}
+    buff.hand[player][target_idxs[2]] = {size={"-",1}}
+    buff:apply()
+  end
+end,
+
+-- True Wind Forestier
+[110017] = wind_forestier,
+
+-- Doppelganger Sita
+[110018] = function(player)
+  local target_idxs = player.opponent:get_follower_idxs()
+  local buff = OnePlayerBuff(player.opponent)
+  for _,idx in ipairs(target_idxs) do
+    if idx < 4 and player.opponent.field[idx] then
+  buff[idx] = {sta={"-",1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Doppelganger Cinia
+[110019] = function(player)
+  local target_idxs = player.opponent:get_follower_idxs()
+  if #target_idxs == 0 then
+    return
+  end
+  local target_idx = uniformly(target_idxs)
+  OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
+end,
+
+-- Doppelganger Luthica
+[110020] = function(player)
+  local target_idxs = player:field_idxs_with_preds(pred[player.character.faction], pred.follower)
+  if #target_idxs == 0 then
+    return
+  end
+  local target_idx = uniformly(target_idxs)
+  OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
+end,
+
+-- Doppelganger Iri
+[110021] = function(player)
+  if player:field_size() > player.opponent:field_size() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
+end,
+
+--Wind Gambler
+[110022] = function(player)
+  if player.character.life % 2 == 1 then
+    OneBuff(player, 0, {life={"-",1}}):apply()
+  else
+    OneBuff(player, 0, {life={"+",2}}):apply()
+  end
+end,
+
+--Wind Girl
+[110023] = function(player)
+  OneBuff(player, 0, {life={"+",1}}):apply()
+end,
+
+-- rio
+[110133] = function(player, opponent, mycard)
+  buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
   recycle_one(player)
 end,
 
@@ -2053,6 +2252,27 @@ end,
     else
       opponent.deck = {}
     end
+  end
+end,
+
+-- Gold Lion Nold
+[120001] = function(player, opponent, my_card)
+  buff_all(player, opponent, my_card, {size={"-",1}})
+end,
+
+-- Breeze Queen Cannelle
+[120002] = function(player)
+  local target_idxs = player:field_idxs_with_preds(pred.follower, function(card) return card.size <= 3 end)
+  for _,idx in ipairs(target_idxs) do
+    OneBuff(player, idx, {atk={"+",2},sta={"+",2}})
+  end
+end,
+
+-- Star Bird Gart
+[120003] = function(player, opponent)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    opponent.field[target].active = false
   end
 end,
 

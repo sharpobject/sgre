@@ -60,16 +60,20 @@ end
 spell_func = {
 -- heartless blow
 [200001] = function(player, opponent)
+  local first_dmg = 4
+  local second_dmg = 2
+  if #player:field_idxs_with_preds() <= #player.opponent:field_idxs_with_preds() then
+    first_dmg = 5
+    second_dmg = 3
+  end
   local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
   if target_idxs[1] then
-    OneBuff(opponent, target_idxs[1], {sta={"-",4}}):apply()
+    OneBuff(opponent, target_idxs[1], {sta={"-",first_dmg}}):apply()
   end
   if pred.sita(player.character) then
-    if target_idxs[2] then
-      target_idxs[1] = target_idxs[2]
-    end
-    if opponent.field[target_idxs[1]] then
-      OneBuff(opponent, target_idxs[1], {sta={"-",2}}):apply()
+    local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
+    if target_idxs[1] then
+      OneBuff(opponent, target_idxs[1], {sta={"-",second_dmg}}):apply()
     end
   end
 end,
@@ -83,7 +87,13 @@ end,
     local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.V}))
     local buff = OnePlayerBuff(player)
     for i=1,min(2,#target_idxs) do
-      buff[target_idxs[i]] = {atk={"+",1},def={"+",1},sta={"+",2},size={"+",1}}
+      local atk_up = 1
+      local sta_up = 2
+      if pred.cook_club(player.field[target_idxs[i]]) then
+        atk_up = atk_up + 1
+        sta_up = sta_up + 1
+      end
+      buff[target_idxs[i]] = {atk={"+",atk_up},def={"+",1},sta={"+",sta_up},size={"+",1}}
     end
     buff:apply()
   end
@@ -94,13 +104,13 @@ end,
   local card, other_card = player.field[3], opponent.field[3]
   if card and other_card and pred.faction.V(card) and pred.follower(card) then
     local amount = abs(card.size - other_card.size)
-    OneBuff(player, 3, {atk={"+",amount},sta={"+",amount}}):apply()
+    OneBuff(player, 3, {atk={"+",amount},def={"+",amount},sta={"+",amount}}):apply()
   end
 end,
 
 -- new recipe
 [200005] = function(player)
-  OneBuff(player,0,{life={"+",min(5,10-player:field_size())}}):apply()
+  OneBuff(player,0,{life={"+",min(5,8-player:field_size())}}):apply()
 end,
 
 -- shrink
@@ -189,9 +199,13 @@ end,
 [200011] = function(player, opponent)
   local debuff_amount = #player:field_idxs_with_preds({pred.maid,pred.follower})
   local target_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local def_amt = 0
+  if debuff_amount == 2 then
+    def_amt = 1
+  end
   local buff = OnePlayerBuff(opponent)
   for i=1,min(2,#target_idxs) do
-    buff[target_idxs[i]] = {atk={"-",debuff_amount},sta={"-",debuff_amount}}
+    buff[target_idxs[i]] = {atk={"-",debuff_amount},def={"-",def_amt},sta={"-",debuff_amount}}
   end
   buff:apply()
 end,
@@ -210,8 +224,13 @@ end,
       buff[idx] = {size={"=",1}}
     end
     buff:apply()
-    OneBuff(player,uniformly(target_idxs),{size={"+",reduced_amount},
-      sta={"+",floor(reduced_amount/2)}}):apply()
+    local target_idx = uniformly(target_idxs)
+    local atk_amt = 0
+    if pred.maid(player.field[target_idx]) then
+      atk_amt = floor(reduced_amount/2)
+    end
+    OneBuff(player,target_idx,{size={"+",reduced_amount},
+      sta={"+",floor(reduced_amount/2)}, atk={"+",atk_amt}}):apply()
   end
 end,
 
@@ -222,7 +241,7 @@ end,
   if target_idx then
     local life_gain = player.field[target_idx].size*2
     player:field_to_grave(target_idx)
-    OneBuff(player,0,{life={"+",life_gain}}):apply()
+    OneBuff(player,0,{life={"+",max(life_gain,9)}}):apply()
   end
 end,
 
@@ -232,7 +251,8 @@ end,
   local target_idx = player:field_idxs_with_preds({pred.faction.A, pred.follower})[1]
   local how_much = #(player:hand_idxs_with_preds({pred.faction.A}))
   if target_idx then
-    buff.field[player][target_idx] = {def={"=", how_much}}
+    buff.field[player][target_idx] = {def={"=", how_much},atk={"+", ceil(how_much/2)},
+    sta={"+", ceil(how_much/2)}}
     buff:apply()
   end
 end,
@@ -323,11 +343,11 @@ end,
   local my_idx = player:field_idxs_with_preds({pred.follower})[1]
   local other_idx = opponent:field_idxs_with_most_and_preds(
     pred.size, {pred.follower})[1]
-  -- TODO: can this deactivate an allied follower that is already deactivated?
-  -- TODO: can this deactivate an enemy follower that is already deactivated?
-  --print("entry denied: ", my_idx, other_idx)
-  if my_idx and other_idx then
+  if my_idx then
     player.field[my_idx].active = false
+    OneBuff(player,my_idx,{atk={"+",3}}):apply()
+  end
+  if my_idx and other_idx then
     opponent.field[other_idx].active = false
   end
 end,
@@ -421,6 +441,14 @@ end,
     end
   end
   buff:apply()
+  local target_idxs2 = shuffle(player:field_idxs_with_preds({pred.follower}))
+  local buff2 = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs2[i] then
+      buff2[target_idxs2[i]] = {atk={"+",1}}
+    end
+  end
+  buff2:apply()
 end,
 
 -- blood reversal
@@ -457,7 +485,7 @@ end,
   if target_idx then
     local life = min(10,player.field[target_idx].sta-1)
     local buff = OnePlayerBuff(player)
-    buff[target_idx] = {sta={"=",1}}
+    buff[target_idx] = {sta={"=",1}, atk={"+",max(floor(life/2),3)}}
     buff[0] = {life = {"+",life}}
     buff:apply()
   end

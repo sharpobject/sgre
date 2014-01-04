@@ -81,7 +81,9 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
 
                     [1056]=3, [1073]=3, [1076]=3, [1149]=2, [1150]=3, [1151]=3, [1175]=3,
                     [1201]=1, [1202]=2, [1203]=2, [1204]=3, [1205]=2, [1237]=1, [1257]=1,
-                    [1272]=3, [1273]=1, [1408]=2, [1485]=2,
+                    [1272]=3, [1273]=1, [1408]=2, [1483]=1, [1485]=2,
+                    [1626]=1,
+                    [1706]=1, [1707]=3, [1708]=3,
                     [1749]=3, [1752]=2,
                     -- todo: this does not belong in a source file...
                     })
@@ -196,7 +198,7 @@ end,
 [1002] = function(player, my_idx, my_card)
   if my_card.sta > 1 then
     local buff = GlobalBuff(player)
-    buff.field[player][my_idx] = {atk={"+",1}, sta={"-",1}}
+    buff.field[player][my_idx] = {def={"+",1}, sta={"-",1}}
     buff:apply()
   end
 end,
@@ -2704,6 +2706,13 @@ end,
   end
 end,
 
+-- Cook Club Director Jamie if NPC, +1/+1
+[1483] = function(player, my_idx)
+  if player.opponent:is_npc() then
+    OneBuff(player, my_idx, {sta={"+",1},atk={"+",1}}):apply()
+  end
+end,
+
 -- alchemist yi ensan, poison attack
 [1485] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
@@ -2757,6 +2766,39 @@ end,
       OneBuff(player.opponent, target, {sta={"-",amt}}):apply()
     end
   end
+end,
+
+-- Cook Club Svia 
+[1626] = function(player, my_idx)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"+",player.field[my_idx].def}}
+  buff:apply()
+end,
+
+-- if enemy is NPC, best attack
+[1706] = function(player, my_idx)
+  if player.opponent:is_npc() then
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {atk={"+",1}}
+    buff:apply()
+  end
+end,
+
+-- Carrier Maid
+[1707] = function(player)
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.maid,pred.follower}))
+  if target_idx then
+    local buff = GlobalBuff(player)
+    buff.field[player][target_idx] = {size={"-",1}}
+    buff:apply()
+  end
+end,
+
+-- Crux Knight Terra 
+[1708] = function(player, my_idx, my_card, skill_idx)
+  local target_idx = uniformly(player:field_idxs_with_preds({pred.knight,pred.follower}))
+  OneBuff(player, target_idx, {atk={"+",2},sta={"+",2}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- rh asmis, cacao's blessing (rh)!

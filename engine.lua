@@ -746,6 +746,13 @@ function Player:combat_round()
   end
 end
 
+function Player:is_npc()
+  if self.character.id > 109999 then
+    return true
+  end
+  return false
+end
+
 Game = class(function(self, ld, rd, client, active_character)
     self.P1 = Player("left", ld)
     self.P2 = Player("right", rd)
