@@ -21,6 +21,9 @@ function cards_init()
     card.limit = in_card.limit + 0
     card.kr_name = in_card.kr_name
     card.id = in_card.id + 0
+    card.points = in_card.points + 0
+    card.rarity = in_card.rarity
+    card.flavor = in_card.flavor
     if card.type == "npc spell" or card.type == "material" then
       card.type = "spell"
     end

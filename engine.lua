@@ -771,6 +771,9 @@ Game = class(function(self, ld, rd, client, active_character)
   end)
 
 function Game:update()
+  if self.end_time and self.act_buttons then
+    self.time_remaining = math.ceil(self.end_time-love.timer.getTime())
+  end
 end
 
 function Game:attack_animation()
@@ -1188,18 +1191,39 @@ function Game:send_player_idxs()
   end
 end
 
-function Player:receive(msg)
-  if self.ready then
-    return
+function Game:wait_for_clients()
+  if (not self.P1.connection) or (not self.P2.connection) then return end
+  self:send({type="hey_i_just_met_you"})
+  assert((not self.P1.and_this_is_crazy) and (not self.P2.and_this_is_crazy))
+  while (not self.P1.and_this_is_crazy) or
+      (not self.P2.and_this_is_crazy) do
+    print("waiting for it to be crazy")
+    coroutine.yield()
   end
+  self.P1.and_this_is_crazy = nil
+  self.P2.and_this_is_crazy = nil
+  self.time_limit = os.time() + 33
+  self:send({type="start_timer"})
+end
+
+function Player:receive(msg)
   if msg.type == "shuffle" then
+    if self.ready then return end
     self:attempt_shuffle()
   elseif msg.type == "ready" then
+    if self.ready then return end
     self.ready = true
   elseif msg.type == "play" then
+    if self.ready then return end
     if self:can_play_card(msg.index) then
       self:play_card(msg.index)
     end
+  elseif msg.type == "and_this_is_crazy" then
+    self.and_this_is_crazy = true
+    self.ready = false
+  elseif msg.type == "forfeit" then
+    self.lose = true
+    self.game:snapshot()
   else
     print("Got an unexpected message in player:receive "..json.encode(msg))
   end
@@ -1251,6 +1275,7 @@ function Game:run()
     P1:draw_phase()
     P2:draw_phase()
     self:snapshot()
+    self:wait_for_clients()
     if self.winner then
       return self.winner
     end
@@ -1268,8 +1293,19 @@ function Game:run()
           p.ready = true
         end
       end
+      print("sent can_act")
       while not (P1.ready and P2.ready) do
-        coroutine.yield()
+        print("waiting for ready")
+        if (not self.time_limit) or (os.time() < self.time_limit) then
+          coroutine.yield()
+        else
+          for _,p in ipairs({P1, P2}) do
+            if p.connection then
+              p.ready = true
+              p.connection:send({type="can_act",can_act=false})
+            end
+          end
+        end
       end
     end
     self.censor_field = false
@@ -1382,6 +1418,10 @@ function Game:client_run()
       net_send({type="pong"})
     elseif msg.type == "pong" then
       -- do nothing
+    elseif msg.type == "hey_i_just_met_you" then
+      net_send({type="and_this_is_crazy"})
+    elseif msg.type == "start_timer" then
+      self.end_time = love.timer.getTime() + 30
     else
       error(json.encode(msg))
       error("unknown message type "..msg.type)

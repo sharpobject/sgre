@@ -160,6 +160,7 @@ function Connection:dohandshake()
   end
 end
 
+
 function Connection:send(stuff)
   if self.state=="handshake" then return end
   print("CONNECTION SEND")
@@ -513,8 +514,10 @@ function setup_game(a,b)
   b.state = "playing"
   a.opponent = b
   b.opponent = a
-  a:send({type="game_start", opponent_name=users.uid_to_username[b.uid]})
-  b:send({type="game_start", opponent_name=users.uid_to_username[a.uid]})
+  a:send({type="game_start", opponent_name=users.uid_to_username[b.uid],
+    game_type="pvp"})
+  b:send({type="game_start", opponent_name=users.uid_to_username[a.uid],
+    game_type="pvp"})
   game.thread = coroutine.create(function()
     game:run()
   end)
@@ -528,7 +531,7 @@ function setup_pve(a,b)
   a.game = game
   a.player_index = 1
   a.state = "playing"
-  a:send({type="game_start", opponent_name=Card(b).name})
+  a:send({type="game_start", opponent_name=Card(b).name, game_type="pve"})
   game.thread = coroutine.create(function()
     game:run()
   end)

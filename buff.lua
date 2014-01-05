@@ -35,7 +35,7 @@ function OneBuff:apply()
   gb:apply()
 end
 
-pred = {}
+pred = setmetatable({}, {__index=function()error("420 blaze it") end})
 
 function groups_init()
   --print("GROUPS")

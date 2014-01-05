@@ -44,9 +44,9 @@ function J(stuff)
 end
 
 function data_received(data)
-  print("got raw data "..data)
+--  print("got raw data "..data)
   if data:len() == 0 then
-    print("got nothing")
+  --  print("got nothing")
     return
   end
   data = leftovers .. data

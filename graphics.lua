@@ -21,11 +21,20 @@ do
     ["sg_assets/fonts/turnwan.png"] = "0123456789",
   }
 
+  function load_vera(size)
+    if font_map[size] then return font_map[size] end
+    local ret = love.graphics.newFont(size)
+    font_map[size] = ret
+    assert(ret)
+    return ret
+  end
+
   function load_font(name)
     if font_map[name] then return font_map[name] end
     assert(font_to_str[name])
     local ret = love.graphics.newImageFont(name, font_to_str[name])
     font_map[name] = ret
+    assert(ret)
     return ret
   end
 end
@@ -208,9 +217,10 @@ function draw_hover_card(card, text_obj)
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
   set_color(28 ,28 ,28)
-  local text = skill_text[card.id]
+  local text = card.name.."\n".."Limit "..card.limit.." "..
+    card.points.."pt "..card.rarity.."\n\n"
+  text = text .. (skill_text[card.id] or "")
   if card.type == "follower" then
-    text = ""
     local skills = card.skills or {}
     for i=1,3 do
       if skills[i] then
@@ -223,13 +233,14 @@ function draw_hover_card(card, text_obj)
         text = text .. "-"
       end
       if i < 3 then
-        text = text .. " \n \n "
+        text = text .. "\n\n"
       end
     end
   end
+  text = text.."\n\n"..card.flavor
   -- TODO: scrub the json file instead of scrubbing here
   text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
-  text_obj:SetText(text)
+  text_obj:SetText(text:gsub("\n"," \n "))
 end
 
 local bkg_grad, bkg_quad = nil, nil
@@ -277,7 +288,7 @@ function Game:draw_field()
   end
   draw(p1_name, fx+7, fy+fh-6-nh)
   draw(p2_name, fx+fw-7-nw, fy+fh-6-nh)
-  set_font(default_font)
+  set_font(load_vera(12))
   gprintf(left_text, fx+7+4, fy+fh-6-nh+2, nw-8, "left")
   gprintf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+2, nw-8, "right")
   draw_border(fx, fy, fw, fh)
@@ -409,7 +420,7 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
     love.graphics.rectangle("fill",x,middle,
       card_width, gray_shit_height)
     love.graphics.setColor(255,255,255)
-    love.graphics.setFont(default_font)
+    love.graphics.setFont(load_vera(12))
     love.graphics.printf(text, x, middle+3, card_width, "center")
   end
 end
@@ -510,6 +521,41 @@ function faction_button(faction, x, y)
   return button
 end
 
+function modal_choice(prompt, lt, rt, lcb, rcb)
+  prompt = prompt or "Is this prompt dumb?"
+  lt = lt or "Yes"
+  rt = rt or "No"
+  lcb = lcb or function()end
+  rcb = rcb or function()end
+
+  local frame = loveframes.Create("frame")
+  frame:SetName("")
+  frame:SetSize(300, 90)
+  frame:ShowCloseButton(false)
+  frame:SetDraggable(false)
+  frame:Center()
+  frame:SetState(loveframes.GetState())
+  
+  local ptext = loveframes.Create("text", frame)
+  ptext:SetText(prompt)
+  ptext:Center()
+  ptext:SetY(35)
+  
+  local lb = loveframes.Create("button", frame)
+  lb:SetPos(5, 60)
+  lb:SetWidth(143)
+  lb:SetText(lt)
+  lb.OnClick = function() lcb() frame:Remove() end
+
+  local rb = loveframes.Create("button", frame)
+  rb:SetPos(152, 60)
+  rb:SetWidth(143)
+  rb:SetText(rt)
+  rb.OnClick = function() rcb() frame:Remove() end
+  
+  frame:SetModal(true)
+end
+
 function Game:draw()
   self:draw_field()
 
@@ -540,9 +586,11 @@ function Game:draw()
     end
 
     local ready = loveframes.Create("button")
+    local ready_sz = 78
+    local shuffle_sz = 122 - ready_sz - 2
     ready:SetText("Ready")
-    ready:SetPos(395+55, 400+50)
-    ready:SetSize(50, 60)
+    ready:SetPos(447, 457)
+    ready:SetSize(50, ready_sz)
     ready:SetState("playing")
     ready.OnClick = function()
         if game.client then
@@ -558,8 +606,8 @@ function Game:draw()
 
     local shuffle = loveframes.Create("button")
     shuffle:SetText("Shuffle")
-    shuffle:SetPos(395+55, 465+50)
-    shuffle:SetSize(50, 20)
+    shuffle:SetPos(447, 457+ready_sz+2)
+    shuffle:SetSize(50, shuffle_sz)
     shuffle:SetState("playing")
     shuffle.OnClick = function()
         if self.client then
@@ -579,13 +627,28 @@ function Game:draw()
     local list = loveframes.Create("list")
     list:SetState("playing")
     list:SetPos(field_x+fw+4+13+4 + 5, 15+240+5)
-    list:SetSize(800-field_x*2-fw-4-13-4-10, 120)
+    list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
     list:SetPadding(5)
     list:SetSpacing(5)
     
     local text = loveframes.Create("text")
     text:SetText("assy cron")
+    text:SetFont(load_vera(10))
     list:AddItem(text)
+
+    local lobby_button = loveframes.Create("button")
+    lobby_button:SetState("playing")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      modal_choice("Really forfeit?", "Yes", "No", function()
+          net_send({type="forfeit"})
+        end)
+    end
+    
 
     self.loveframes_buttons.card_text_list = list
     self.loveframes_buttons.card_text = text
@@ -596,10 +659,14 @@ function Game:draw()
     ldeck, rdeck, lgrave, rgrave = #ldeck, #rdeck, #lgrave, #rgrave
   end
 
+
+   -- self.loveframes_buttons.ready:SetSize(50, ready_sz)
+    --self.loveframes_buttons.shuffle:SetSize(50, shuffle_sz)
+    --self.loveframes_buttons.shuffle:SetY(457+ready_sz+2)
   draw_hand_frame()
 
   set_color(28, 28, 28)
-  set_font(default_font)
+  set_font(load_vera(12))
   --gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
   --gprint("turn "..self.turn, 260, 425)
   --gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
@@ -617,10 +684,14 @@ function Game:draw()
   if draw_turn:len() < 2 then draw_turn = "0"..draw_turn end
   gprintf(draw_turn[1], field_x+268, 358+field_y, 999)
   gprintf(draw_turn[2], field_x+282, 358+field_y, 999)
-  set_color(28, 28, 28)
-  set_font(default_font)
-  gprint(self.time_remaining.."s", 465+55, 467 - 30 + 50)
-  gprint("size "..left:field_size().."/10", 450+55, 467 - 2 * 30 + 50)
+  --set_color(28, 28, 28)
+  --set_font(load_vera(12))
+  set_font(load_font("sg_assets/fonts/equalwan.png"))
+  local time_remaining = self.time_remaining
+  if time_remaining < 0.1 then time_remaining = 0 end
+  if self.game_type == "pve" then time_remaining = 99 end
+  gprintf(time_remaining, 447+50, 532, field_x+fw-447-50, "center")
+  gprintf("size "..left:field_size(), 447+50, 457 + 3, field_x+fw-447-50, "center")
   if self.hover_card then
     draw_hover_card(self.hover_card, self.loveframes_buttons.card_text)
   end
