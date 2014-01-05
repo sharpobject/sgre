@@ -71,8 +71,10 @@ spell_func = {
     OneBuff(opponent, target_idxs[1], {sta={"-",first_dmg}}):apply()
   end
   if pred.sita(player.character) then
-    local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
-    if target_idxs[1] then
+    if target_idxs[2] then
+      target_idxs[1] = target_idxs[2]
+    end
+    if target_idxs[1] and opponent.field[target_idxs[1]] then
       OneBuff(opponent, target_idxs[1], {sta={"-",second_dmg}}):apply()
     end
   end
@@ -83,16 +85,16 @@ end,
 
 -- cooking failure
 [200003] = function(player)
-  if #player:field_idxs_with_preds({pred.cook_club}) then
+  if #player:field_idxs_with_preds({pred.cook_club}) > 0 then
     local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.V}))
     local buff = OnePlayerBuff(player)
+    local atk_up, sta_up = 1,2
+    if #target_idxs >= 2 and 
+        pred.cook_club(player.field[target_idxs[1]]) and
+        pred.cook_club(player.field[target_idxs[2]]) then
+      atk_up, sta_up = 2,3
+    end
     for i=1,min(2,#target_idxs) do
-      local atk_up = 1
-      local sta_up = 2
-      if pred.cook_club(player.field[target_idxs[i]]) then
-        atk_up = atk_up + 1
-        sta_up = sta_up + 1
-      end
       buff[target_idxs[i]] = {atk={"+",atk_up},def={"+",1},sta={"+",sta_up},size={"+",1}}
     end
     buff:apply()
@@ -110,7 +112,7 @@ end,
 
 -- new recipe
 [200005] = function(player)
-  OneBuff(player,0,{life={"+",min(5,8-player:field_size())}}):apply()
+  OneBuff(player,0,{life={"+",bound(0,8-player:field_size(),5)}}):apply()
 end,
 
 -- shrink
@@ -127,7 +129,7 @@ end,
 
 -- balance
 [200007] = function(player, opponent)
-  if abs(player.character.life - opponent.character.life) <= 25 then
+  if abs(player.character.life - opponent.character.life) <= 20 then
     -- set life equal
     local buff = GlobalBuff(player)
     local new_life = ceil((player.character.life + opponent.character.life)/2)
@@ -177,7 +179,7 @@ end,
       buff_amount = buff_amount + 1
     end
   end
-  if #target_idxs then
+  if #target_idxs > 0 then
     local buff = OnePlayerBuff(player)
     for i=1,min(#target_idxs,2) do
       buff[target_idxs[i]] = {sta={"+",buff_amount}}
@@ -190,7 +192,7 @@ end,
 [200010] = function(player, opponent)
   local target_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if target_idx then
-    local x = #player:hand_idxs_with_preds(pred.faction.V)
+    local x = #player:hand_idxs_with_preds(pred.faction.V, pred.follower)
     OneBuff(opponent, target_idx, {atk={"-",x},def={"-",x},sta={"-",x}}):apply()
   end
 end,
@@ -241,7 +243,7 @@ end,
   if target_idx then
     local life_gain = player.field[target_idx].size*2
     player:field_to_grave(target_idx)
-    OneBuff(player,0,{life={"+",max(life_gain,9)}}):apply()
+    OneBuff(player,0,{life={"+",min(life_gain,9)}}):apply()
   end
 end,
 
@@ -249,10 +251,11 @@ end,
 [200015] = function(player)
   local buff = GlobalBuff(player)
   local target_idx = player:field_idxs_with_preds({pred.faction.A, pred.follower})[1]
-  local how_much = #(player:hand_idxs_with_preds({pred.faction.A}))
   if target_idx then
-    buff.field[player][target_idx] = {def={"=", how_much},atk={"+", ceil(how_much/2)},
-    sta={"+", ceil(how_much/2)}}
+    local def_amt = #(player:hand_idxs_with_preds({pred.faction.A}))
+    local other_amt = ceil(abs(def_amt - player.field[target_idx].def)/2)
+    buff.field[player][target_idx] = {def={"=", other_amt},atk={"+", other_amt},
+      sta={"+", other_amt}}
     buff:apply()
   end
 end,
@@ -325,13 +328,16 @@ end,
 
 -- saint's blessing
 [200021] = function(player)
-  local target_idxs = player:field_idxs_with_preds(pred.knight)
+  local target_idxs = player:field_idxs_with_preds(pred.C, pred.follower)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",3}}
     if pred.luthica(player.field[0]) then
       buff[idx].atk = {"+",3}
     end
+  end
+  if #target_idxs > 0 then
+    buff:apply()
   end
 end,
 
@@ -365,9 +371,9 @@ end,
     local card = player.field[old_idx]
     opponent.field[new_idx] = card
     player.field[old_idx] = nil
-    opponent.character.life = opponent.character.life - ceil(card.size/2)
     card.active = false
-    card.size = 1
+    OneBuff(opponent, 0, {life={"-",ceil(card.size/2)}}):apply()
+    OneBuff(opponent, new_idx, {size={"=",1}}):apply()
   end
 end,
 
@@ -457,7 +463,7 @@ end,
 -- vampiric rites
 [200033] = function(player)
   local idxs = player:get_follower_idxs()
-  local reduced_atk, reduced_sta, debuff, buff = 0, 0, GlobalBuff(player), GlobalBuff(player)
+  local debuff, buff = GlobalBuff(player), GlobalBuff(player)
   local buff_stats = {sta={"+",0}, atk={"+",0}, size={"+",0}}
   for _,idx in ipairs(idxs) do
     local card = player.field[idx]
@@ -485,7 +491,7 @@ end,
   if target_idx then
     local life = min(10,player.field[target_idx].sta-1)
     local buff = OnePlayerBuff(player)
-    buff[target_idx] = {sta={"=",1}, atk={"+",max(floor(life/2),3)}}
+    buff[target_idx] = {sta={"=",1}, atk={"+",min(floor(life/2),3)}}
     buff[0] = {life = {"+",life}}
     buff:apply()
   end
@@ -1503,7 +1509,8 @@ end,
     local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
     -- For the rest of the spell to happen, we need a vampire and an empty slot.
     local slot = player:first_empty_field_slot()
-    local vampires = player:field_idxs_with_preds(pred.vampire)
+    local vampires = player:field_idxs_with_preds(pred.union(
+      pred.scardel, pred.crescent, pred.flina))
     if slot and #vampires > 0 then
       player.field[slot] = card
       local buff_amt = 0
@@ -2020,7 +2027,8 @@ end,
     local my_card, op_card = player.field[my_idx], opponent.field[op_idx]
     local buff = GlobalBuff(player)
     buff.field[player][my_idx],buff.field[opponent][op_idx] = {},{}
-    for _,stat in ipairs({"atk","def","sta","size","skills"}) do
+    my_card.skills, op_card.skills = op_card.skills, my_card.skills
+    for _,stat in ipairs({"atk","def","sta","size"}) do
       buff.field[player][my_idx][stat] = {"=",op_card[stat]}
       buff.field[opponent][op_idx][stat] = {"=",my_card[stat]}
     end

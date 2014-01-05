@@ -12,11 +12,15 @@ if len(sys.argv) == 1:
 ep = sys.argv[1]
 
 def display_info(card):
-	print card['id'].ljust(7), card['name'].ljust(40), str(card['skills'])
+  if card["type"]=="Follower":
+    print card['id'].ljust(7), card['name'].ljust(40), str(card['skills'])
+  else:
+    print card['id'].ljust(7), card['name'].ljust(40), str(card['skills'])
 
 characters = []
 spells = []
 followers = []
+skills = set()
 id2card = swogi['id_to_card']
 
 for key in id2card.keys():
@@ -27,6 +31,7 @@ for key in id2card.keys():
 			spells.append(id2card[key])
 		elif id2card[key]['type'] == 'Follower':
 			followers.append(id2card[key])
+			skills |= set(id2card[key]["skills"])
 
 characters.sort(key=lambda card: card['id'])
 spells.sort(key=lambda card: card['id'])
@@ -42,4 +47,6 @@ for spell in spells:
 print '\n', "followers:".ljust(48), "skills:"
 for follower in followers:
 	display_info(follower)
-
+print '\n'
+for skill in sorted(list(skills)):
+  print skill

@@ -1,4 +1,5 @@
 local min,max = math.min,math.max
+local floor = math.floor
 local love = love
 
 Card = class(function(self, id, upgrade_lvl)
@@ -844,6 +845,9 @@ function Game:apply_buff(buff)
           end
           if which == "=" and stat == "size" then
             howmuch = max(1,howmuch)
+          end
+          if (howmuch ~= floor(howmuch)) then
+            error("cannot buff by fractional amount")
           end
           buff_effects[which](player[zone][idx],stat,howmuch)
         end

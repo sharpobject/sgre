@@ -181,9 +181,6 @@ local member_use = function(group_pred)
 end
 
 skill_func = {
--- episode 1 follower skills
-
--- untested
 -- new cook club student, may i see?
 [1001] = function(player)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.cook_club,pred.follower}))
@@ -234,7 +231,6 @@ end,
   buff:apply()
 end,
 
--- tested
 -- guard maid, maid cross
 [1007] = function(player)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.maid,pred.follower}))
@@ -301,7 +297,6 @@ end,
   buff:apply()
 end,
 
--- untested
 -- flag knight frett, flag return
 [1014] = function(player)
   if player.field[3] and player.field[3].type == "follower" then
@@ -312,14 +307,13 @@ end,
 end,
 
 -- knight adjt. sarisen, sisters in arms
-[1015] = function(player, my_idx)
-  local idxs = player:field_idxs_with_preds({pred.knight,pred.follower})
-  if #idxs > 1 then
+[1015] = function(player, my_idx, my_card)
+  local idxs = player:field_idxs_with_preds({pred.knight, pred.follower,
+    function(card) return card ~= my_card end})
+  if #idxs > 0 then
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(idxs) do
-      if idx ~= my_idx then
-        buff[idx] = {atk={"+",1}, sta={"+",1}}
-      end
+      buff[idx] = {atk={"+",1}, sta={"+",1}}
     end
     buff:apply()
   end
@@ -327,7 +321,7 @@ end,
 
 -- crux knight pintail, contract witch, surprise!
 [1016] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card.size < my_card.size then
+  if other_card and other_card.size < my_card.size then
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"+",1}, def={"+",1}}
     buff:apply()
@@ -2797,7 +2791,9 @@ end,
 -- Crux Knight Terra 
 [1708] = function(player, my_idx, my_card, skill_idx)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.knight,pred.follower}))
-  OneBuff(player, target_idx, {atk={"+",2},sta={"+",2}}):apply()
+  if target_idx then
+    OneBuff(player, target_idx, {atk={"+",2},sta={"+",2}}):apply()
+  end
   my_card:remove_skill(skill_idx)
 end,
 

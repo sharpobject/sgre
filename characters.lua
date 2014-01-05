@@ -33,49 +33,48 @@ local ep7_recycle = function(player)
 end
 
 local sita_vilosa = function(player)
-  if player.opponent:is_npc() then
-    OneBuff(player.opponent,0,{life={"-",1}}):apply()
-  end
   local target_idxs = player.opponent:get_follower_idxs()
   local buff = OnePlayerBuff(player.opponent)
   for _,idx in ipairs(target_idxs) do
     if idx < 4 and player.opponent.field[idx] then
-	buff[idx] = {sta={"-",1}}
+      buff[idx] = {sta={"-",1}}
     end
   end
   buff:apply()
-end
-
-local cinia_pacifica = function(player)
   if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
+end
+
+local cinia_pacifica = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
   if #target_idxs == 0 then
     return
   end
   local target_idx = uniformly(target_idxs)
   OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
-
-end
-
-local luthica_preventer = function(player)
   if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
+end
+
+local luthica_preventer = function(player)
   local target_idxs = player:field_idxs_with_preds(pred[player.character.faction], pred.follower)
   if #target_idxs == 0 then
     return
   end
   local target_idx = uniformly(target_idxs)
   OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
-end
-
-local iri_flina = function(player)
   if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
+end
+
+local iri_flina = function(player)
   if player:field_size() > player.opponent:field_size() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
+  if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
 end
@@ -246,12 +245,18 @@ local buff_all = function(player, opponent, my_card, my_buff)
   buff:apply()
 end
 
-local wind_forestier = function(player)
-  local target_idxs = player.opponent:field_idxs_with_preds(pred.follower)
-  if #target_idxs == 0 then
-    return
+local wind_forestier = function(stats)
+  return function(player)
+    local target_idxs = player.opponent:field_idxs_with_preds(pred.follower)
+    if #target_idxs == 0 then
+      return
+    end
+    local buff = {}
+    for _,stat in ipairs(stats) do
+      buff[stat] = {"-",floor(player.game.turn/2)}
+    end
+    OneBuff(player.opponent, uniformly(target_idxs), buff):apply()
   end
-  OneBuff(player.opponent, uniformly(target_idxs), {sta={"-",floor(player.game.turn/2)}}):apply()
 end
 
 characters_func = {
@@ -326,14 +331,14 @@ end,
   if num_follower==num_vita then
     local target_idxs = shuffle(player.opponent:get_follower_idxs())
     for i=1,2 do
-	    if target_idxs[i] then
-	      buff[target_idxs[i]] = {sta={"-",1}}
-	    end
+      if target_idxs[i] then
+        buff[target_idxs[i]] = {sta={"-",1}}
+      end
     end
   else
     local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.neg(pred.faction.V)))
     if target_idx then
-	    buff[target_idx] = {atk={"-",2},sta={"-",2}}
+      buff[target_idx] = {atk={"-",2},sta={"-",2}}
     end
   end
   buff:apply()
@@ -389,11 +394,11 @@ end,
   local target_idxs = player:get_follower_idxs()
   if math.abs(size1 - size2)%2 == 1 then
     for _,idx in ipairs(target_idxs) do
-	    buff[idx] = {sta={"+",2}}
+      buff[idx] = {sta={"+",2}}
     end
   else
     for _,idx in ipairs(target_idxs) do
-	    buff[idx] = {atk={"+",2}}
+      buff[idx] = {atk={"+",2}}
     end
   end
   buff:apply()
@@ -489,7 +494,7 @@ end,
   local hand_size = #player.hand
   if hand_size < 4 then
     for i=1,hand_size do
-	    player:hand_to_bottom_deck(1)
+      player:hand_to_bottom_deck(1)
     end
   else
     return
@@ -551,9 +556,9 @@ end,
   local card = player.opponent.field[target_idx]
   for i=target_idx,4 do
     if not player.opponent.field[i+1] then
-	    player.opponent.field[i+1] = card
-	    player.opponent.field[target_idx] = nil
-	    break
+      player.opponent.field[i+1] = card
+      player.opponent.field[target_idx] = nil
+      break
     end
   end
   if player.opponent.field[5] then
@@ -1631,7 +1636,7 @@ end,
 end,
 
 -- Wind Forestier  
-[110011] = wind_forestier,
+[110011] = wind_forestier({"sta"}),
 
 -- True Enchantress
 [110012] = function(player, opponent, mycard)
@@ -1680,7 +1685,7 @@ end,
 end,
 
 -- True Wind Forestier
-[110017] = wind_forestier,
+[110017] = wind_forestier({"atk", "sta"}),
 
 -- Doppelganger Sita
 [110018] = function(player)
@@ -1688,7 +1693,7 @@ end,
   local buff = OnePlayerBuff(player.opponent)
   for _,idx in ipairs(target_idxs) do
     if idx < 4 and player.opponent.field[idx] then
-  buff[idx] = {sta={"-",1}}
+      buff[idx] = {sta={"-",1}}
     end
   end
   buff:apply()
@@ -2263,9 +2268,11 @@ end,
 -- Breeze Queen Cannelle
 [120002] = function(player)
   local target_idxs = player:field_idxs_with_preds(pred.follower, function(card) return card.size <= 3 end)
+  local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
-    OneBuff(player, idx, {atk={"+",2},sta={"+",2}})
+    buff[idx] = {atk={"+",2},sta={"+",2}}
   end
+  buff:apply()
 end,
 
 -- Star Bird Gart
