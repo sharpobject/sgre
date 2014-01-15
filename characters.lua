@@ -32,6 +32,12 @@ local ep7_recycle = function(player)
   end
 end
 
+local wedding_shuffles = function(player)
+  if (not player.opponent:is_npc()) and player.shuffles == 0 then
+    player.shuffles = 1
+  end
+end
+
 local sita_vilosa = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
   local buff = OnePlayerBuff(player.opponent)
@@ -346,18 +352,27 @@ end,
 
 --Dress Sita
 [100010] = function(player)
-  local nme_followers = player.opponent:get_follower_idxs()
-  if #nme_followers == 0 then
+  local nme_cards = player.opponent:ncards_in_field()
+  if nme_cards == 0 then
     return
   end
-  local buff = OnePlayerBuff(player.opponent)
-  if #nme_followers > 1 then
+  if nme_cards > 1 then
+    local nme_followers = player.opponent:get_follower_idxs()
+    if #nme_followers == 0 then
+      return
+    end
+    local buff = OnePlayerBuff(player.opponent)
     local target_idx = player.opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
     buff[target_idx] = {atk={"-",2},def={"-",1},sta={"-",2}}
-  elseif #nme_followers == 1 then
-    buff[nme_followers[1]] = {sta={"-",2}}
+    buff:apply()
+  elseif nme_cards == 1 then
+    local target = player:deck_idxs_with_preds(pred.follower)[1]
+    if target then
+      local buff = GlobalBuff(player)
+      buff.deck[player][target] = {atk={"+",1},sta={"+",2}}
+      buff:apply()
+    end
   end
-  buff:apply()
 end,
 
 --Dress Cinia
@@ -411,6 +426,10 @@ end,
   end
   if (player.character.life + player.hand[1].size)%2 == 0 then
     OneBuff(player,0,{life={"+",3}}):apply()
+  else
+    local buff = GlobalBuff(player)
+    buff.hand[player][1] = {size={"-",1}}
+    buff:apply()
   end
 end,
 
@@ -429,7 +448,7 @@ end,
     size2 = player.hand[2].size
   end
   local size_diff = math.abs(size1 - size2)
-  OneBuff(player,uniformly(target_idxs),{size={"-",size_diff}}):apply()
+  OneBuff(player,uniformly(target_idxs),{size={"-",min(size_diff,3)}}):apply()
 end,
 
 --Kendo Sita
@@ -466,43 +485,48 @@ end,
 
 --Sports Luthica
 [100017] = function(player)
-  if player.field[5] and pred.follower(player.field[5]) and not player.field[1] then
-    local card = player.field[5]
-    player.field[1] = card
-    player.field[5] = nil
-    OneBuff(player,1,{sta={"+",5}}):apply()
-  elseif player.field[1] and pred.follower(player.field[1]) and not player.field[5] then
+  if #player:get_follower_idxs() == 0 then
+    return
+  end
+  if player.field[1] and pred.follower(player.field[1]) and not player.field[5] then
     local card = player.field[1]
     player.field[5] = card
     player.field[1] = nil
+  end
+  if player.field[5] and pred.follower(player.field[5]) then
     OneBuff(player,5,{sta={"+",5}}):apply()
   end
 end,
 
 --Cheerleader Iri
-[100018] = function(player)
+[100018] = function(player, opponent, my_card)
   local hand_idx = uniformly(player:hand_idxs_with_preds(function(card) return card.size >= 2 end))
   if hand_idx then
     local buff = GlobalBuff(player) --stolen from Tower of Books
     buff.hand[player][hand_idx] = {size={"-",1}}
     buff:apply()
+    if pred.D(player.hand[hand_idx]) then
+      buff_random(player, opponent, my_card, {atk={"+",1},sta={"+",1}})
+    end
   end
 end,
 
 --Team Manager Vernika
 [100019] = function(player)
   local hand_size = #player.hand
+  local buff_size = math.ceil(hand_size/2)
   if hand_size < 4 then
     for i=1,hand_size do
+      local buff = GlobalBuff(player)
+      buff.hand[player][1] = {atk={"+",buff_size},sta={"+",buff_size}}
       player:hand_to_bottom_deck(1)
     end
   else
     return
   end
-  local buff_size = math.ceil(hand_size/2)
-  local followers = player:get_follower_idxs()
-  if #followers > 0 then
-    OneBuff(player,uniformly(followers),{atk={"+",buff_size},sta={"+",buff_size}}):apply()
+  local targets = player:field_idxs_with_preds(pred.follower, pred.V)
+  if #targets > 0 then
+    OneBuff(player,uniformly(targets),{atk={"+",buff_size},sta={"+",buff_size}}):apply()
   end
 end,
 
@@ -546,7 +570,11 @@ end,
 
 --Swimwear Iri
 [100023] = function(player)
-  if player.opponent.field[5] then
+  local target = player.opponent.field[5]
+  if target then
+    if pred.follower(target) then
+      OneBuff(player.opponent,5,{atk={"-",1}})
+    end
     player.opponent:field_to_bottom_deck(5)
   end
   if player.opponent:field_size() == 0 then
@@ -710,19 +738,34 @@ end,
 end,
 
 -- wedding dress rose
-[100035] = thorn_witch_rose,
+[100035] = function(player)
+  thorn_witch_rose(player)
+  wedding_shuffles(player)
+end,
 
 -- wedding dress sita
-[100036] = sita_vilosa,
+[100036] = function(player)
+  sita_vilosa(player)
+  wedding_shuffles(player)
+end,
 
 -- wedding dress cinia
-[100037] = cinia_pacifica,
+[100037] = function(player)
+  cinia_pacifica(player)
+  wedding_shuffles(player)
+end,
 
 -- wedding dress luthica
-[100038] = luthica_preventer,
+[100038] = function(player)
+  luthica_preventer(player)
+  wedding_shuffles(player)
+end,
 
 -- wedding dress iri
-[100039] = iri_flina,
+[100039] = function(player)
+  iri_flina(player)
+  wedding_shuffles(player)
+end,
 
 -- wedding dress vernika
 [100040] = curious_vernika,
@@ -2281,6 +2324,11 @@ end,
   if target then
     opponent.field[target].active = false
   end
+end,
+
+-- Twilight Wolf Ginger
+[120004] = function(player, opponent, my_card)
+  buff_all(player, opponent, my_card, {atk={"+",3}})
 end,
 
 -- true vampire god
