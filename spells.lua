@@ -427,7 +427,7 @@ end,
     if player.field[i] and pred.follower(player.field[i]) then
       player.field[i].active = false
       if pred.faction.C(player.field[i]) then
-        buff[i]={size={"-",1}}
+        buff[i]={size={"-",1},atk={"+",2},sta={"+",2}}
       end
     end
     if opponent.field[i] and pred.follower(opponent.field[i]) then
@@ -553,7 +553,7 @@ end,
   end
 end,
 
--- magic eye
+-- evil eye
 [200040] = function(player,opponent)
   local idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(opponent)
@@ -564,6 +564,17 @@ end,
     end
   end
   buff:apply()
+  local idxs = opponent:field_idxs_with_preds(pred.follower)
+  if #idxs == 0 then
+    return
+  end
+  if #idxs <= 2 then
+    local buff = OnePlayerBuff(opponent)
+    for _,idx in ipairs(idxs) do
+      buff[idx] = {atk={"-",1},def={"-",1}}
+    end
+    buff:apply()
+  end
 end,
 
 -- student council justice
@@ -4193,7 +4204,19 @@ end,
 --200411
 --200412
 --200413
---200414
+
+-- Welcome!
+[200414] = function(player, opponent, my_idx, my_card)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if targets[i] then
+      buff[targets[i]] = {atk={"+",2},sta={"+",2}}
+    end
+  end
+  buff:apply()
+end,
+
 --200415
 --200416
 --200417
