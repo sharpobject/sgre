@@ -8,7 +8,7 @@ end
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
 local main_modal_notice, main_select_faction, main_lobby
-local main_fight
+local main_fight, main_decks
 
 frames = {}
 local frames = frames
@@ -75,7 +75,6 @@ end
 
 function main_go_hard()
   while true do
-    gfx_q:clear()
     go_hard()
     game:run()
   end
@@ -525,6 +524,15 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="dungeon", idx=3})
     end
+
+    local button = loveframes.Create("button")
+    button:SetPos(750,0)
+    button:SetSize(50, 50)
+    button:SetText("DECKS")
+    button:SetState("lobby")
+    button.OnClick = function()
+      from_lobby = {main_decks}
+    end
   end
 
   loveframes.SetState("lobby")
@@ -540,6 +548,169 @@ function main_lobby()
     if from_lobby then
       local ret = from_lobby
       from_lobby = nil
+      return unpack(ret)
+    end
+  end
+end
+
+local function update_deck(deck, diff)
+  for k,v in pairs(diff) do
+    deck[k] = (deck[k] or 0) + v
+    if deck[k] == 0 then
+      deck[k] = nil
+    end
+  end
+end
+
+local function collection_ex_deck(coll, deck)
+  local ret = {}
+  for k,v in pairs(coll) do
+    ret[k] = v - (deck[k] or 0)
+    if ret[k] == 0 then
+      ret[k] = nil
+    end
+  end
+  return ret
+end
+
+local from_decks = nil
+function main_decks()
+  if not frames.decks then
+    frames.decks = {}
+
+    local list, text = get_hover_list_text("decks")
+    frames.decks.card_text_list = list
+    frames.decks.card_text = text
+
+    local lobby_button = loveframes.Create("button")
+    lobby_button:SetState("decks")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      from_decks = {main_lobby}
+    end
+
+    local deck_pane = loveframes.Create("frame")
+    deck_pane:SetState("decks")
+    local x,y,w,h = left_hover_frame_pos()
+    deck_pane:SetPos(x,y)
+    deck_pane:SetSize(w,h)
+    deck_pane:ShowCloseButton(false)
+    deck_pane:SetDraggable(false)
+    deck_pane.Draw = function(self)
+      draw_hover_frame(self.x, self.y, self.width, self.height)
+    end
+
+    local deck_card_list = loveframes.Create("list", deck_pane)
+    deck_card_list:SetWidth(w-12)
+    deck_card_list:Center()
+    deck_card_list:SetY(60)
+    deck_card_list:SetHeight(400)
+    deck_card_list:SetPadding(0)
+    deck_card_list:SetSpacing(0)
+    function deck_card_list:Draw() end
+
+    local function deck_cmp(a, b)
+      -- a<b
+      if a[1]==b[1] then
+        return tonumber(a)<tonumber(b)
+      end
+      if a[1] == "1" then return true end
+      if b[1] == "1" then return false end
+      if a[1] == "3" then return true end
+      return false
+    end
+
+    function frames.decks.populate_deck_card_list(deck)
+      frames.decks.deck = deck
+      deck_card_list:Clear()
+      for k,v in spairs(deck, deck_cmp) do
+        deck_card_list:AddItem(deck_card_list_button(k, 0, v, function()
+          frames.decks.update_list = true
+          update_deck(frames.decks.deck, {[k]=-1})
+          update_deck(frames.decks.collection, {[k]=1})
+        end))
+      end
+    end
+
+    local card_list = loveframes.Create("list")
+    card_list:SetState("decks")
+    card_list:SetX(deck_pane:GetX()*2+deck_pane:GetWidth())
+    card_list:SetY(deck_pane:GetX())
+    card_list:SetHeight(600-card_list:GetY()*2)
+    card_list:SetWidth(800-2*card_list:GetX())
+    card_list:EnableHorizontalStacking(true)
+    function card_list:Draw() end
+    card_list:SetSpacing(5)
+
+    function frames.decks.populate_card_list(collection)
+      frames.decks.collection = collection
+      card_list:Clear()
+      for k,v in spairs(collection) do
+        card_list:AddItem(card_list_button(k, 0, v, function()
+          frames.decks.update_list = true
+          update_deck(frames.decks.deck, {[k]=1})
+          update_deck(frames.decks.collection, {[k]=-1})
+        end))
+      end
+    end
+
+    local checkbox_width = 20
+
+    local multichoice = loveframes.Create("multichoice", deck_pane)
+    multichoice:SetWidth(w - 18 - checkbox_width)
+    multichoice:SetPos(6, 6)
+    local nums = arr_to_set(procat("0123456789"))
+    function multichoice:OnChoiceSelected(choice)
+      if choice[1] ~= "D" then
+        choice = "Deck "..(#user_data.decks+1)
+      end
+      local idx = 0
+      for i=6,8 do
+        local chr = choice[i]
+        if not nums[chr] then break end
+        idx = idx*10 + tonumber(chr)
+      end
+      frames.decks.populate_deck_card_list(user_data.decks[idx] or {})
+      frames.decks.populate_card_list(collection_ex_deck(
+          user_data.collection, frames.decks.deck))
+    end
+    frames.decks.multichoice = multichoice
+
+    local checkbox = loveframes.Create("checkbox", deck_pane)
+    checkbox:SetPos(12+multichoice:GetWidth(), 6+2)
+  end
+
+  local multichoice = frames.decks.multichoice
+  multichoice:Clear()
+  for i=1,#user_data.decks do
+    local str = "Deck "..i
+    if i == user_data.active_deck then
+      str = str .. " (active)"
+    end
+    multichoice:AddChoice(str)
+  end
+  if #user_data.decks < 100 then
+    multichoice:AddChoice("New Deck")
+  end
+  local current_str = "Deck "..user_data.active_deck.." (active)"
+  multichoice:SelectChoice(current_str)
+
+  loveframes.SetState("decks")
+  while true do
+    wait()
+    if frames.decks.update_list then
+      frames.decks.populate_deck_card_list(frames.decks.deck)
+      frames.decks.populate_card_list(collection_ex_deck(
+          user_data.collection, frames.decks.deck))
+      frames.decks.update_list = false
+    end
+    if from_decks then
+      local ret = from_decks
+      from_decks = nil
       return unpack(ret)
     end
   end
@@ -595,11 +766,11 @@ end
 
 function get_active_char()
   local deck = user_data.decks[user_data.active_deck]
-  print(user_data.active_deck)
+  --[[print(user_data.active_deck)
   for k,v in pairs(user_data.decks) do
     print(k,v)
   end
-  print(deck)
+  print(deck)--]]
   for k,v in pairs(deck) do
     k = k + 0
     if k < 200000 then

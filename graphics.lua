@@ -1,4 +1,5 @@
 require "gradient"
+local love = love
 
 do
   local font_map = {}
@@ -107,65 +108,15 @@ local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
 
-local function yolo()
---  local foo = gfx_q[gfx_q.last]
---  foo[1](unpack(foo[2]))
-end
-
-function draw(img, x, y, rot, x_scale,y_scale)
-  rot = rot or 0
-  x_scale = x_scale or 1
-  y_scale = y_scale or 1
-  --print("DRAW AN IMAGE")
-  gfx_q:push({love.graphics.draw, {img, x*GFX_SCALE, y*GFX_SCALE,
-    rot, x_scale*GFX_SCALE, y_scale*GFX_SCALE}})
-  yolo()
-end
-
-function grectangle(mode,x,y,w,h)
-  gfx_q:push({love.graphics.rectangle, {mode, x, y, w, h}})
-  yolo()
-end
-
-function gprint(str, x, y)
-  gfx_q:push({love.graphics.print, {str, x, y}})
-  yolo()
-end
-
-function gprintf(...)
-  gfx_q:push({love.graphics.printf, {...}})
-  yolo()
-end
-
 local fonts = {}
 
-function gfontsize(...)
-  local func = function(size)
-    local font = fonts[size]
-    if not font then
-      font = love.graphics.newFont(size)
-      fonts[size] = font
-    end
-    love.graphics.setFont(font)
+function setfontsize(size)
+  local font = fonts[size]
+  if not font then
+    font = love.graphics.newFont(size)
+    fonts[size] = font
   end
-  gfx_q:push({func, {...}})
-  yolo()
-end
-
-local _r, _g, _b, _a = nil, nil, nil, nil
-function set_color(r, g, b, a)
-  a = a or 255
-  -- only do it if this color isn't the same as the previous one...
-  if _r~=r or _g~=g or _b~=b or _a~=a then
-      _r,_g,_b,_a = r,g,b,a
-      --print("SET COLOR TO "..r..", "..g..", "..b)
-      gfx_q:push({love.graphics.setColor, {r, g, b, a}})
-      yolo()
-  end
-end
-
-function set_font(...)
-  gfx_q:push({love.graphics.setFont, {...}})
+  love.graphics.setFont(font)
 end
 
 function graphics_init()
@@ -179,15 +130,20 @@ function graphics_init()
   card_height = card_height * card_scale
 end
 
-function draw_hover_card(card, text_obj)
+function draw_hover_card(text_obj)
+  local card = G_hover_card or get_active_char() or 100089
+  if type(card) == "number" then
+    card = Card(card)
+  end
+
   draw_hover_frame()
-  set_color(255, 255, 255)
+  love.graphics.setColor(255, 255, 255)
   local id = card.id
   if not IMG_card[id] then
     IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
   end
   local x,y = 612,15
-  draw(IMG_card[id], x, y, 0, 0.5, 0.5)
+  love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
   local card_width = card_width*2
   local card_height = card_height*2
   local gray_shit_height = (card_height - 200)/2
@@ -195,28 +151,28 @@ function draw_hover_card(card, text_obj)
   local gray_shit_x = x + gray_shit_dx
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
-  draw(load_asset("m-"..card.type..".png"), x, y)
+  love.graphics.draw(load_asset("m-"..card.type..".png"), x, y)
   if card.type == "character" then
     if card.life >= 10 then
-      set_font(load_font("sg_assets/fonts/lifewan.png"))
+      love.graphics.setFont(load_font("sg_assets/fonts/lifewan.png"))
     else
-      set_font(load_font("sg_assets/fonts/lifewan_rs.png"))
+      love.graphics.setFont(load_font("sg_assets/fonts/lifewan_rs.png"))
     end
-    gprintf(card.life, gray_shit_x+5, y+207, gray_shit_width, "center")
+    love.graphics.printf(card.life, gray_shit_x+5, y+207, gray_shit_width, "center")
   elseif card.type == "follower" then
-    set_font(load_font("sg_assets/fonts/statwan.png"))
-    gprintf(card.atk, x, y+208, card_width/3, "center")
-    gprintf(card.def, x+card_width/3, y+208, card_width/3, "center")
-    gprintf(card.sta, x+2*card_width/3, y+208, card_width/3, "center")
+    love.graphics.setFont(load_font("sg_assets/fonts/statwan.png"))
+    love.graphics.printf(card.atk, x, y+208, card_width/3, "center")
+    love.graphics.printf(card.def, x+card_width/3, y+208, card_width/3, "center")
+    love.graphics.printf(card.sta, x+2*card_width/3, y+208, card_width/3, "center")
   end
   if card.size then
-    set_font(load_font("sg_assets/fonts/sizewan.png"))
-    gprintf(card.size, gray_shit_x+5, y+11, gray_shit_width, "center")
+    love.graphics.setFont(load_font("sg_assets/fonts/sizewan.png"))
+    love.graphics.printf(card.size, gray_shit_x+5, y+11, gray_shit_width, "center")
   end
   if card.faction then
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
-  set_color(28 ,28 ,28)
+  love.graphics.setColor(28 ,28 ,28)
   local text = card.name.."\n".."Limit "..card.limit.." "..
     card.points.."pt "..card.rarity.."\n\n"
   text = text .. (skill_text[card.id] or "")
@@ -253,32 +209,33 @@ function draw_background()
     local window_height = love.graphics.getHeight()
     bkg_quad = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
   end
-  gfx_q:push({love.graphics.drawq or love.graphics.draw, {bkg, bkg_quad, 0, 0}})
-  yolo()
-  gfx_q:push({love.graphics.draw, {bkg_grad, 0, -love.graphics.getHeight()/2, 0, love.graphics.getWidth()/bkg_grad:getWidth(), love.graphics.getHeight()*2/bkg_grad:getHeight()}})
-  yolo()
+  (love.graphics.drawq or love.graphics.draw)(bkg, bkg_quad, 0, 0)
+  love.graphics.draw(bkg_grad, 0, -love.graphics.getHeight()/2, 0,
+      love.graphics.getWidth()/bkg_grad:getWidth(),
+      love.graphics.getHeight()*2/bkg_grad:getHeight())
 end
 
 function draw_border(x,y,w,h)
-  set_color(255, 255, 255)
+  love.graphics.setColor(255, 255, 255)
   local cx, cy = 3+4,2+4
   local c, cw, ch = load_asset("border-1.png")
-  draw(load_asset("border-left.png"), x-4, y, 0, 1, h)
-  draw(load_asset("border-right.png"), x+w, y, 0, 1, h)
-  draw(load_asset("border-top.png"), x, y-4, 0, w, 1)
-  draw(load_asset("border-bottom.png"), x, y+h, 0, w, 1)
-  draw(load_asset("border-1.png"), x-cx, y-cy)
-  draw(load_asset("border-2.png"), x+w+cx-cw, y-cy)
-  draw(load_asset("border-3.png"), x-cx, y+h+cy-ch)
-  draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
+  love.graphics.draw(load_asset("border-left.png"), x-4, y, 0, 1, h)
+  love.graphics.draw(load_asset("border-right.png"), x+w, y, 0, 1, h)
+  love.graphics.draw(load_asset("border-top.png"), x, y-4, 0, w, 1)
+  love.graphics.draw(load_asset("border-bottom.png"), x, y+h, 0, w, 1)
+  love.graphics.draw(load_asset("border-1.png"), x-cx, y-cy)
+  love.graphics.draw(load_asset("border-2.png"), x+w+cx-cw, y-cy)
+  love.graphics.draw(load_asset("border-3.png"), x-cx, y+h+cy-ch)
+  love.graphics.draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
 end
 
-local field_x, field_y = 16, 10
+field_x, field_y = 16, 10
+local field_x, field_y = field_x, field_y
 function Game:draw_field()
   local field_img, fw, fh = load_asset("field.png")
   local fx, fy = field_x, field_y
-  draw(field_img, fx, fy)
-  draw(load_asset("field_hud.png"), fx+4, fy+340)
+  love.graphics.draw(field_img, fx, fy)
+  love.graphics.draw(load_asset("field_hud.png"), fx+4, fy+340)
   local p1_name, p2_name, nw, nh =
       load_asset("name-red.png"), load_asset("name-blue.png")
   local left_text, right_text = self.P1.name, self.P2.name
@@ -286,22 +243,33 @@ function Game:draw_field()
     p1_name, p2_name = p2_name, p1_name
     left_text, right_text = right_text, left_text
   end
-  draw(p1_name, fx+7, fy+fh-6-nh)
-  draw(p2_name, fx+fw-7-nw, fy+fh-6-nh)
-  set_font(load_vera(12))
-  gprintf(left_text, fx+7+4, fy+fh-6-nh+2, nw-8, "left")
-  gprintf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+2, nw-8, "right")
+  love.graphics.draw(p1_name, fx+7, fy+fh-6-nh)
+  love.graphics.draw(p2_name, fx+fw-7-nw, fy+fh-6-nh)
+  love.graphics.setFont(load_vera(12))
+  love.graphics.printf(left_text, fx+7+4, fy+fh-6-nh+2, nw-8, "left")
+  love.graphics.printf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+2, nw-8, "right")
   draw_border(fx, fy, fw, fh)
 end
 
-function draw_hover_frame()
+function draw_hover_frame(x,y,w,h)
+  if not x then
+    local junk, fw = load_asset("field.png")
+    x = field_x+fw+4+13+4
+    y = field_y
+    w, h = 800 - field_x - x, 600 - field_y - y
+  end
+  love.graphics.setColor(254, 226, 106)
+  love.graphics.rectangle("fill", x, y, w, h)
+  draw_border(x, y, w, h)
+end
+
+function left_hover_frame_pos()
   local junk, fw = load_asset("field.png")
   local x = field_x+fw+4+13+4
   local y = field_y
   local w, h = 800 - field_x - x, 600 - field_y - y
-  set_color(254, 226, 106)
-  grectangle("fill", x, y, w, h)
-  draw_border(x, y, w, h)
+  x = 800 - (x+w)
+  return x,y,w,h
 end
 
 function draw_hand_frame()
@@ -309,8 +277,8 @@ function draw_hand_frame()
   local x = field_x
   local y = field_y+fh+4+6+4
   local w, h = fw, 600 - field_y - y
-  set_color(254, 226, 106)
-  grectangle("fill", x, y, w, h)
+  love.graphics.setColor(254, 226, 106)
+  love.graphics.rectangle("fill", x, y, w, h)
   draw_border(x, y, w, h)
 end
 
@@ -325,20 +293,6 @@ function draw_faction(faction, x, y, rot, x_scale, y_scale)
     ['C'] = "crux.png",
     ['A'] = "academy.png"}
   local faction_img = load_asset(faction_gfx[faction])
-  draw(faction_img, x, y, rot, x_scale, y_scale)
-end
-
-function draw_faction_loveframe(faction, x, y, rot, x_scale, y_scale, suffix)
-  rot = rot or 0
-  x_scale = x_scale or 1
-  y_scale = y_scale or 1
-  local faction_gfx = {['E'] = "empire",
-    ['D'] = "darklore",
-    ['N'] = "sg",
-    ['V'] = "vita",
-    ['C'] = "crux",
-    ['A'] = "academy"}
-  local faction_img = load_asset(faction_gfx[faction]..suffix..".png")
   love.graphics.draw(faction_img, x, y, rot, x_scale, y_scale)
 end
 
@@ -361,7 +315,7 @@ local slot_to_dxdy = {
           {280,458},
           {364,458}}}
 
-function draw_card_loveframe(card, x, y, hover_frame, text)
+function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
     id = 200099
@@ -393,7 +347,7 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
     if not (card.type == "character" or card.active) then
       suffix = "-g"
     end
-    if hover_frame then
+    if lighten_frame then
       love.graphics.draw(load_asset("s-highlight-"..card.type..".png"), x, y)
     else
       love.graphics.draw(load_asset("s-"..card.type..suffix..".png"), x, y)
@@ -412,7 +366,7 @@ function draw_card_loveframe(card, x, y, hover_frame, text)
       end
     end
     if card.faction then
-      draw_faction_loveframe(card.faction, x+1, y+1, 0, 0.5, 0.5, suffix)
+      draw_faction(card.faction, x+1, y+1, 0, 0.5, 0.5, suffix)
     end
   end
   if text then
@@ -439,6 +393,7 @@ function card_button(side,idx,x,y)
     local down = self.down
     local hand = side == "hand"
     local hover_frame = hover and hand
+    love.graphics.setColor(255, 255, 255, 255)
 
     if hand then
       love.graphics.draw(load_asset("hand_slot.png"), x-1, y-1)
@@ -459,8 +414,7 @@ function card_button(side,idx,x,y)
           text = "defend"
         end
       end
-      love.graphics.setColor(255, 255, 255, 255)
-      draw_card_loveframe(self.card, x, y, hover_frame, text)
+      draw_card(self.card, x, y, hover_frame, text)
     end
   end
   button.Update = function(self)
@@ -556,6 +510,23 @@ function modal_choice(prompt, lt, rt, lcb, rcb)
   frame:SetModal(true)
 end
 
+function get_hover_list_text(state)
+  local junk, fw = load_asset("field.png")
+
+  local list = loveframes.Create("list")
+  list:SetState(state)
+  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+5)
+  list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
+  list:SetPadding(5)
+  list:SetSpacing(5)
+  
+  local text = loveframes.Create("text")
+  text:SetText("assy cron")
+  text:SetFont(load_vera(10))
+  list:AddItem(text)
+  return list, text
+end
+
 function Game:draw()
   self:draw_field()
 
@@ -566,11 +537,11 @@ function Game:draw()
 
   local junk, fw = load_asset("field.png")
 
-  self.loveframes_buttons = self.loveframes_buttons or game_loveframes_buttons
+  self.loveframes_buttons = self.loveframes_buttons or frames.playing
 
   if not self.loveframes_buttons then
     self.loveframes_buttons = {}
-    game_loveframes_buttons = self.loveframes_buttons
+    frames.playing = self.loveframes_buttons
     self.loveframes_buttons.hand = {}
     for i=1,5 do
       self.loveframes_buttons.hand[i] = 
@@ -623,18 +594,8 @@ function Game:draw()
 
     self.loveframes_buttons.ready = ready
     self.loveframes_buttons.shuffle = shuffle
-    
-    local list = loveframes.Create("list")
-    list:SetState("playing")
-    list:SetPos(field_x+fw+4+13+4 + 5, 15+240+5)
-    list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
-    list:SetPadding(5)
-    list:SetSpacing(5)
-    
-    local text = loveframes.Create("text")
-    text:SetText("assy cron")
-    text:SetFont(load_vera(10))
-    list:AddItem(text)
+
+    local list, text = get_hover_list_text("playing")
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("playing")
@@ -665,34 +626,101 @@ function Game:draw()
     --self.loveframes_buttons.shuffle:SetY(457+ready_sz+2)
   draw_hand_frame()
 
-  set_color(28, 28, 28)
-  set_font(load_vera(12))
-  --gprint("deck "..ldeck.."    grave "..lgrave, 45, 425)
-  --gprint("turn "..self.turn, 260, 425)
-  --gprint("deck "..rdeck.."    grave "..rgrave, 405, 425)
+  love.graphics.setColor(28, 28, 28)
+  love.graphics.setFont(load_vera(12))
+  --love.graphics.print("deck "..ldeck.."    grave "..lgrave, 45, 425)
+  --love.graphics.print("turn "..self.turn, 260, 425)
+  --love.graphics.print("deck "..rdeck.."    grave "..rgrave, 405, 425)
   local field_hud_left_start_x, field_hud_y = 135 + field_x, 400 + field_y
   local field_hud_right_start_x = 372 + field_x
-  gprint(ldeck, field_hud_left_start_x, field_hud_y)
-  gprint(lgrave, field_hud_left_start_x + 38, field_hud_y)
-  gprint(left.shuffles, field_hud_left_start_x + 70, field_hud_y)
-  gprint(rdeck, field_hud_right_start_x, field_hud_y)
-  gprint(rgrave, field_hud_right_start_x + 38, field_hud_y)
-  gprint(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
-  set_color(255, 255, 255)
-  set_font(load_font("sg_assets/fonts/turnwan.png"))
+  love.graphics.print(ldeck, field_hud_left_start_x, field_hud_y)
+  love.graphics.print(lgrave, field_hud_left_start_x + 38, field_hud_y)
+  love.graphics.print(left.shuffles, field_hud_left_start_x + 70, field_hud_y)
+  love.graphics.print(rdeck, field_hud_right_start_x, field_hud_y)
+  love.graphics.print(rgrave, field_hud_right_start_x + 38, field_hud_y)
+  love.graphics.print(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.setFont(load_font("sg_assets/fonts/turnwan.png"))
   local draw_turn = self.turn..""
   if draw_turn:len() < 2 then draw_turn = "0"..draw_turn end
-  gprintf(draw_turn[1], field_x+268, 358+field_y, 999)
-  gprintf(draw_turn[2], field_x+282, 358+field_y, 999)
-  --set_color(28, 28, 28)
-  --set_font(load_vera(12))
-  set_font(load_font("sg_assets/fonts/equalwan.png"))
+  love.graphics.printf(draw_turn[1], field_x+268, 358+field_y, 999)
+  love.graphics.printf(draw_turn[2], field_x+282, 358+field_y, 999)
+  --love.graphics.setColor(28, 28, 28)
+  --love.graphics.setFont(load_vera(12))
+  love.graphics.setFont(load_font("sg_assets/fonts/equalwan.png"))
   local time_remaining = self.time_remaining
   if time_remaining < 0.1 then time_remaining = 0 end
   if self.game_type == "pve" then time_remaining = 99 end
-  gprintf(time_remaining, 447+50, 532, field_x+fw-447-50, "center")
-  gprintf("size "..left:field_size(), 447+50, 457 + 3, field_x+fw-447-50, "center")
+  love.graphics.printf(time_remaining, 447+50, 532, field_x+fw-447-50, "center")
+  love.graphics.printf("size "..left:field_size(), 447+50, 457 + 3, field_x+fw-447-50, "center")
   if self.hover_card then
-    draw_hover_card(self.hover_card, self.loveframes_buttons.card_text)
+    G_hover_card = self.hover_card
   end
 end
+
+function deck_card_list_button(id, upgrade, count, cb)
+  id = tonumber(id)
+  local button = loveframes.Create("button")
+  button:SetHeight(13)
+  button.Draw = function(self)
+    local x = self:GetX()
+    local y = self:GetY()
+    local hover = self:GetHover()
+    local w, h = self:GetWidth(), self:GetHeight()
+    local down = self.down
+
+    if hover and not down then
+      love.graphics.setColor(220, 220, 255, 160)
+      love.graphics.rectangle("fill", x,y,w,h)
+    elseif down then
+      love.graphics.setColor(220, 220, 255, 220)
+      love.graphics.rectangle("fill", x,y,w,h)
+    end
+    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.setFont(load_vera(10))
+    love.graphics.print(id_to_canonical_card[id].name, x, y)
+    love.graphics.printf(count, x, y, w, "right")
+  end
+  button.Update = function(self)
+    if self:GetHover() then
+      self.card = self.card or Card(id, upgrade)
+      G_hover_card = self.card
+    end
+  end
+  button.OnClick = cb
+  return button
+end
+
+function card_list_button(id, upgrade, count, cb)
+  id = tonumber(id)
+  local card = Card(id, upgrade)
+  local button = loveframes.Create("imagebutton")
+  button.card = card
+  button:SetSize(80, 120)
+  button.Draw = function(self)
+    local x = self:GetX()
+    local y = self:GetY()
+    local lighten_frame = self:GetHover()
+    local down = self.down
+    local hand = side == "hand"
+    love.graphics.setColor(255, 255, 255, 255)
+
+    --love.graphics.draw(load_asset("hand_slot.png"), x-1, y-1)
+
+    if down then
+      x,y = x+1,y+1
+    end
+
+    if self.card then
+      draw_card(self.card, x, y, lighten_frame)
+    end
+  end
+  button.Update = function(self)
+    if self.card and self:GetHover() then
+      G_hover_card = self.card
+    end
+  end
+  button.OnClick = cb
+  return button
+end
+

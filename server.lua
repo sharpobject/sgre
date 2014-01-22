@@ -345,7 +345,11 @@ function Connection:try_select_faction(msg)
   if (not data.active_deck) and
       msg.faction and
       starter_decks[msg.faction] then
-    self:update_collection(starter_decks[msg.faction])
+    -- ALL THE DECKS LOL
+    for k,v in pairs(starter_decks) do
+      self:update_collection(v)
+    end
+    -- self:update_collection(starter_decks[msg.faction])
     self:set_deck(1, starter_decks[msg.faction])
     self:set_active_deck(1)
   end

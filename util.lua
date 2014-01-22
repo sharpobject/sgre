@@ -102,12 +102,12 @@ function procat(str)
 end
 
 -- iterate over frozen pairs in sorted order
-function spairs(tab)
+function spairs(tab, ...)
   local keys,vals,idx = {},{},0
   for k in pairs(tab) do
     keys[#keys+1] = k
   end
-  sort(keys)
+  sort(keys, ...)
   for i=1,#keys do
     vals[i]=tab[keys[i]]
   end

@@ -5,7 +5,6 @@ require("util")
 require("class")
 require("queue")
 require("loveframes")
-require("globals")
 require("network")
 require("engine")
 require("cards")
@@ -80,8 +79,6 @@ function love.load(arg)
 end
 
 function love.update(dt)
-  gfx_q:clear()
-  draw_background()
   --print("FRAME BEGIN")
   local status, err = coroutine.resume(mainloop)
   if not status then
@@ -89,16 +86,20 @@ function love.update(dt)
   end
   if game then
     game:update()
-    game:draw()
   end
   do_messages()
   loveframes.update(dt)
 end
 
+local hover_states = arr_to_set({"playing", "decks", "craft"})
+
 function love.draw()
-  set_color(255,255,255)
-  for i=gfx_q.first,gfx_q.last do
-    gfx_q[i][1](unpack(gfx_q[i][2]))
+  love.graphics.setColor(255,255,255)
+  draw_background()
+  if game then game:draw() end
+  local state = loveframes.GetState()
+  if hover_states[state] then
+    draw_hover_card(frames[state].card_text)
   end
   --love.graphics.print("FPS: "..love.timer.getFPS(),315,15)
   loveframes.draw()
