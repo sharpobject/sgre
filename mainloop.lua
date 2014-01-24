@@ -608,7 +608,7 @@ function main_decks()
     deck_card_list:SetWidth(w-12)
     deck_card_list:Center()
     deck_card_list:SetY(60)
-    deck_card_list:SetHeight(400)
+    deck_card_list:SetHeight(480)
     deck_card_list:SetPadding(0)
     deck_card_list:SetSpacing(0)
     function deck_card_list:Draw() end
@@ -624,14 +624,20 @@ function main_decks()
       return false
     end
 
+    function frames.decks.update_list()
+      frames.decks.populate_deck_card_list(frames.decks.deck)
+      frames.decks.populate_card_list(collection_ex_deck(
+          user_data.collection, frames.decks.deck))
+    end
+
     function frames.decks.populate_deck_card_list(deck)
       frames.decks.deck = deck
       deck_card_list:Clear()
       for k,v in spairs(deck, deck_cmp) do
         deck_card_list:AddItem(deck_card_list_button(k, 0, v, function()
-          frames.decks.update_list = true
           update_deck(frames.decks.deck, {[k]=-1})
           update_deck(frames.decks.collection, {[k]=1})
+          frames.decks.update_list()
         end))
       end
     end
@@ -651,9 +657,9 @@ function main_decks()
       card_list:Clear()
       for k,v in spairs(collection) do
         card_list:AddItem(card_list_button(k, 0, v, function()
-          frames.decks.update_list = true
           update_deck(frames.decks.deck, {[k]=1})
           update_deck(frames.decks.collection, {[k]=-1})
+          frames.decks.update_list()
         end))
       end
     end
@@ -702,12 +708,6 @@ function main_decks()
   loveframes.SetState("decks")
   while true do
     wait()
-    if frames.decks.update_list then
-      frames.decks.populate_deck_card_list(frames.decks.deck)
-      frames.decks.populate_card_list(collection_ex_deck(
-          user_data.collection, frames.decks.deck))
-      frames.decks.update_list = false
-    end
     if from_decks then
       local ret = from_decks
       from_decks = nil

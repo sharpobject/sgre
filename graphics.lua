@@ -110,15 +110,6 @@ local card_width, card_height
 
 local fonts = {}
 
-function setfontsize(size)
-  local font = fonts[size]
-  if not font then
-    font = love.graphics.newFont(size)
-    fonts[size] = font
-  end
-  love.graphics.setFont(font)
-end
-
 function graphics_init()
   IMG_card = {}
   IMG_gray_card = {}
@@ -713,6 +704,10 @@ function card_list_button(id, upgrade, count, cb)
 
     if self.card then
       draw_card(self.card, x, y, lighten_frame)
+      love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
+      love.graphics.setFont(load_vera(10))
+      love.graphics.setColor(0, 0, 0, 255)
+      love.graphics.printf(count, x, y+83, 66, "right")
     end
   end
   button.Update = function(self)
