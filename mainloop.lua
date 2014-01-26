@@ -172,6 +172,12 @@ function main_login(email, password)
                 resp = net_q:pop()
                 if resp.type=="user_data" then
                   user_data = resp.value
+                  if user_data.collection then
+                    user_data.collection = fix_num_keys(user_data.collection)
+                  end
+                  if user_data.decks then
+                    user_data.decks = map(fix_num_keys, user_data.decks)
+                  end
                   doing_login = false
                   from_login = {main_select_faction}
                   break
@@ -615,6 +621,7 @@ function main_decks()
 
     local function deck_cmp(a, b)
       -- a<b
+      a, b = tostring(a), tostring(b)
       if a[1]==b[1] then
         return tonumber(a)<tonumber(b)
       end
