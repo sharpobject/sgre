@@ -431,6 +431,7 @@ function main_modal_notice(text, to_ret)
 end
 
 function main_select_faction()
+  loveframes.SetState("select_faction")
   if user_data.active_deck then
     return main_lobby
   end
@@ -447,7 +448,6 @@ function main_select_faction()
   loveframes.SetState("select_faction")
   
   while true do
-    draw(load_asset("select_faction.png"), 153, 58)
     wait()
     if user_data.active_deck then
       return main_lobby

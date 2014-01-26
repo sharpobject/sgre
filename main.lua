@@ -101,6 +101,9 @@ function love.draw()
   if hover_states[state] then
     draw_hover_card(frames[state].card_text)
   end
+  if state == "select_faction" then
+    love.graphics.draw(load_asset("select_faction.png"), 153, 58)
+  end
   --love.graphics.print("FPS: "..love.timer.getFPS(),315,15)
   loveframes.draw()
 end
