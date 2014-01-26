@@ -372,7 +372,7 @@ function Connection:try_dungeon(msg)
   local data = uid_to_data[self.uid]
   local my_floor = data.dungeon_floors[which]
   my_floor = min(#dungeon, my_floor)
-  local npc_id = uniformly(dungeon[my_floor])
+  local npc_id = dungeon[my_floor]["npc"]
   local lose_floor, win_floor = 1,1
   if my_floor ~= #dungeon then
     lose_floor = max(my_floor-1, 1)
@@ -385,6 +385,37 @@ function Connection:try_dungeon(msg)
       if my_floor == #dungeon then
         data.dungeon_clears[which] = data.dungeon_clears[which] + 1
       end
+      -- dungeon rewards section
+      local reward_id = "0"
+      if dungeon[my_floor]["rewards"][tostring(data.dungeon_clears[which])] then
+        reward_id = tostring(data.dungeon_clears[which])
+      end
+      local ores={"210008", "210009", "210011", "210012"}
+      local rewards={}
+      local num_ores=dungeon[my_floor]["rewards"][reward_id]["ore"] or 0
+      if num_ores > 0 then
+        for i=1,num_ores do
+          local ore_id=uniformly(ores)
+          if not rewards[ore_id] then
+            rewards[ore_id] = 1
+          else
+            rewards[ore_id] = rewards[ore_id] + 1
+          end
+        end
+      end
+      local reward_cards=dungeon[my_floor]["rewards"][reward_id]["cards"]
+      if reward_cards then
+        for i, v in pairs(reward_cards) do
+          local card_id = tostring(i)
+          if not rewards[card_id] then
+            rewards[card_id] = tonumber(v)
+          else
+            rewards[card_id] = rewards[card_id] + tonumber(v)
+          end
+        end
+      end
+      self:update_collection(rewards)
+      -- end dungeon rewards section
       data.dungeon_floors[which] = win_floor
       modified_file(data)
     end
