@@ -436,6 +436,20 @@ function main_modal_notice(text, to_ret)
   end
 end
 
+function rewards(text)
+  local frame = loveframes.Create("frame")
+  frame:SetState("lobby")
+  frame:SetName("Notice~")
+  frame:SetSize(300, 90)
+  frame:ShowCloseButton(true)
+  frame:SetDraggable(false)
+  frame:SetModal(true)
+  frame:Center()
+  
+  local text1 = loveframes.Create("text", frame)
+  text1:SetText(text)
+end
+
 function main_select_faction()
   loveframes.SetState("select_faction")
   if user_data.active_deck then
@@ -539,6 +553,15 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_decks}
     end
+
+    local button = loveframes.Create("button")
+    button:SetPos(300,0)
+    button:SetSize(50, 50)
+    button:SetText("test notice")
+    button:SetState("lobby")
+    button.OnClick = function()
+      rewards("test")
+    end
   end
 
   loveframes.SetState("lobby")
@@ -549,6 +572,8 @@ function main_lobby()
       local msg = net_q:pop()
       if msg.type=="game_start" then
         from_lobby = {main_fight, {msg}}
+      elseif msg.type=="dungeon_rewards" then
+        from_lobby = {main_modal_notice, {"dungeon rewards get!", {main_lobby}}}
       end
     end
     if from_lobby then

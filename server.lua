@@ -52,20 +52,23 @@ local file_q = Queue()
 local chat_q = Queue()
 
 starter_decks = json.decode(file_contents("starter_decks.json"))
-for k,v in pairs(starter_decks) do
-  starter_decks[k] = fix_num_keys(v)
-end
+starter_decks = fix_num_keys(starter_decks)
+-- for k,v in pairs(starter_decks) do
+--   starter_decks[k] = fix_num_keys(v)
+-- end
 
 npc_decks = json.decode(file_contents("npc_decks.json"))
-for k,v in pairs(npc_decks) do
-  npc_decks[k] = fix_num_keys(v)
-end
+npc_decks = fix_num_keys(npc_decks)
+-- for k,v in pairs(npc_decks) do
+--   npc_decks[k] = fix_num_keys(v)
+-- end
 npc_decks = fix_num_keys(npc_decks)
 for k,v in pairs(npc_decks) do
   v[k] = 1
 end
 
 dungeons = json.decode(file_contents("dungeons.json"))
+dungeons=fix_num_keys(dungeons)
 
 ssl_context = assert(ssl.newcontext({
     mode="server",
@@ -314,8 +317,8 @@ function Connection:try_login(msg)
   if uid_to_connection[uid] then
     uid_to_connection[uid]:close()
   end
-  if #data.dungeon_clears < #dungeons then
-    for i=#data.dungeon_clears+1, #dungeons do
+  if #data.dungeon_clears < #dungeons.npcs then
+    for i=#data.dungeon_clears+1, #dungeons.npcs do
       data.dungeon_clears[i] = 0
       data.dungeon_floors[i] = 1
     end
@@ -365,16 +368,18 @@ end
 
 function Connection:try_dungeon(msg)
   local which = msg.idx
-  if (not which) or (not dungeons[which]) then
+  if (not which) or (not dungeons.npcs[which]) then
     return
   end
-  local dungeon = dungeons[which]
+  -- local dungeon = dungeons[which]
+  local total_floors = dungeons.floors[which]
   local data = uid_to_data[self.uid]
   local my_floor = data.dungeon_floors[which]
-  my_floor = min(#dungeon, my_floor)
-  local npc_id = dungeon[my_floor]["npc"]
+  my_floor = min(total_floors, my_floor)
+  local npcs = dungeons.npcs[which][my_floor] or dungeons.npcs[which][0]
+  local npc_id = uniformly(npcs)
   local lose_floor, win_floor = 1,1
-  if my_floor ~= #dungeon then
+  if my_floor ~= total_floors then
     lose_floor = max(my_floor-1, 1)
     win_floor = my_floor+1
   end
@@ -382,17 +387,15 @@ function Connection:try_dungeon(msg)
   modified_file(data)
   function self:on_game_over(win)
     if win then
-      if my_floor == #dungeon then
+      if my_floor == total_floors then
         data.dungeon_clears[which] = data.dungeon_clears[which] + 1
       end
       -- dungeon rewards section
-      local reward_id = "0"
-      if dungeon[my_floor]["rewards"][tostring(data.dungeon_clears[which])] then
-        reward_id = tostring(data.dungeon_clears[which])
-      end
+      local reward_floor = dungeons.rewards[which][my_floor] or dungeons.rewards[which][0]
+      local reward_data = reward_floor[data.dungeon_clears[which]] or reward_floor[0]
+      local num_ores=reward_data["ore"] or 0
       local ores={"210008", "210009", "210011", "210012"}
       local rewards={}
-      local num_ores=dungeon[my_floor]["rewards"][reward_id]["ore"] or 0
       if num_ores > 0 then
         for i=1,num_ores do
           local ore_id=uniformly(ores)
@@ -403,18 +406,18 @@ function Connection:try_dungeon(msg)
           end
         end
       end
-      local reward_cards=dungeon[my_floor]["rewards"][reward_id]["cards"]
+      local reward_cards=reward_data["cards"]
       if reward_cards then
         for i, v in pairs(reward_cards) do
-          local card_id = tostring(i)
-          if not rewards[card_id] then
-            rewards[card_id] = tonumber(v)
+          if not rewards[i] then
+            rewards[i] = v
           else
-            rewards[card_id] = rewards[card_id] + tonumber(v)
+            rewards[i] = rewards[i] + v
           end
         end
       end
       self:update_collection(rewards)
+      self:send({type="dungeon_rewards",rewards=rewards})
       -- end dungeon rewards section
       data.dungeon_floors[which] = win_floor
       modified_file(data)

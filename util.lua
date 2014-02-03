@@ -261,8 +261,12 @@ end
 
 -- for fixing json encoded numeric dicts
 function fix_num_keys(t)
+  if type(t) ~= "table" then
+    return t
+  end
   local ret = {}
   for k,v in pairs(t) do
+    v = fix_num_keys(v)
     ret[tonumber(k) or k] = v
   end
   return ret
