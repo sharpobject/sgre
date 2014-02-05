@@ -436,18 +436,49 @@ function main_modal_notice(text, to_ret)
   end
 end
 
-function rewards(text)
+function rewards(data)
   local frame = loveframes.Create("frame")
   frame:SetState("lobby")
-  frame:SetName("Notice~")
-  frame:SetSize(300, 90)
-  frame:ShowCloseButton(true)
+  frame:SetName("Rewards!")
+  frame:SetSize(500, 300)
+  frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:SetModal(true)
   frame:Center()
   
   local text1 = loveframes.Create("text", frame)
-  text1:SetText(text)
+  text1:SetText("Rewards:")
+  text1:Center()
+  text1:SetY(35)
+
+  local okbutton = loveframes.Create("button", frame)
+  okbutton:SetWidth(150)
+  okbutton:CenterX()
+  okbutton:SetY(250)
+  okbutton:SetText("OK!")
+  okbutton.OnClick = function()
+    frame:Remove()
+  end
+
+  local rewards_list = loveframes.Create("list", frame)
+  local test_button = card_list_button(300001, 0, 1, function() end)
+  local card_width = test_button:GetWidth()
+  local spacing = 5
+  local ncards = 0
+  rewards_list:SetHeight(test_button:GetHeight())
+  rewards_list:EnableHorizontalStacking(true)
+  rewards_list:SetSpacing(spacing)
+  for i, v in pairs(data) do 
+    ncards = ncards + 1
+    rewards_list:AddItem(card_list_button(i, 0, v, function() end))
+  end
+  local width = math.min(ncards * card_width + (ncards - 1) * spacing, spacing * 4 + card_width * 5 + 15) -- 15 is scrollbar width
+  rewards_list:SetWidth(width)
+  rewards_list:CenterX()
+  rewards_list:CenterY()
+  if ncards < 1 then
+    rewards_list:Remove()
+  end
 end
 
 function main_select_faction()
@@ -560,7 +591,7 @@ function main_lobby()
     button:SetText("test notice")
     button:SetState("lobby")
     button.OnClick = function()
-      rewards("test")
+      rewards(fix_num_keys{["210010"]=1, ["210011"]=1, ["210012"]=1})
     end
   end
 
