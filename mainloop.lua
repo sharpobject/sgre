@@ -592,15 +592,6 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_decks}
     end
-
-    local button = loveframes.Create("button")
-    button:SetPos(300,0)
-    button:SetSize(50, 50)
-    button:SetText("test notice")
-    button:SetState("lobby")
-    button.OnClick = function()
-      rewards(fix_num_keys{["210010"]=1, ["210011"]=1, ["210012"]=1})
-    end
   end
 
   loveframes.SetState("lobby")

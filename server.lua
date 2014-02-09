@@ -53,15 +53,8 @@ local chat_q = Queue()
 
 starter_decks = json.decode(file_contents("starter_decks.json"))
 starter_decks = fix_num_keys(starter_decks)
--- for k,v in pairs(starter_decks) do
---   starter_decks[k] = fix_num_keys(v)
--- end
 
 npc_decks = json.decode(file_contents("npc_decks.json"))
-npc_decks = fix_num_keys(npc_decks)
--- for k,v in pairs(npc_decks) do
---   npc_decks[k] = fix_num_keys(v)
--- end
 npc_decks = fix_num_keys(npc_decks)
 for k,v in pairs(npc_decks) do
   v[k] = 1
