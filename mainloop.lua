@@ -437,8 +437,9 @@ function main_modal_notice(text, to_ret)
 end
 
 function rewards(data)
+  local close = false
   local frame = loveframes.Create("frame")
-  frame:SetState("lobby")
+  frame:SetState("playing")
   frame:SetName("Rewards!")
   frame:SetSize(500, 300)
   frame:ShowCloseButton(false)
@@ -457,7 +458,7 @@ function rewards(data)
   okbutton:SetY(250)
   okbutton:SetText("OK!")
   okbutton.OnClick = function()
-    frame:Remove()
+    close = true
   end
 
   local rewards_list = loveframes.Create("list", frame)
@@ -478,6 +479,13 @@ function rewards(data)
   rewards_list:CenterY()
   if ncards < 1 then
     rewards_list:Remove()
+  end
+  while true do
+    if close == true then
+      frame:Remove()
+      break
+    end
+    wait()
   end
 end
 
@@ -603,8 +611,6 @@ function main_lobby()
       local msg = net_q:pop()
       if msg.type=="game_start" then
         from_lobby = {main_fight, {msg}}
-      elseif msg.type=="dungeon_rewards" then
-        from_lobby = {main_modal_notice, {"dungeon rewards get!", {main_lobby}}}
       end
     end
     if from_lobby then
@@ -851,6 +857,11 @@ function main_fight(msg)
   game.my_name = user_data.username
   game.P1.name = game.my_name
   game.P2.name = game.opponent_name
-  game:client_run()
+  game = game:client_run()
+  if user_data.latest_rewards then
+    rewards(user_data.latest_rewards)
+    user_data.latest_rewards = nil
+  end
+  game = nil
   return main_lobby
 end

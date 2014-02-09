@@ -138,3 +138,7 @@ function handlers.general_chat(msg)
       msg.from..": "..msg.text)
   end
 end
+
+function handlers.dungeon_rewards(msg)
+  user_data.latest_rewards=msg.rewards
+end
