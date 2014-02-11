@@ -260,6 +260,7 @@ function arr_to_counter(t)
 end
 
 -- for fixing json encoded numeric dicts
+-- TODO: this may become a performance bottleneck for the server later
 function fix_num_keys(t)
   if type(t) ~= "table" then
     return t

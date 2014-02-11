@@ -364,12 +364,11 @@ function Connection:try_dungeon(msg)
   if (not which) or (not dungeons.npcs[which]) then
     return
   end
-  -- local dungeon = dungeons[which]
-  local total_floors = dungeons.floors[which]
+  local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
   local my_floor = data.dungeon_floors[which]
   my_floor = min(total_floors, my_floor)
-  local npcs = dungeons.npcs[which][my_floor] or dungeons.npcs[which][0]
+  local npcs = dungeons.npcs[which][my_floor]
   local npc_id = uniformly(npcs)
   local lose_floor, win_floor = 1,1
   if my_floor ~= total_floors then
