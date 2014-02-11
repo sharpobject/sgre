@@ -1410,8 +1410,7 @@ function Game:client_run()
     elseif msg.type == "coin" then
         --TODO
     elseif msg.type == "game_over" then
-      game = nil
-      return
+      return game
     elseif msg.type == "turn" then
       self.turn = msg.turn
     elseif msg.type == "opponent_disconnected" then
