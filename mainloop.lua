@@ -440,6 +440,7 @@ end
 
 function rewards(data)
   local close = false
+  -- make outer frame
   local frame = loveframes.Create("frame")
   frame:SetState("playing")
   frame:SetName("Rewards!")
@@ -449,11 +450,13 @@ function rewards(data)
   frame:SetModal(true)
   frame:Center()
   
+  -- make text in frame
   local text1 = loveframes.Create("text", frame)
   text1:SetText("Rewards:")
   text1:Center()
   text1:SetY(35)
 
+  -- make okbutton that sets 'close' to true
   local okbutton = loveframes.Create("button", frame)
   okbutton:SetWidth(150)
   okbutton:CenterX()
@@ -463,6 +466,7 @@ function rewards(data)
     close = true
   end
 
+  -- spit out rewards received from msg.  if there are too many rewards, let it scroll
   local rewards_list = loveframes.Create("list", frame)
   local test_button = card_list_button(300001, 0, 1, function() end)
   local card_width = test_button:GetWidth()
@@ -482,6 +486,8 @@ function rewards(data)
   if ncards < 1 then
     rewards_list:Remove()
   end
+
+  -- sit around and wait until 'close' is true, then remove this frame
   while true do
     if close == true then
       frame:Remove()
