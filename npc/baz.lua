@@ -82,7 +82,7 @@ for k,v in pairs(games) do
   end
   try_wiggling_it(30, sum, acc)
   if vsum(acc) > 30 then
-    print("oh no "..k.." "..vsum(acc))
+--    print("oh no "..k.." "..vsum(acc))
   end
   out_games[k] = acc
 end

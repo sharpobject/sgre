@@ -1,3 +1,5 @@
+local ceil = math.ceil
+
 function wait(n)
   n = n or 1
   for i=1,n do
@@ -438,7 +440,6 @@ end
 
 function rewards(data)
   local close = false
-  -- make outer frame
   local frame = loveframes.Create("frame")
   frame:SetState("playing")
   frame:SetName("Rewards!")
@@ -448,13 +449,11 @@ function rewards(data)
   frame:SetModal(true)
   frame:Center()
   
-  -- make text in frame
   local text1 = loveframes.Create("text", frame)
   text1:SetText("Rewards:")
   text1:Center()
   text1:SetY(35)
 
-  -- make okbutton that sets 'close' to true
   local okbutton = loveframes.Create("button", frame)
   okbutton:SetWidth(150)
   okbutton:CenterX()
@@ -464,7 +463,6 @@ function rewards(data)
     close = true
   end
 
-  -- spit out rewards received from msg.  if there are too many rewards, let it scroll
   local rewards_list = loveframes.Create("list", frame)
   local test_button = card_list_button(300001, 0, 1, function() end)
   local card_width = test_button:GetWidth()
@@ -484,8 +482,6 @@ function rewards(data)
   if ncards < 1 then
     rewards_list:Remove()
   end
-
-  -- sit around and wait until 'close' is true, then remove this frame
   while true do
     if close == true then
       frame:Remove()
@@ -554,6 +550,8 @@ function main_lobby()
       net_send({type="general_chat",text=text})
     end
 
+    frames.lobby.game_buttons = {}
+
     local button = loveframes.Create("button")
     button:SetPos(0,0)
     button:SetSize(50, 50)
@@ -562,6 +560,7 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="join_fight"})
     end
+    table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
     button:SetPos(50,0)
@@ -571,6 +570,7 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="dungeon", idx=1})
     end
+    table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
     button:SetPos(100,0)
@@ -580,6 +580,7 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="dungeon", idx=2})
     end
+    table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
     button:SetPos(150,0)
@@ -589,6 +590,7 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="dungeon", idx=3})
     end
+    table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
     button:SetPos(750,0)
@@ -598,6 +600,11 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_decks}
     end
+  end
+
+  local enable_buttons = check_active_deck()
+  for _,button in ipairs(frames.lobby.game_buttons) do
+    button:SetEnabled(enable_buttons)
   end
 
   loveframes.SetState("lobby")
@@ -642,6 +649,7 @@ local from_decks = nil
 function main_decks()
   if not frames.decks then
     frames.decks = {}
+    frames.decks.page_num = 1
 
     local list, text = get_hover_list_text("decks")
     frames.decks.card_text_list = list
@@ -702,7 +710,7 @@ function main_decks()
       for k,v in spairs(deck, deck_cmp) do
         deck_card_list:AddItem(deck_card_list_button(k, 0, v, function()
           update_deck(frames.decks.deck, {[k]=-1})
-          update_deck(frames.decks.collection, {[k]=1})
+          net_send({type="update_deck", idx=frames.decks.idx, diff={[k]=-1}})
           frames.decks.update_list()
         end))
       end
@@ -718,14 +726,71 @@ function main_decks()
     function card_list:Draw() end
     card_list:SetSpacing(5)
 
+    local button_width = 20
+    local lbutton = loveframes.Create("button")
+    lbutton:SetState("decks")
+    lbutton:SetX((800 - (deck_pane:GetX()*2+deck_pane:GetWidth())) - 2*button_width - 5)
+    lbutton:SetY(570)
+    lbutton:SetSize(20,20)
+    lbutton:SetText("<")
+    function lbutton:OnClick()
+      frames.decks.page_num = frames.decks.page_num - 1
+      frames.decks.update_list()
+    end
+
+    local rbutton = loveframes.Create("button")
+    rbutton:SetState("decks")
+    rbutton:SetX((800 - (deck_pane:GetX()*2+deck_pane:GetWidth())) - button_width)
+    rbutton:SetY(570)
+    rbutton:SetSize(20,20)
+    rbutton:SetText(">")
+    function rbutton:OnClick()
+      frames.decks.page_num = frames.decks.page_num + 1
+      frames.decks.update_list()
+    end
+
+    local function can_add_card(deck, id)
+      local n = 0
+      for k,v in pairs(deck) do
+        if k >= 200000 then
+          n = n + v
+        end
+      end
+      return n < 30 and ((deck[id] or 0) < Card(id).limit)
+    end
+
     function frames.decks.populate_card_list(collection)
-      frames.decks.collection = collection
       card_list:Clear()
-      for k,v in spairs(collection) do
+      local coll = tspairs(collection)
+      frames.decks.npages = ceil(#coll/16)
+      if frames.decks.npages > 0 then
+        frames.decks.page_num = bound(1,frames.decks.page_num,frames.decks.npages)
+      else
+        frames.decks.page_num = 1
+      end
+      local lbound = (frames.decks.page_num-1)*16+1
+      for i=lbound,lbound+15 do
+        if not coll[i] then return end
+        local k,v = coll[i][1],coll[i][2]
         card_list:AddItem(card_list_button(k, 0, v, function()
-          update_deck(frames.decks.deck, {[k]=1})
-          update_deck(frames.decks.collection, {[k]=-1})
-          frames.decks.update_list()
+          if Card(k).limit == 0 then return end
+          if k < 200000 then
+            local current_char = get_char(frames.decks.deck)
+            if current_char == k then return end
+            local msg = {}
+            if current_char then
+              update_deck(frames.decks.deck, {[current_char]=-1})
+              msg[current_char] = -1
+            end
+            update_deck(frames.decks.deck, {[k]=1})
+            msg[k] = 1
+            net_send({type="update_deck", idx=frames.decks.idx, diff=msg})
+            frames.decks.update_list()
+          elseif can_add_card(frames.decks.deck, k) then
+            update_deck(frames.decks.deck, {[k]=1})
+            net_send({type="update_deck", idx=frames.decks.idx, diff={[k]=1}})
+            frames.decks.update_list()
+          end
         end))
       end
     end
@@ -746,6 +811,7 @@ function main_decks()
         if not nums[chr] then break end
         idx = idx*10 + tonumber(chr)
       end
+      frames.decks.idx = idx
       frames.decks.populate_deck_card_list(user_data.decks[idx] or {})
       frames.decks.populate_card_list(collection_ex_deck(
           user_data.collection, frames.decks.deck))
@@ -765,7 +831,7 @@ function main_decks()
     end
     multichoice:AddChoice(str)
   end
-  if #user_data.decks < 100 then
+  if #user_data.decks < 0 then
     multichoice:AddChoice("New Deck")
   end
   local current_str = "Deck "..user_data.active_deck.." (active)"
@@ -830,19 +896,27 @@ function main_mxm()
   game:client_run()
 end
 
-function get_active_char()
-  local deck = user_data.decks[user_data.active_deck]
-  --[[print(user_data.active_deck)
-  for k,v in pairs(user_data.decks) do
-    print(k,v)
-  end
-  print(deck)--]]
+function get_char(deck)
   for k,v in pairs(deck) do
     k = k + 0
     if k < 200000 then
       return k
     end
   end
+end
+
+function get_active_char()
+  local deck = user_data.decks[user_data.active_deck]
+  return get_char(deck)
+end
+
+function check_active_deck()
+  local deck = user_data.decks[user_data.active_deck]
+  local n = 0
+  for k,v in pairs(deck) do
+    n = n + v
+  end
+  return n == 31
 end
 
 local from_fight = nil

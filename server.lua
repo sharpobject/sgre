@@ -62,6 +62,19 @@ end
 
 dungeons = json.decode(file_contents("dungeons.json"))
 dungeons=fix_num_keys(dungeons)
+for _,qq in pairs(dungeons.rewards) do
+  for _,t in pairs(qq) do
+    for k,v in pairs(t) do
+      if type(v) == "number" then
+        t[k]=t[v]
+      end
+    end
+    for i=1,100 do
+      t[i] = t[i] or t[i-1]
+    end
+  end
+end
+--set_file("processed_dungeons", json.encode(dungeons))
 
 ssl_context = assert(ssl.newcontext({
     mode="server",
@@ -93,13 +106,45 @@ function load_user_data(uid)
   local data = json.decode(file_contents(path))
   data.filename = path
   data.last_modified = nil
-  uid_to_data[uid] = data
+  uid_to_data[uid] = fix_num_keys(data)
 end
 
 local function sha1(s)
   local sha = hash.sha1()
   sha:process(s)
   return sha:finish()
+end
+
+local function check_deck(deck, data)
+  local char, other = 0, 0
+  for k,v in pairs(deck) do
+    if type(k) ~= "number" or
+        type(v) ~= "number" or
+        v ~= floor(v) or
+        v < 1 or
+        v > (data.collection[k] or 0) or
+        (not id_to_canonical_card[k]) or
+        v > id_to_canonical_card[k].limit then
+      return false
+    end
+    if k < 200000 then
+      char = char + v
+    else
+      other = other + v
+    end
+  end
+  if char > 1 or other > 30 then
+    return false
+  end
+  return char+other
+end
+
+local function check_active_deck(data)
+  if (not data.active_deck) or
+     (not data.decks[data.active_deck]) then
+    return false
+  end
+  return check_deck(data.decks[data.active_deck], data) == 31
 end
 
 function try_register(msg)
@@ -228,6 +273,11 @@ function Connection:J(message)
     end
     if message.type == "dungeon" then
       self:try_dungeon(message)
+    end
+    if message.type == "update_deck" then
+      if not self:try_update_deck(message) then
+        self:crash_and_burn()
+      end
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -366,6 +416,10 @@ function Connection:try_dungeon(msg)
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
+  if not check_active_deck(data) then
+    self:crash_and_burn()
+    return false
+  end
   local my_floor = data.dungeon_floors[which]
   my_floor = min(total_floors, my_floor)
   local npcs = dungeons.npcs[which][my_floor]
@@ -444,29 +498,63 @@ end
 function Connection:set_deck(idx, deck)
   local char,other=0,0
   local data = uid_to_data[self.uid]
-  for k,v in pairs(deck) do
-    if deck[k] < 1 or
-        deck[k] > (data.collection[k] or 0) or
-        deck[k] > id_to_canonical_card[k].limit then
-      return false
-    end
-    if k < 200000 then
-      char = char + v
-    else
-      other = other + v
-    end
-  end
-  if char > 1 or other > 30 or
-      idx ~= floor(idx) or
-      idx < 1 or
-      idx > 100 or
-      idx > #data.decks+1 then
+  if not check_deck(deck, data) then 
     return false
+  end
+  if idx ~= floor(idx) or
+      idx < 1 or
+      idx > 100 then
+    return false
+  end
+  for i=1,idx do
+    data.decks[i] = data.decks[i] or {}
   end
   data.decks[idx] = deck
   self:send({type="set_deck",idx=idx,deck=deck})
   modified_file(data)
   return true
+end
+
+function Connection:try_update_deck(msg)
+  local idx = msg.idx
+  local diff = fix_num_keys(msg.diff)
+  local data = uid_to_data[self.uid]
+  if type(idx) ~= "number" or
+      type(diff) ~= "table" or 
+      idx ~= floor(idx) or
+      idx < 1 or
+      idx > 100 then
+    print"A"
+    return false
+  end
+  local deck = shallowcpy(data.decks[idx] or {})
+  for k,v in pairs(diff) do
+    if type(v) ~= "number" then
+      print"B"
+      return false
+    end
+    deck[k] = (deck[k] or 0) + v
+    if deck[k] == 0 then
+      deck[k] = nil
+    end
+  end
+  for k,v in pairs(deck) do print(type(k), type(v)) end
+  if not check_deck(deck, data) then
+    print"C"
+    print(json.encode(deck))
+    return false
+  end
+  for i=1,idx-1 do
+    data.decks[i] = data.decks[i] or {}
+  end
+  data.decks[idx] = deck
+  modified_file(data)
+  return true
+end
+
+function Connection:crash_and_burn()
+  self:send({type="nope_nope_nope"})
+  self:close()
 end
 
 function Connection:set_active_deck(idx)

@@ -600,6 +600,9 @@ function Game:draw()
           net_send({type="forfeit"})
         end)
     end
+    lobby_button.Update = function(self)
+        self.enabled = game.act_buttons
+      end
     
 
     self.loveframes_buttons.card_text_list = list

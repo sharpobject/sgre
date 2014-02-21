@@ -13,6 +13,7 @@ local J
 local char, byte = string.char, string.byte
 local floor = math.floor
 local handlers = {}
+local crash_msg = nil
 net_q = Queue()
 
 function net_send(stuff)
@@ -70,6 +71,7 @@ function data_received(data)
       print("Pcall results for json: ", pcall(function()
         J(jmsg)
       end))
+      if crash_msg then error(crash_msg) end
       data = data:sub(msg_len+5)
     else
       close_socket()
@@ -83,6 +85,7 @@ function flush_socket()
   -- lol, if it returned successfully then that's bad!
   if not err then
     print("oh teh noes")
+    data = junk
   end
   data_received(data)
 end
@@ -141,4 +144,8 @@ end
 
 function handlers.dungeon_rewards(msg)
   user_data.latest_rewards=msg.rewards
+end
+
+function handlers.nope_nope_nope(msg)
+  crash_msg = msg.reason or "nope_nope_nope"
 end

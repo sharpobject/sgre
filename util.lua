@@ -117,6 +117,16 @@ function spairs(tab, ...)
   end
 end
 
+-- like spairs, but returns an array of tuples instead of an iterator
+function tspairs(tab, ...)
+  local ret, idx = {}, 1
+  for k,v in spairs(tab, ...) do
+    ret[idx] = {k,v}
+    idx = idx + 1
+  end
+  return ret
+end
+
 function uniformly(t)
   if #t==0 then
     return nil
@@ -262,12 +272,11 @@ end
 -- for fixing json encoded numeric dicts
 -- TODO: this may become a performance bottleneck for the server later
 function fix_num_keys(t)
-  if type(t) ~= "table" then
-    return t
-  end
   local ret = {}
   for k,v in pairs(t) do
-    v = fix_num_keys(v)
+    if type(v) == "table" then
+      v = fix_num_keys(v)
+    end
     ret[tonumber(k) or k] = v
   end
   return ret
