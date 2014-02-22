@@ -615,16 +615,21 @@ function Player:follower_combat_round(idx, target_idx)
       local attacker = attack_player.field[attack_idx]
       local defender = defend_player.field[defend_idx]
 
-      if defender.type == "follower" then
+      if --[[defender and]] defender.type == "follower" then
         for skill_idx=1,3 do
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
+			--[[ --(remove other_card section and replace with defender in skill_func[]()
+			defender = defend_player.field[defend_idx]
+			-- ]]
             --print("About to run skill func for id "..skill_id)
+			-- --[[ --(delete this part)
             local other_card = defender
             if other_card ~= defend_player.field[defend_idx] then
               other_card = nil
             end
+			-- ]]
             self:check_hand()
             self.opponent:check_hand()
             attacker.trigger = true
@@ -648,16 +653,21 @@ function Player:follower_combat_round(idx, target_idx)
         return
       end
 
-      if defender.type == "follower" then
+      if --[[defender and]] defender.type == "follower" then
         for skill_idx=1,3 do
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
+			--[[ --(remove other_card section and replace with attacker in skill_func[]()
+			attacker = attack_player.field[attack_idx]
+			-- ]]
             --print("About to run skill func for id "..skill_id)
+			-- --[[ --(delete this part)
             local other_card = attacker
             if other_card ~= attack_player.field[attack_idx] then
               other_card = nil
             end
+			-- ]]
             self:check_hand()
             self.opponent:check_hand()
             defender.trigger = true
