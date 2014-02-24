@@ -818,6 +818,7 @@ end,
     player:field_to_grave(idx)
   end
   -- TODO: does this pick first or at random?
+  -- should that be + 2 instead of + 3?
   local target = player:hand_idxs_with_preds({pred.follower, pred.faction.C,
     function(card) return card.size <= #followers + 3 end })[1]
   if target and player.field[4] == nil then
@@ -905,6 +906,7 @@ end,
     if target then
       buff.field[opponent][target] = {sta={"-",reduced_amount}}
     end
+	--buff:apply()
   end
 end,
 
@@ -3185,9 +3187,51 @@ end,
   end
 end,
 
---200228
---200229
---200230
+--[[
+Everyday Life
+Lose life equal to half the size of random follower in hand
+All followers in your field +ATK/+STA equal to life lost
+]]
+[200228] = function(player)
+  local foll = uniformly(player:hand_idxs_with_preds(pred.follower))[1]
+  if foll then
+    local lifeloss = floor(foll.size / 2)
+    OneBuff(player, 0, {life={"-",lifeloss}}):apply()
+    local buff = OnePlayerBuff(player)
+    for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+      buff[idx] = {atk={"+",lifeloss},sta={"+",lifeloss}}
+    end
+    buff:apply()
+  end
+end,
+
+--[[
+Meeting
+Random enemy follower with same faction as your character
+is moved to your first empty slot and deactivated
+]]
+[200229] = function(player, opponent)
+  local old_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+      function (card) return card.faction == player[0].faction end))
+  local new_idx = player:first_empty_field_slot()
+  if old_idx and new_idx then
+    player.field[new_idx], opponent.field[old_idx] = opponent.field[old_idx], nil
+    player.field[new_idx].active = false
+  end
+end,
+
+--[[
+Summer Day Memory
+3 random allied followers get +ATK/+STA equal to difference between
+their Size and 4
+]]
+[200230] = function(player)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+    buff[idx] = {atk={"+",abs(4-player.field[idx].size)},sta={"+",abs(4-player.field[idx].size)}}
+  end
+  buff:apply()
+end,
 
 -- string of emotion
 [200231] = function(player, opponent, my_idx, my_card)
@@ -3214,7 +3258,23 @@ end,
 --200234
 --200235
 --200236
---200237
+
+--[[
+True Vampire God
+Your Character gains life and all allied Followers get +STA equal to
+number of Neutral cards in your Hand and Field - 1
+]]
+[200237] = function(player)
+  local count = #player:hand_idxs_with_preds(pred.faction.N) +
+      #player:fields_idxs_with_preds(pred.faction.N) - 1
+  OneBuff(player, 0, {life={"+",count}}):apply()
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+    buff[idx] = {sta={"+",count}}
+  end
+  buff:apply()
+end,
+
 --200238
 
 -- sita's suit
@@ -4006,14 +4066,71 @@ end,
   buff:apply()
 end,
 
---200301
---200302
+
+--[[
+Cobalt Book
+Allied Follower with lowest DEF has DEF set to DEF of enemy Follower with highest DEF
+]]
+[200301] = function(player, opponent)
+  local my_idx = player:field_idxs_with_least_and_preds(pred.def, {pred.follower})[1]
+  local op_idx = opponent:field_idxs_with_least_and_preds(pred.def, {pred.follower})[1]
+  OneBuff(player, my_idx, {def={"=",opponent.field[op_idx].def}}).apply()
+end,
+
+--[[
+Hiking Lesson
+All enemy Followers get -STA equal to average Size on your Field
+]]
+[200302] = function(player, opponent)
+  local idxs = player:field_idxs_with_preds(function(card) return true end)
+  local total = 0
+  local count = #idxs
+  for _,idx in ipairs(idxs) do
+    total = total + player.field[idx].size
+  end
+  idxs = opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {sta={"-",floor(total / count)}}
+  end
+  buff:apply()
+end,
+
 --200303
---200304
+
+--[[
+Protection
+If there is an enemy Spell on the Field, a random enemy Follower gets -4 DEF
+]]
+[200304] = function(player, opponent)
+  if #opponent:field_idxs_with_preds(pred.spell) > 0 then
+    local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if op_idx then
+      OneBuff(opponent, op_idx, {def={"-",4}}):apply()
+    end
+  end
+end,
+
 --200305
 --200306
 --200307
---200308
+
+--[[
+Quick as the Wind
+2 allied Followers get -Size/+STA equal to the number of allied Spells
+]]
+[200308] = function(player)
+  local count = #player:field_idxs_with_preds(pred.spell)
+  local target_idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,2 do
+    if target_idxs[i] then
+      buff[target_idxs[i]] = {size={"-",count},sta={"+",count}}
+    end
+  end
+  buff:apply()
+end,
+
 --200309
 --200310
 --200311
