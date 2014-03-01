@@ -196,6 +196,14 @@ function Player:to_top_deck(card)
   self.deck[#self.deck + 1] = card
 end
 
+function Player:deck_to_bottom_deck(idx)
+  self:to_bottom_deck(table.remove(self.deck, idx))
+end
+
+function Player:deck_to_top_deck(idx)
+  self:to_top_deck(table.remove(self.deck, idx))
+end
+
 function Player:attempt_shuffle()
   if self.shuffles > 0 then
     self.shuffles = self.shuffles - 1
@@ -218,6 +226,10 @@ end
 
 function Player:grave_to_bottom_deck(n)
   self:to_bottom_deck(table.remove(self.grave,n))
+end
+
+function Player:grave_to_top_deck(n)
+  self:to_top_deck(table.remove(self.grave,n))
 end
 
 function Player:grave_to_field(n)
@@ -620,11 +632,8 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
+            defender = defend_player.field[defend_idx]
             --print("About to run skill func for id "..skill_id)
-            local other_card = defender
-            if other_card ~= defend_player.field[defend_idx] then
-              other_card = nil
-            end
             self:check_hand()
             self.opponent:check_hand()
             attacker.trigger = true
@@ -632,7 +641,7 @@ function Player:follower_combat_round(idx, target_idx)
             attacker.trigger = nil
             self.game:send_trigger(attack_player.player_index, attack_idx, "attack")
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
-                defend_idx, other_card)
+                defend_idx, defender)
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -653,11 +662,8 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
+            attacker = attack_player.field[attack_idx]
             --print("About to run skill func for id "..skill_id)
-            local other_card = attacker
-            if other_card ~= attack_player.field[attack_idx] then
-              other_card = nil
-            end
             self:check_hand()
             self.opponent:check_hand()
             defender.trigger = true
@@ -665,7 +671,7 @@ function Player:follower_combat_round(idx, target_idx)
             defender.trigger = nil
             self.game:send_trigger(defend_player.player_index, defend_idx, "defend")
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
-                attack_idx, other_card)
+                attack_idx, attacker)
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -1374,6 +1380,7 @@ end
 
 function Game:client_run()
   while true do
+    wait(500)
     while net_q:len() == 0 do
       wait()
     end
