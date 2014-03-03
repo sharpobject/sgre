@@ -289,6 +289,10 @@ function Player:deck_to_grave(n)
   self.grave[#self.grave + 1] = table.remove(self.deck, n)
 end
 
+function Player:deck_to_exile(n)
+  self.exile[#self.exile+1]=table.remove(self.deck,n)
+end
+
 function Player:to_grave(card)
   self.grave[#self.grave + 1] = card
 end
@@ -482,6 +486,16 @@ end
 
 function Player:hand_idxs_with_most_and_preds(func, ...)
   return self:hand_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
+end
+
+function Player:empty_hand_slots()
+  local t = {}
+  for i=1,5 do
+    if not self.hand[i] then
+      t[#t+1] = i
+    end
+  end
+  return t
 end
 
 function Player:empty_field_slots()
@@ -1380,7 +1394,6 @@ end
 
 function Game:client_run()
   while true do
-    wait(500)
     while net_q:len() == 0 do
       wait()
     end
