@@ -197,11 +197,11 @@ function Player:to_top_deck(card)
 end
 
 function Player:deck_to_bottom_deck(idx)
-  self:to_bottom_deck(table.remove(self.deck, idx))
+  table.insert(self.deck, 1, (table.remove(self.deck, idx)))
 end
 
 function Player:deck_to_top_deck(idx)
-  self:to_top_deck(table.remove(self.deck, idx))
+  table.insert(self.deck, (table.remove(self.deck, idx)))
 end
 
 function Player:attempt_shuffle()
@@ -242,17 +242,11 @@ function Player:field_to_exile(n)
 end
 
 function Player:hand_to_bottom_deck(n)
-  self:to_bottom_deck(self.hand[n])
-  for i=n,5 do
-    self.hand[i] = self.hand[i+1]
-  end
+  self:to_bottom_deck(table.remove(self.hand, n))
 end
 
 function Player:hand_to_top_deck(n)
-  self:to_top_deck(self.hand[n])
-  for i=n,5 do
-    self.hand[i] = self.hand[i+1]
-  end
+  self:to_top_deck(table.remove(self.hand, n))
 end
 
 function Player:remove_from_hand(n)
@@ -286,11 +280,13 @@ function Player:deck_to_hand(n)
 end
 
 function Player:deck_to_grave(n)
-  self.grave[#self.grave + 1] = table.remove(self.deck, n)
+  table.insert(self.grave, table.remove(self.deck, n))
+  --self.grave[#self.grave + 1] = table.remove(self.deck, n)
 end
 
 function Player:deck_to_exile(n)
-  self.exile[#self.exile+1]=table.remove(self.deck,n)
+  table.insert(self.exile, table.remove(self.deck, n))
+  --self.exile[#self.exile+1]=table.remove(self.deck,n)
 end
 
 function Player:to_grave(card)
@@ -305,8 +301,10 @@ function Player:mill(n)
 end
 
 function Player:deck_to_field(n)
+  local slot = self:first_empty_field_slot()
   local card = table.remove(self.deck, n)
-  self.field[self:first_empty_field_slot()] = card
+  self.field[slot] = card
+  assert(self.field[slot] == card, "deck_to_field()")
 end
 
 function Player:hand_to_exile(n)
@@ -316,6 +314,13 @@ end
 function Player:hand_to_field(n)
   local card = table.remove(self.hand, n)
   self.field[self:first_empty_field_slot()] = card
+end
+
+function Player:field_to_hand(n)
+  local card = self.field[n]
+  self.field[n] = nil
+  table.insert(self.hand, card)
+  --self.hand[#self.hand + 1] = card
 end
 
 function Player:has_follower()
@@ -522,6 +527,13 @@ function Player:last_empty_field_slot()
   return nil
 end
 
+function Player:first_empty_hand_slot()
+  for i=1,5 do
+    if not self.hand[i] then return i end
+  end
+  return nil
+end
+
 function Player:grave_idxs_with_least_and_preds(func, preds)
   local idxs = self:grave_idxs_with_preds(preds)
   local best = 99999
@@ -634,6 +646,9 @@ function Player:follower_combat_round(idx, target_idx)
   if target_card.type == "follower" then
     for i=1,2 do
       if i==2 then
+        if not self.game.defender then
+          return
+        end
         self.game.attacker, self.game.defender = self.game.defender, self.game.attacker
       end
       local attack_player, attack_idx = unpack(self.game.attacker)
