@@ -5252,13 +5252,13 @@ enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 
   local mag = 0
   local pred_filter = function(card) mag = mag + 1 return card.faction ~= player.character.faction end
   mag = floor(mag / 2)
-  if player:field_idxs_with_preds(pred_filter)[1] or #player:hand_idxs_with_preds(pred_filter)[1] then
+  if player:field_idxs_with_preds(pred_filter)[1] or #player:hand_idxs_with_preds(pred_filter) then
     return
   end
   local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"-",mag)},def={"-",mag}}
+    buff[idxs[i]] = {atk={"-",mag},def={"-",mag}}
   end
   buff:apply()
 end,
@@ -5563,8 +5563,8 @@ x random enemy Followers get ATK/DEF/STA / (x + 1) rounding down
   local idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(opponent)
   for i=1,min(mag,#idxs) do
-    local card = opponent.field[idx]
-    buff[idx] = {atk={"=",floor(card.atk / (mag + 1))},def={"=",floor(card.def / (mag + 1))},
+    local card = opponent.field[idxs[i]]
+    buff[idxs[i]] = {atk={"=",floor(card.atk / (mag + 1))},def={"=",floor(card.def / (mag + 1))},
         sta={"=",floor(card.sta / (mag + 1))}}
   end
   buff:apply()
@@ -5685,15 +5685,15 @@ All Spells in the enemy Hand/Field are changed to the following cards depending 
   local buff = GlobalBuff(opponent)
   local idxs = opponent:field_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
-    opponent.field[i] = Card(map[opponent.field[i].faction] or
-          opponent.field[i].id)
-    buff.field[opponent][i] = {size={"=",2}}
+    opponent.field[idx] = Card(map[opponent.field[idx].faction] or
+          opponent.field[idx].id)
+    buff.field[opponent][idx] = {size={"=",2}}
   end
   idxs = opponent:hand_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
-    opponent.hand[i] = Card(map[opponent.hand[i].faction] or
-          opponent.hand[i].id)
-    buff.hand[opponent][i] = {size={"=",2}}
+    opponent.hand[idx] = Card(map[opponent.hand[idx].faction] or
+          opponent.hand[idx].id)
+    buff.hand[opponent][idx] = {size={"=",2}}
   end
   buff:apply()
 end,
@@ -6194,10 +6194,10 @@ Smallification
   end
   local buff = GlobalBuff(player)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  buff.field[player][pl_idx] = {sta={"=",1}}
+  buff.field[player][idx] = {sta={"=",1}}
   idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if op_idx then
-    buff.field[opponent][op_idx] = {sta={"=",1}}
+  if idx then
+    buff.field[opponent][idx] = {sta={"=",1}}
   end
   buff:apply()
 end,
@@ -6213,7 +6213,7 @@ Blu E Rosso
   for i=1,3 do
     local card = nil
     if i == 1 then
-      card = opponent.field[uniformly(opponent:field_idxs_with_preds(pred.follower, pred_faction})]
+      card = opponent.field[uniformly(opponent:field_idxs_with_preds(pred.follower, pred_faction))]
     elseif i == 2 then
       card = opponent.hand[uniformly(opponent:hand_idxs_with_preds(pred.follower, pred_faction))]
     else
@@ -6338,11 +6338,11 @@ Disappearance
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   for i=1,min(2,#idxs) do
-    buff.field[player][pl_idxs[i]] = {atk={"+",3},sta={"+",3}}
+    buff.field[player][idxs[i]] = {atk={"+",3},sta={"+",3}}
   end
   idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   for i=1,min(2,#idxs) do
-    buff.field[opponent][op_idxs[i]] = {atk={"-",1},sta={"-",1}}
+    buff.field[opponent][idxs[i]] = {atk={"-",1},sta={"-",1}}
   end
   buff:apply()
 end,
@@ -6366,7 +6366,7 @@ Finding the Library
   end
   local buff = OnePlayerBuff(player)
   idxs = player:deck_idxs_with_preds(pred.follower, pred.library, pred.active)
-  for i=1,1 + floor(mag / 2) do
+  for i=1,min(1 + floor(mag / 2),#idxs) do
     local idx = player:first_empty_field_slot()
     if idx then
       player:deck_to_field(idxs[i])
@@ -6449,10 +6449,10 @@ Head Knight's Rest
   local op_knight = #opponent:field_idxs_with_preds(pred.knight)
   local buff = GlobalBuff(player)
   for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff.field[player][i] = {size={"-",pl_knight},sta={"-",pl_non-pl_knight}}
+    buff.field[player][idx] = {size={"-",pl_knight},sta={"-",pl_non-pl_knight}}
   end
   for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
-    buff.field[opponent][i] = {size={"-",op_knight},sta={"-",op_non-op_knight}}
+    buff.field[opponent][idx] = {size={"-",op_knight},sta={"-",op_non-op_knight}}
   end
   buff:apply()
 end,
@@ -6513,7 +6513,7 @@ Ritual of Unity
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idx] = {atk={"+",mag}}
+    buff[idxs[i]] = {atk={"+",mag}}
   end
   buff:apply()
 end,
@@ -7129,7 +7129,7 @@ Altar of Kana
   end
   for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
     local card = opponent.field[idx]
-    buff.field[opponent][i] = {atk={"+",(card.sta % 2 == 0) and 3 or 0},
+    buff.field[opponent][idx] = {atk={"+",(card.sta % 2 == 0) and 3 or 0},
         sta={"-",(card.sta % 2 == 1) and 3 or 0}}
   end
   buff:apply()
@@ -7239,7 +7239,7 @@ Backup
     mag = mag + 1
   end
   for _,idx in ipairs(opponent:hand_idxs_with_preds(pred.follower)) do
-    buff.hand[opponent][i] = {def={"-",mag}}
+    buff.hand[opponent][idx] = {def={"-",mag}}
     mag = mag + 1
   end
   buff:apply()
