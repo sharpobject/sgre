@@ -7070,7 +7070,7 @@ Minority Report
   if not idxs[2] then
     return
   end
-  local card = idxs[2]
+  local card = player.field[idxs[2]]
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(idxs) do
     if idx ~= idxs[2] then
