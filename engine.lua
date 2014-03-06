@@ -646,9 +646,6 @@ function Player:follower_combat_round(idx, target_idx)
   if target_card.type == "follower" then
     for i=1,2 do
       if i==2 then
-        if not self.game.defender then
-          return
-        end
         self.game.attacker, self.game.defender = self.game.defender, self.game.attacker
       end
       local attack_player, attack_idx = unpack(self.game.attacker)
@@ -661,8 +658,11 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
-            defender = defend_player.field[defend_idx]
             --print("About to run skill func for id "..skill_id)
+            local other_card = defender
+            if other_card ~= defend_player.field[defend_idx] then
+              other_card = nil
+            end
             self:check_hand()
             self.opponent:check_hand()
             attacker.trigger = true
@@ -670,7 +670,7 @@ function Player:follower_combat_round(idx, target_idx)
             attacker.trigger = nil
             self.game:send_trigger(attack_player.player_index, attack_idx, "attack")
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
-                defend_idx, defender)
+                defend_idx, other_card)
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -691,8 +691,11 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
-            attacker = attack_player.field[attack_idx]
             --print("About to run skill func for id "..skill_id)
+            local other_card = attacker
+            if other_card ~= attack_player.field[attack_idx] then
+              other_card = nil
+            end
             self:check_hand()
             self.opponent:check_hand()
             defender.trigger = true
@@ -700,7 +703,7 @@ function Player:follower_combat_round(idx, target_idx)
             defender.trigger = nil
             self.game:send_trigger(defend_player.player_index, defend_idx, "defend")
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
-                attack_idx, attacker)
+                attack_idx, other_card)
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -1409,6 +1412,7 @@ end
 
 function Game:client_run()
   while true do
+    wait(20)
     while net_q:len() == 0 do
       wait()
     end
