@@ -196,6 +196,14 @@ function Player:to_top_deck(card)
   self.deck[#self.deck + 1] = card
 end
 
+function Player:deck_to_bottom_deck(idx)
+  table.insert(self.deck, 1, (table.remove(self.deck, idx)))
+end
+
+function Player:deck_to_top_deck(idx)
+  table.insert(self.deck, (table.remove(self.deck, idx)))
+end
+
 function Player:attempt_shuffle()
   if self.shuffles > 0 then
     self.shuffles = self.shuffles - 1
@@ -220,6 +228,10 @@ function Player:grave_to_bottom_deck(n)
   self:to_bottom_deck(table.remove(self.grave,n))
 end
 
+function Player:grave_to_top_deck(n)
+  self:to_top_deck(table.remove(self.grave,n))
+end
+
 function Player:grave_to_field(n)
   self.field[self:first_empty_field_slot()]=table.remove(self.grave,n)
 end
@@ -230,17 +242,11 @@ function Player:field_to_exile(n)
 end
 
 function Player:hand_to_bottom_deck(n)
-  self:to_bottom_deck(self.hand[n])
-  for i=n,5 do
-    self.hand[i] = self.hand[i+1]
-  end
+  self:to_bottom_deck(table.remove(self.hand, n))
 end
 
 function Player:hand_to_top_deck(n)
-  self:to_top_deck(self.hand[n])
-  for i=n,5 do
-    self.hand[i] = self.hand[i+1]
-  end
+  self:to_top_deck(table.remove(self.hand, n))
 end
 
 function Player:remove_from_hand(n)
@@ -274,7 +280,13 @@ function Player:deck_to_hand(n)
 end
 
 function Player:deck_to_grave(n)
-  self.grave[#self.grave + 1] = table.remove(self.deck, n)
+  table.insert(self.grave, table.remove(self.deck, n))
+  --self.grave[#self.grave + 1] = table.remove(self.deck, n)
+end
+
+function Player:deck_to_exile(n)
+  table.insert(self.exile, table.remove(self.deck, n))
+  --self.exile[#self.exile+1]=table.remove(self.deck,n)
 end
 
 function Player:to_grave(card)
@@ -289,8 +301,10 @@ function Player:mill(n)
 end
 
 function Player:deck_to_field(n)
+  local slot = self:first_empty_field_slot()
   local card = table.remove(self.deck, n)
-  self.field[self:first_empty_field_slot()] = card
+  self.field[slot] = card
+  assert(self.field[slot] == card, "deck_to_field()")
 end
 
 function Player:hand_to_exile(n)
@@ -300,6 +314,13 @@ end
 function Player:hand_to_field(n)
   local card = table.remove(self.hand, n)
   self.field[self:first_empty_field_slot()] = card
+end
+
+function Player:field_to_hand(n)
+  local card = self.field[n]
+  self.field[n] = nil
+  table.insert(self.hand, card)
+  --self.hand[#self.hand + 1] = card
 end
 
 function Player:has_follower()
@@ -472,6 +493,16 @@ function Player:hand_idxs_with_most_and_preds(func, ...)
   return self:hand_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
+function Player:empty_hand_slots()
+  local t = {}
+  for i=1,5 do
+    if not self.hand[i] then
+      t[#t+1] = i
+    end
+  end
+  return t
+end
+
 function Player:empty_field_slots()
   local t = {}
   for i=1,5 do
@@ -492,6 +523,13 @@ end
 function Player:last_empty_field_slot()
   for i=5,1,-1 do
     if not self.field[i] then return i end
+  end
+  return nil
+end
+
+function Player:first_empty_hand_slot()
+  for i=1,5 do
+    if not self.hand[i] then return i end
   end
   return nil
 end
@@ -1374,6 +1412,7 @@ end
 
 function Game:client_run()
   while true do
+    wait(20)
     while net_q:len() == 0 do
       wait()
     end
