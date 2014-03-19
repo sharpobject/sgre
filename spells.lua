@@ -4194,7 +4194,7 @@ end,
     buff[idx] = {size={"-",sz_amt},atk={"-",amt},def={"-",amt},sta={"-",amt}}
   end
   buff:apply()
-end,
+end,
 
 --[[
 Cobalt Book
