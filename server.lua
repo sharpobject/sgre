@@ -248,9 +248,17 @@ function Connection:close()
   self.socket:close()
 end
 
-function Connection:J(message)
+function Connection:J(jmsg)
   print("CONN J")
-  message = json.decode(message)
+  message = json.decode(jmsg)
+  local tmp_password = message.password
+  if tmp_password then
+    message.password = "ass"
+    print("got JSON message "..json.encode(message))
+    message.password = tmp_password
+  else
+    print("got JSON message "..jmsg)
+  end
   if message.type == "general_chat" and self.state ~= "connected" then
     self:try_chat(message)
     return
@@ -289,7 +297,7 @@ end
 function Connection:data_received(data)
   print("CONN DATA RECv")
   self.last_read = time()
-  print("got raw data "..data)
+  --print("got raw data "..data)
   data = self.leftovers .. data
   local idx = 1
   while data:len() > 0 do
@@ -305,7 +313,6 @@ function Connection:data_received(data)
         break
       end
       local jmsg = data:sub(5, msg_len+4)
-      print("got JSON message "..jmsg)
       print("Pcall results for json: ", pcall(function()
         self:J(jmsg)
       end))
@@ -524,13 +531,11 @@ function Connection:try_update_deck(msg)
       idx ~= floor(idx) or
       idx < 1 or
       idx > 100 then
-    print"A"
     return false
   end
   local deck = shallowcpy(data.decks[idx] or {})
   for k,v in pairs(diff) do
     if type(v) ~= "number" then
-      print"B"
       return false
     end
     deck[k] = (deck[k] or 0) + v
@@ -538,10 +543,7 @@ function Connection:try_update_deck(msg)
       deck[k] = nil
     end
   end
-  for k,v in pairs(deck) do print(type(k), type(v)) end
   if not check_deck(deck, data) then
-    print"C"
-    print(json.encode(deck))
     return false
   end
   for i=1,idx-1 do
