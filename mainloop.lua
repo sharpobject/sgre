@@ -16,7 +16,8 @@ frames = {}
 local frames = frames
 
 function fmainloop()
-  local func, arg = main_login, nil
+  --local func, arg = main_login, nil
+  local func, arg = main_go_hard, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
@@ -626,6 +627,15 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_decks}
     end
+
+    local button = loveframes.Create("button")
+    button:SetPos(750,50)
+    button:SetSize(50, 50)
+    button:SetText("CRAFT")
+    button:SetState("lobby")
+    button.OnClick = function()
+      from_lobby = {main_craft}
+    end
   end
 
   local enable_buttons = check_active_deck()
@@ -669,6 +679,127 @@ local function collection_ex_deck(coll, deck)
     end
   end
   return ret
+end
+
+local function deck_cmp(a, b)
+  -- a<b
+  a, b = tostring(a), tostring(b)
+  if a[1]==b[1] then
+    return tonumber(a)<tonumber(b)
+  end
+  if a[1] == "1" then return true end
+  if b[1] == "1" then return false end
+  if a[1] == "3" then return true end
+  return false
+end
+
+local from_craft = nil
+function main_craft()
+  if not frames.craft then
+    frames.craft = {}
+    frames.craft.page_num = 1
+
+    local list, text = get_hover_list_text("craft")
+    frames.craft.card_text_list = list
+    frames.craft.card_text = text
+
+    local lobby_button = loveframes.Create("button")
+    lobby_button:SetState("craft")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      from_craft = {main_lobby}
+    end
+
+    local craft_pane = loveframes.Create("frame")
+    craft_pane:SetState("craft")
+    local x,y,w,h = left_hover_frame_pos()
+    craft_pane:SetPos(x,y)
+    craft_pane:SetSize(w,h)
+    craft_pane:ShowCloseButton(false)
+    craft_pane:SetDraggable(false)
+    craft_pane.Draw = function(self)
+      draw_hover_frame(self.x, self.y, self.width, self.height)
+    end
+
+    local craft_card_list = loveframes.Create("list", craft_pane)
+    craft_card_list:SetWidth(w-12)
+    craft_card_list:Center()
+    craft_card_list:SetY(60)
+    craft_card_list:SetHeight(480)
+    craft_card_list:SetPadding(0)
+    craft_card_list:SetSpacing(0)
+    function craft_card_list:Draw() end
+
+
+    function frames.craft.update_list()
+    end
+
+    local card_list = loveframes.Create("list")
+    card_list:SetState("craft")
+    card_list:SetX(craft_pane:GetX()*2+craft_pane:GetWidth())
+    card_list:SetY(craft_pane:GetX())
+    card_list:SetHeight(600-card_list:GetY()*2)
+    card_list:SetWidth(800-2*card_list:GetX())
+    card_list:EnableHorizontalStacking(true)
+    function card_list:Draw() end
+    card_list:SetSpacing(5)
+
+    local button_width = 20
+    local lbutton = loveframes.Create("button")
+    lbutton:SetState("craft")
+    lbutton:SetX((800 - (craft_pane:GetX()*2+craft_pane:GetWidth())) - 2*button_width - 5)
+    lbutton:SetY(570)
+    lbutton:SetSize(20,20)
+    lbutton:SetText("<")
+    function lbutton:OnClick()
+      frames.craft.page_num = frames.craft.page_num - 1
+      frames.craft.update_list()
+    end
+
+    local rbutton = loveframes.Create("button")
+    rbutton:SetState("craft")
+    rbutton:SetX((800 - (craft_pane:GetX()*2+craft_pane:GetWidth())) - button_width)
+    rbutton:SetY(570)
+    rbutton:SetSize(20,20)
+    rbutton:SetText(">")
+    function rbutton:OnClick()
+      frames.craft.page_num = frames.craft.page_num + 1
+      frames.craft.update_list()
+    end
+
+    function frames.craft.populate_card_list(collection)
+      card_list:Clear()
+      local coll = tspairs(collection)
+      frames.craft.npages = ceil(#coll/16)
+      if frames.craft.npages > 0 then
+        frames.craft.page_num = bound(1,frames.craft.page_num,frames.craft.npages)
+      else
+        frames.craft.page_num = 1
+      end
+      local lbound = (frames.craft.page_num-1)*16+1
+      for i=lbound,lbound+15 do
+        if not coll[i] then return end
+        local k,v = coll[i][1],coll[i][2]
+        card_list:AddItem(card_list_button(k, 0, v, function()
+          -- TODO: open a popup that lets you craft this card
+        end))
+      end
+    end
+  end
+
+  loveframes.SetState("craft")
+  while true do
+    wait()
+    if from_craft then
+      local ret = from_craft
+      from_craft = nil
+      return unpack(ret)
+    end
+  end
 end
 
 local from_decks = nil

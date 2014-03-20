@@ -122,6 +122,23 @@ function Player:check_hand()
   local str2 = "ngrave = "..ngrave.." #grave = "..#self.grave
   assert(ndeck == #self.deck, str1)
   assert(ngrave == #self.grave, str2)
+  local unique_things = {}
+  for _,player in ipairs({self, self.opponent}) do
+    for _,zone in ipairs({"deck", "field", "hand", "grave", "exile"}) do
+      for _,card in ipairs(player[zone]) do
+        if unique_things[card] then
+          error("no card aliasing pls")
+        end
+        unique_things[card] = true
+        if card.skills then
+          if unique_things[card.skills] then
+            error("no skill aliasing pls")
+          end
+          unique_things[card] = true
+        end
+      end
+    end
+  end
 end
 
 function Player:untap_phase()
@@ -144,7 +161,7 @@ function Player:upkeep_phase()
         local skill_id = card.skills[skill_idx]
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
-          --print("About to run skill func for id "..skill_id)
+          print("About to run skill func for id "..skill_id)
           self:check_hand()
           self.opponent:check_hand()
           card.trigger = true
@@ -300,8 +317,10 @@ function Player:mill(n)
   end
 end
 
-function Player:deck_to_field(n)
-  local slot = self:first_empty_field_slot()
+function Player:deck_to_field(n, slot)
+  if not slot then
+    slot = self:first_empty_field_slot()
+  end
   local card = table.remove(self.deck, n)
   self.field[slot] = card
   assert(self.field[slot] == card, "deck_to_field()")
@@ -449,6 +468,27 @@ function Player:deck_idxs_with_preds(...)
     end
   end
   return ret
+end
+
+function Player:deck_idxs_with_least_and_preds(func, ...)
+  local idxs = self:deck_idxs_with_preds(...)
+  local best = 99999
+  local ret = {}
+  for i=1,#idxs do
+    local card = self.deck[idxs[i]]
+    local score = func(card)
+    if score < best then
+      ret = {idxs[i]}
+      best = score
+    elseif score == best then
+      ret[#ret+1] = idxs[i]
+    end
+  end
+  return ret
+end
+
+function Player:deck_idxs_with_most_and_preds(func, ...)
+  return self:deck_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
 function Player:field_idxs_with_least_and_preds(func, ...)
@@ -658,7 +698,7 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
-            --print("About to run skill func for id "..skill_id)
+            print("About to run skill func for id "..skill_id)
             local other_card = defender
             if other_card ~= defend_player.field[defend_idx] then
               other_card = nil
@@ -691,7 +731,7 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
-            --print("About to run skill func for id "..skill_id)
+            print("About to run skill func for id "..skill_id)
             local other_card = attacker
             if other_card ~= attack_player.field[attack_idx] then
               other_card = nil
@@ -766,7 +806,7 @@ function Player:combat_round()
     self.game:snapshot()
   else
     self.send_spell_to_grave = true
-    --print("About to run spell func for id "..card.id)
+    print("About to run spell func for id "..card.id)
     self:check_hand()
     self.opponent:check_hand()
     card.trigger = true

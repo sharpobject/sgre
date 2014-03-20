@@ -6857,40 +6857,25 @@ end,
 Satisfaction
 ]]
 [200443] = function(player)
-  local pred_faction = function(card) return card.faction == player.faction end
+  local pred_faction = pred[player.character.faction]
   local idx = player:field_idxs_with_preds(pred.follower, pred_faction)[1]
-  if not idx then
-    return
-  end
+  if not idx then return end
   local mag = player.field[idx].size
   player:field_to_exile(idx)
-  local idxs = player:deck_idxs_with_preds()
-  local largest = 0
-  local card = nil
-  local idx2 = nil
-  for i=#player.deck,1,-1 do
-    if pred.follower(player.deck[i]) and player.deck[i].size > largest then
-      card = player.deck[i]
-      largest = card.size
-      idx2 = i
-    end
-  end
-  if not card then
-    return
-  end
-  local idx3 = player:first_empty_field_slot()
-  player:deck_to_field(idx2)
-  player.field[idx3], player.field[idx] = nil, player.field[idx3]
+  local deck_idx = player:deck_idxs_with_most_and_preds(pred.size)[1]
+  if not deck_idx then return end
+  player:deck_to_field(deck_idx, idx)
   OneBuff(player, idx, {size={"=",mag}}):apply()
 end,
 
 --[[
 Garden Lady
 ]]
-[200444] = function(player)
+[200444] = function(player, opponent, my_idx)
   if pred.A(player.character) then
     OneBuff(player, 0, {life={"+",1 + ((#player.deck <= 15) and 3 or 0)}}):apply()
   end
+  player:field_to_exile(my_idx)
 end,
 
 --[[
@@ -6931,13 +6916,10 @@ Lady Maid Dream
     return
   end
   local idx = uniformly(opponent:field_idxs_with_preds())
-  if idx then
-    table.insert(opponent.grave, 1, opponent.field[idx])
-  end
+  if not idx then return end
+  table.insert(opponent.grave, 1, opponent.field[idx])
+  opponent.field[idx] = nil
   idx = opponent:first_empty_field_slot()
-  if not idx then
-    return
-  end
   opponent.field[idx], player.field[my_idx] = my_card, nil
   OneBuff(opponent, idx, {size={"=",1}}):apply()
   my_card.active = false

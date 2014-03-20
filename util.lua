@@ -281,3 +281,13 @@ function fix_num_keys(t)
   end
   return ret
 end
+
+function union_counters(list_of_counters)
+  local ret = {}
+  for _,counter in pairs(list_of_counters) do
+    for key,count in pairs(counter) do
+      ret[key] = max(count, ret[key] or 0)
+    end
+  end
+  return ret
+end
