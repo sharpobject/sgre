@@ -7,7 +7,6 @@ socket = require"socket"
 json = require"dkjson"-]]
 require"ssl"
 
-
 local TCP_sock = nil
 local leftovers = ""
 local J

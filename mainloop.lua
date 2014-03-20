@@ -180,6 +180,9 @@ function main_login(email, password)
                   if user_data.decks then
                     user_data.decks = map(fix_num_keys, user_data.decks)
                   end
+                  if user_data.cafe then
+                    user_data.cafe = fix_num_keys(user_data.cafe)
+                  end
                   doing_login = false
                   from_login = {main_select_faction}
                   break
@@ -917,6 +920,7 @@ function main_cafe()
     frames.cafe.active_character_cafe_id = nil
     frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
 
+    -- list of cafe cards on the left
     local list, text = get_hover_list_text("cafe")
     frames.cafe.card_text_list = list
     frames.cafe.card_text = text
@@ -953,7 +957,7 @@ function main_cafe()
 
     function frames.cafe.populate_cafe_card_list()
       cafe_card_list:Clear()
-      for card_id, cafe_data in spairs(fix_num_keys(user_data.cafe)) do
+      for card_id, cafe_data in spairs(user_data.cafe) do
         for cafe_id, stats in spairs(cafe_data) do
           cafe_card_list:AddItem(deck_card_list_button(card_id, 0, 1, function()
               frames.cafe.active_character_card_id = card_id
@@ -970,7 +974,7 @@ function main_cafe()
         if giftable[card_id] then
           local uncafe_number = number
           if fix_num_keys(user_data.cafe)[card_id] then
-            uncafe_number = number - #fix_num_keys(user_data.cafe)[card_id]
+            uncafe_number = number - #user_data.cafe[card_id]
           end
           if uncafe_number > 0 then
             cafe_card_list:AddItem(deck_card_list_button(card_id, 0, uncafe_number, function()
@@ -983,7 +987,6 @@ function main_cafe()
         end
       end
     end
-
     frames.cafe.populate_cafe_card_list()
 
     -- stats pane in upper-middle
@@ -1042,10 +1045,6 @@ function main_cafe()
     function card_list:Draw() end
     card_list:SetSpacing(5)
 
-    function frames.cafe.update_feeding_list()
-      frames.cafe.populate_feeding_card_list(feedable_coll(user_data.collection))
-    end
-
     local button_width = 20
     local lbutton = loveframes.Create("button")
     lbutton:SetState("cafe")
@@ -1067,6 +1066,10 @@ function main_cafe()
     function rbutton:OnClick()
       frames.cafe.page_num = frames.cafe.page_num + 1
       frames.cafe.update_list()
+    end
+
+    function frames.cafe.update_feeding_list()
+      frames.cafe.populate_feeding_card_list(feedable_coll(user_data.collection))
     end
 
     function frames.cafe.populate_feeding_card_list(collection)
@@ -1128,7 +1131,7 @@ function main_cafe()
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
               user_data.fed = "feeding"
-              --needs to wait for server to respond back with feed_card json
+              --needs to wait for server to respond back with update_cafe json
             end
           end))
       end
@@ -1150,6 +1153,8 @@ function main_cafe()
       if frames.cafe.active_character_card_id and frames.cafe.active_character_cafe_id then
         frames.cafe.active_character_stats = user_data.cafe[frames.cafe.active_character_card_id][frames.cafe.active_character_cafe_id]
         frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
+      elseif frames.cafe.stats_pane then
+        frames.cafe.stats_pane:Remove()
       end
     end
     if from_cafe and (not user_data.fed) then
