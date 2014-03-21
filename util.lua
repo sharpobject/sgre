@@ -24,6 +24,14 @@ function arr_to_set(tab)
   return ret
 end
 
+function set_to_arr(tab)
+  local ret = {}
+  for v,_ in pairs(tab) do
+    table.insert(ret, v)
+  end
+  return ret
+end
+
 -- filter for numeric tables
 function filter(func, tab)
   local ret = {}

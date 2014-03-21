@@ -734,7 +734,6 @@ function main_craft()
     craft_card_list:SetSpacing(0)
     function craft_card_list:Draw() end
 
-
     function frames.craft.update_list()
     end
 
