@@ -1,7 +1,10 @@
+local json = require "dkjson"
+
 id_to_canonical_card = {}
 name_to_ids = {}
 group_to_ids = {}
 skill_text = {}
+recipes = {}
 
 function cards_init()
   local teh_json = file_contents("swogi.json")
@@ -77,6 +80,9 @@ function cards_init()
   for k,v in pairs(decoded.skill_text) do
     skill_text[0+k] = v
   end
+
+  -- recipes
+  recipes = fix_num_keys(json.decode(file_contents("recipes_current.json")))
 end
 
 cards_init()

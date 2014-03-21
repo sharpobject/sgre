@@ -257,9 +257,11 @@ function file_contents(filename)
   if love then
     local file = love.filesystem.newFile(filename)
     file:open("r")
-    return file:read(file:getSize())
+    local ret = file:read(file:getSize())
+    return ret
   end
-  return io.open(filename):read("*a")
+  local ret = io.open(filename):read("*a")
+  return ret
 end
 
 function set_file(filename, contents)
