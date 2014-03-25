@@ -661,7 +661,7 @@ function Connection:feed_card(msg)
     return false  -- invalid gift
   end
 
-  local like_change = 70
+  local like_change = 2
   if math.random() > 0.5 then
     like_change = -1
   end

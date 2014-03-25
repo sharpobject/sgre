@@ -1086,6 +1086,7 @@ function main_cafe()
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
         card_list:AddItem(card_list_button(k, 0, v, function()
+            -- TODO add a check for confirm_box
             if not frames.cafe.active_character_card_id then
               return false
             end 
