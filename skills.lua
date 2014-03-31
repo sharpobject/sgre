@@ -94,6 +94,9 @@ local refresh = function(player, my_idx, my_card)
 end
 
 local lesprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local removed = pred.skill(other_card)
   other_card.skills = {}
   if removed then
@@ -102,6 +105,9 @@ local lesprit = function(player, my_idx, my_card, skill_idx, other_idx, other_ca
 end
 
 local esprit = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local removed = pred.skill(other_card)
   other_card.skills = {}
   if removed then
@@ -146,6 +152,9 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
   end
   if buff then
     if buff_type == "-" then
+      if not player.opponent.field[other_idx] then
+        return
+      end
       OneBuff(player.opponent, other_idx, {atk={buff_type,1}, sta={buff_type,2}}):apply()
     elseif buff_type == "+" then
       OneBuff(player, my_idx, {atk={buff_type,1}, sta={buff_type,2}}):apply()
@@ -266,7 +275,7 @@ end,
 
 -- aristocrat girl, noblesse
 [1010] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card.def >= 2 then
+  if other_card and other_card.def >= 2 then
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {sta={"-",3}}
     buff:apply()
@@ -275,7 +284,7 @@ end,
 
 --private maid, true caring
 [1011] = function(player)
-  local target_idx = uniformly(player.opponent:field_idxs_with_preds({pred.follower}))
+  local target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
   if target_idx then
     local buff = GlobalBuff(player)
     buff.field[player.opponent][target_idx] = {atk={"-",1}}
@@ -291,7 +300,10 @@ end,
 end,
 
 --striker, fireball!
-[1013] = function(player, my_idx, my_card, skill_idx, other_idx)
+[1013] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local buff = GlobalBuff(player)
   buff.field[player.opponent][other_idx] = {sta={"-",1}}
   buff:apply()
@@ -343,8 +355,8 @@ end,
 end,
 
 -- seeker lydia, cross
-[1019] = function(player, my_idx, my_card, skill_idx, other_idx)
-  if #player:field_idxs_with_preds({pred.faction.C}) >= 2 then
+[1019] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if #player:field_idxs_with_preds(pred.C) >= 2 and other_card then
     OneBuff(player.opponent, other_idx, {atk={"-",1}, def={"-",2}, sta={"-",1}}):apply()
   end
 end,
@@ -412,6 +424,9 @@ end,
 -- red moon aka flina, cook club ace, silent maid, seeker director, lantern witch,
 -- coin lady, reverse defense
 [1026] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local diff = min(9,abs(other_card.def))
   OneBuff(player, my_idx, {atk={"+",diff}, def={"=",0}, sta={"+",diff}}):apply()
 end,
@@ -468,7 +483,10 @@ end,
 end,
 
 -- insomniac nanasid, insomnia
-[1033] = function(player, my_idx, my_card, skill_idx, other_idx)
+[1033] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"+",2}, def={"-", 1}}
   buff.field[player.opponent][other_idx] = {atk={"-",2}}
@@ -578,7 +596,7 @@ end,
 
 -- cauldron witch, cauldron!
 [1041] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if #player:field_idxs_with_preds({pred.follower, pred.D}) > 1 then
+  if #player:field_idxs_with_preds(pred.follower, pred.D) > 1 and other_card then
     local buffsize = math.ceil(other_card.atk / 2)
     OneBuff(player, my_idx, {sta={"+",buffsize}}):apply()
     my_card:remove_skill(skill_idx)
@@ -587,7 +605,7 @@ end,
 
 -- tea party witch, pumpkin!
 [1042] = function(player)
-  local target_idxs = player:field_idxs_with_preds({pred.witch, pred.follower})
+  local target_idxs = player:field_idxs_with_preds(pred.witch, pred.follower)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {sta={"+",1}}
@@ -597,7 +615,7 @@ end,
 
 -- heart stone witch, magic of the heart
 [1043] = function(player, my_idx, my_card, skill_idx)
-  local target_idxs = player:field_idxs_with_preds({pred.witch, pred.follower})
+  local target_idxs = player:field_idxs_with_preds(pred.witch, pred.follower)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     buff[idx] = {atk={"+",2}, sta={"+",2}}
@@ -632,11 +650,13 @@ end,
 end,
 
 -- visitor ophelia, academic curiosity
-[1046] = function(player, my_idx, my_card, skill_idx, other_idx)
+[1046] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
   local buffsize = math.min(math.abs(my_card.size - (my_card.def - 1)),5)
   buff.field[player][my_idx] = {def={"-",1}}
-  buff.field[player.opponent][other_idx] = {atk={"-",buffsize}, def={"-",buffsize}, sta={"-",buffsize}}
+  if other_card then
+    buff.field[player.opponent][other_idx] = {atk={"-",buffsize}, def={"-",buffsize}, sta={"-",buffsize}}
+  end
   buff:apply()
 end,
 
@@ -658,14 +678,14 @@ end,
     player.opponent:grave_to_exile(idx)
     buffsize = buffsize + 1
   end
-  if buffsize > 0 then
+  if buffsize > 0 and other_card then
     OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
   end
 end,
 
 -- lib. daisy, agent maid, arcana i magician, crescent maze, null defense!
 [1048] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card.def >= 1 then
+  if other_card and other_card.def >= 1 then
     OneBuff(player.opponent, other_idx, {def={"=",0}}):apply()
     my_card:remove_skill_until_refresh(skill_idx)
   end
@@ -673,7 +693,7 @@ end,
 
 -- lib. manager lotte, cultist maid, seeker ruth, dollmaster elfin rune, amnesia
 [1049] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if pred.skill(other_card) then
+  if other_card and pred.skill(other_card) then
     other_card.skills = {}
     my_card:remove_skill(skill_idx)
   end
@@ -890,7 +910,10 @@ end,
 end,
 
 -- lib. student, dispatch maid, blue cross member, gs recon, heavy burden
-[1075] = function(player, my_idx, my_card, skill_idx, other_idx)
+[1075] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   OneBuff(player.opponent, other_idx, {size={"+",1}}):apply()
   my_card:remove_skill(skill_idx)
 end,
@@ -908,12 +931,17 @@ end,
 
 -- sleep club advisor, time for bed
 [1078] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  other_card.active = false
+  if other_card then
+    other_card.active = false
+  end
   my_card:remove_skill(skill_idx)
 end,
 
 -- council weekly help, seize
 [1079] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"=",other_card.atk}}
   buff.field[player.opponent][other_idx] = {atk={"=",my_card.atk}}
@@ -1004,9 +1032,11 @@ end,
 
 -- meteor call lady, meteor call
 [1086] = function(player, my_idx, my_card, skill_idx)
-  local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
-  local buff_size = 1 + #player:field_idxs_with_preds({pred.lady})
-  OneBuff(player.opponent, opp_target_idx, {sta={"-",buff_size}}):apply()
+  local op_idx = uniformly(player.opponent:get_follower_idxs())
+  local buff_size = 1 + #player:field_idxs_with_preds(pred.lady)
+  if op_idx then
+    OneBuff(player.opponent, op_idx, {sta={"-",buff_size}}):apply()
+  end
   my_card:remove_skill_until_refresh(skill_idx)
 end,
 
@@ -1070,8 +1100,11 @@ end,
 end,
 
 -- seeker sarah, blue cross wisdom
-[1093] = function(player, my_idx, my_card, skill_idx, other_idx)
-  local buff_size = #player:hand_idxs_with_preds({pred.seeker})
+[1093] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
+  local buff_size = #player:hand_idxs_with_preds(pred.seeker)
   if buff_size > 0 then
     OneBuff(player.opponent, other_idx, {def={"-",buff_size}}):apply()
   end
@@ -1257,7 +1290,7 @@ end,
 
 -- waitress gart, c-can i take your order?
 [1107] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and (other_card.faction == "A" or other_card.faction == "D") then
+  if other_card and (pred.A(other_card) or pred.D(other_card)) then
     OneBuff(player.opponent, other_idx, {atk={"-",2}, sta={"-",2}}):apply()
   else
     OneBuff(player, my_idx, {atk={"+",2}, sta={"+",2}}):apply()
@@ -1765,6 +1798,9 @@ end,
 
 -- lunia scentriver, skill copy
 [1156] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local n = 0
   local skills = other_card:squished_skills()
   for i=1,2 do
@@ -2623,6 +2659,9 @@ end,
 
 -- forced tranformation!
 [1286] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   other_card.id = 300139
   local amt = #player.opponent:field_idxs_with_preds(pred.rio)
   OneBuff(player.opponent, other_idx, {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
