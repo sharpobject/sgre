@@ -484,12 +484,11 @@ end,
 
 -- insomniac nanasid, insomnia
 [1033] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if not other_card then
-    return
-  end
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"+",2}, def={"-", 1}}
-  buff.field[player.opponent][other_idx] = {atk={"-",2}}
+  if other_card then
+    buff.field[player.opponent][other_idx] = {atk={"-",2}}
+  end
   buff:apply()
   my_card:remove_skill(skill_idx)
 end,
@@ -1798,11 +1797,8 @@ end,
 
 -- lunia scentriver, skill copy
 [1156] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if not other_card then
-    return
-  end
   local n = 0
-  local skills = other_card:squished_skills()
+  local skills = other_card and other_card:squished_skills() or {}
   for i=1,2 do
     if skills[i] then
       n = n + 1
