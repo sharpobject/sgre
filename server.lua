@@ -858,4 +858,5 @@ function main()
   end
 end
 
+math.randomseed(os.time())
 main()
