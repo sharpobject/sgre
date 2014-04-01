@@ -17,6 +17,7 @@ bcrypt = require("bcrypt")
 print"required it"
 require("ssl")
 require("validate")
+require("giftable")
 
 local byte = string.byte
 local char = string.char
@@ -172,6 +173,7 @@ function try_register(msg)
     collection = {},
     decks = {},
     friends = {},
+    cafe = {},
     }))
   users.uid_to_email[uid] = email
   users.uid_to_username[uid] = username
@@ -287,6 +289,11 @@ function Connection:J(jmsg)
         self:crash_and_burn()
       end
     end
+    if message.type == "feed_card" then
+      if not self:feed_card(message) then
+        self:send({type="server_message",message="feeding failed D="})
+      end
+    end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
     self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
@@ -374,6 +381,10 @@ function Connection:try_login(msg)
     end
     modified_file(data)
   end
+  if not data.cafe then 
+    data.cafe = {} 
+    modified_file(data)
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -389,6 +400,7 @@ function Connection:try_login(msg)
     decks = data.decks,
     friends = data.friends,
     active_deck = data.active_deck,
+    cafe = data.cafe,
   }})
 end
 
@@ -502,6 +514,11 @@ function Connection:update_collection(diff)
   return true
 end
 
+function Connection:update_cafe(card_id, cafe_id)
+  local data = uid_to_data[self.uid]
+  self:send({type="update_cafe",cafe=data.cafe,card_id=card_id, cafe_id=cafe_id})
+end
+
 function Connection:set_deck(idx, deck)
   local char,other=0,0
   local data = uid_to_data[self.uid]
@@ -589,6 +606,113 @@ function Connection:try_chat(msg)
     return false
   end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
+  return true
+end
+
+function Connection:feed_card(msg)
+  local data = uid_to_data[self.uid]
+  local eater_id = msg.msg[1]
+  local cafe_id = msg.msg[2]
+  local food_id = msg.msg[3]
+  if not (data.collection[food_id] and data.collection[eater_id]) then
+    return false  -- trying to feed cards that you don't have
+  end
+  if not data.cafe[eater_id] then
+    data.cafe[eater_id] = {}
+  end
+  if not data.cafe[eater_id][cafe_id] then
+    local num_cafe_character = #data.cafe[eater_id]
+    if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 101 then
+      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0} 
+      cafe_id = num_cafe_character+1
+      -- the above 5 numbers are {WIS, SENS, PERS, GLAM, LIKE}
+    else
+      return false  -- trying to feed an ungiftable character or an cafe-ized character when all have been cafe-ized or too many cafe characters
+    end
+  end
+
+  local cafe_stats = data.cafe[eater_id][cafe_id]
+
+  -- figure out how much to modify cafe character stats by
+  local food_card = Card(food_id, 0)
+  local base_gift_modifiers = {0, 0, 0, 0}  --{WIS, SENS, PERS, GLAM}
+  local like_multiplier = 1.0
+  if cafe_stats[5] > 25 and cafe_stats[5] < 50 then
+    like_multiplier = 2.0
+  elseif cafe_stats[5] >= 50 then
+      like_multiplier = 3.0
+  end
+  local stat_multiplier = 1.0
+  local rarity_to_stat_multiplier = {
+    ["UC"]=1.5,
+    ["R"]=2.0,
+    ["DR"]=3.0,
+    ["TR"]=4.0}
+  if rarity_to_stat_multiplier[food_card.rarity] then
+    stat_multiplier = stat_multiplier * rarity_to_stat_multiplier[food_card.rarity]
+  end
+  if food_card.type == "spell" and food_id%2 == 0 then
+    base_gift_modifiers = {1, -1, 0, 0}
+  elseif food_card.type == "spell" and food_id%2 == 1 then
+    base_gift_modifiers = {0, 0, -1, 1}
+  elseif food_card.type == "follower" and food_id%2 == 0 then
+    base_gift_modifiers = {-1, 1, 0, 0}
+  elseif food_card.type == "follower" and food_id%2 == 1 then
+    base_gift_modifiers = {0, 0, 1, -1}
+  else
+    return false  -- invalid gift
+  end
+
+  local like_change = 2
+  if math.random() > 0.5 then
+    like_change = -1
+  end
+  if food_card.rarity == "EV" then
+    like_change = 0
+  end
+
+  -- modify cafe character stats
+  local diff = {0, 0, 0, 0, 0}
+  for i = 1,4 do
+    diff[i] = math.ceil(base_gift_modifiers[i] * like_multiplier * stat_multiplier)
+  end
+  diff[5] = like_change
+  for i = 1,5 do
+    cafe_stats[i] = cafe_stats[i] + diff[i]
+    if cafe_stats[i] < 0 then
+      cafe_stats[i] = 0
+    end
+  end
+
+  -- check for transformation
+  if cafe_stats[5] > 99 then
+    if giftable[eater_id][5] and cafe_stats[1] > 200 and cafe_stats[2] > 200 and cafe_stats[3] > 200 and cafe_stats[4] > 200 then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][5]]=1})
+    elseif giftable[eater_id][1] and cafe_stats[1] > cafe_stats[2] and cafe_stats[1] > cafe_stats[3] and cafe_stats[1] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][1]]=1})
+    elseif giftable[eater_id][2] and cafe_stats[2] > cafe_stats[1] and cafe_stats[2] > cafe_stats[3] and cafe_stats[2] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][2]]=1})
+    elseif giftable[eater_id][3] and cafe_stats[3] > cafe_stats[1] and cafe_stats[3] > cafe_stats[2] and cafe_stats[3] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][3]]=1})
+    elseif giftable[eater_id][4] and cafe_stats[4] > cafe_stats[1] and cafe_stats[4] > cafe_stats[2] and cafe_stats[4] > cafe_stats[3] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][4]]=1})
+    end
+    self:send({type="server_message",message="HENSHIN!"})
+    table.remove(data.cafe[eater_id], cafe_id)
+    eater_id = nil
+    cafe_id = nil
+  end
+
+  -- cleanup
+  self:update_cafe(eater_id, cafe_id)
+  self:update_collection({[food_id]=-1})
+  self:send({type="server_message",message="you fed!"})
+  modified_file(data)
   return true
 end
 

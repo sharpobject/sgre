@@ -16,6 +16,7 @@ require("input")
 require("graphics")
 require("mainloop")
 require("validate")
+require("giftable")
 
 local N_FRAMES = 0
 local min = math.min
@@ -91,7 +92,7 @@ function love.update(dt)
   loveframes.update(dt)
 end
 
-local hover_states = arr_to_set({"playing", "decks", "craft"})
+local hover_states = arr_to_set({"playing", "decks", "craft", "cafe"})
 
 function love.draw()
   love.graphics.setColor(255,255,255)
