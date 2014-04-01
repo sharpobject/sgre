@@ -996,6 +996,7 @@ function main_cafe()
       end
       local stats_pane = loveframes.Create("frame")
       frames.cafe.stats_pane = stats_pane
+      stats_pane:SetName("Stats")
       stats_pane:SetState("cafe")
       stats_pane:SetPos(x + w + 10, y)
       stats_pane:SetSize(380, 200)
