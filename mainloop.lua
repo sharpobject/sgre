@@ -180,6 +180,9 @@ function main_login(email, password)
                   if user_data.decks then
                     user_data.decks = map(fix_num_keys, user_data.decks)
                   end
+                  if user_data.cafe then
+                    user_data.cafe = fix_num_keys(user_data.cafe)
+                  end
                   doing_login = false
                   from_login = {main_select_faction}
                   break
@@ -619,6 +622,15 @@ function main_lobby()
     table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
+    button:SetPos(700,0)
+    button:SetSize(50, 50)
+    button:SetText("CAFE")
+    button:SetState("lobby")
+    button.OnClick = function()
+      from_lobby = {main_cafe}
+    end
+
+    local button = loveframes.Create("button")
     button:SetPos(750,0)
     button:SetSize(50, 50)
     button:SetText("DECKS")
@@ -666,6 +678,29 @@ local function collection_ex_deck(coll, deck)
     ret[k] = v - (deck[k] or 0)
     if ret[k] == 0 then
       ret[k] = nil
+    end
+  end
+  return ret
+end
+
+local function feedable_coll(coll)
+  local deck_cards = {}
+  for deck_num, deck in pairs(user_data.decks) do
+    for card_id, count in pairs(deck) do
+      if deck_cards[card_id] then
+        if deck_cards[card_id] < count then
+          deck_cards[card_id] = count
+        end
+      else
+        deck_cards[card_id] = count
+      end
+    end
+  end
+  local non_deck_cards = collection_ex_deck(coll, deck_cards)
+  local ret = {}
+  for k,v in pairs(non_deck_cards) do
+    if (k >= 200000 and k < 210000) or (k >= 300000 and k < 310000) then
+      ret[k] = v      
     end
   end
   return ret
@@ -873,6 +908,265 @@ function main_decks()
     end
   end
 end
+
+
+
+local from_cafe = nil
+function main_cafe()
+  if not frames.cafe then
+    frames.cafe = {}
+    frames.cafe.page_num = 1
+    frames.cafe.active_character_card_id = nil
+    frames.cafe.active_character_cafe_id = nil
+    frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
+
+    -- list of cafe cards on the left
+    local list, text = get_hover_list_text("cafe")
+    frames.cafe.card_text_list = list
+    frames.cafe.card_text = text
+
+    local lobby_button = loveframes.Create("button")
+    lobby_button:SetState("cafe")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      from_cafe = {main_lobby}
+    end
+
+    local cafe_pane = loveframes.Create("frame")
+    cafe_pane:SetState("cafe")
+    local x,y,w,h = left_hover_frame_pos()
+    cafe_pane:SetPos(x,y)
+    cafe_pane:SetSize(w,h)
+    cafe_pane:ShowCloseButton(false)
+    cafe_pane:SetDraggable(false)
+    cafe_pane.Draw = function(self)
+      draw_hover_frame(self.x, self.y, self.width, self.height)
+    end
+
+    local cafe_card_list = loveframes.Create("list", cafe_pane)
+    cafe_card_list:SetWidth(w-12)
+    cafe_card_list:Center()
+    cafe_card_list:SetY(60)
+    cafe_card_list:SetHeight(480)
+    cafe_card_list:SetPadding(0)
+    cafe_card_list:SetSpacing(0)
+
+    function frames.cafe.populate_cafe_card_list()
+      cafe_card_list:Clear()
+      for card_id, cafe_data in spairs(user_data.cafe) do
+        for cafe_id, stats in spairs(cafe_data) do
+          cafe_card_list:AddItem(deck_card_list_button(card_id, 0, 1, function()
+              frames.cafe.active_character_card_id = card_id
+              frames.cafe.active_character_cafe_id = cafe_id
+              frames.cafe.active_character_stats = stats
+              frames.cafe.redraw_stats_pane(card_id, stats)
+            end))
+        end
+      end
+      local separator = loveframes.Create("text")
+      separator:SetText("--------------------------------------------")
+      cafe_card_list:AddItem(separator)
+      for card_id, number in spairs(user_data.collection) do
+        if giftable[card_id] then
+          local uncafe_number = number
+          if fix_num_keys(user_data.cafe)[card_id] then
+            uncafe_number = number - #user_data.cafe[card_id]
+          end
+          if uncafe_number > 0 then
+            cafe_card_list:AddItem(deck_card_list_button(card_id, 0, uncafe_number, function()
+                frames.cafe.active_character_card_id = card_id
+                frames.cafe.active_character_cafe_id = nil
+                frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
+                frames.cafe.redraw_stats_pane(card_id, {0, 0, 0, 0, 0})
+              end))
+          end
+        end
+      end
+    end
+    frames.cafe.populate_cafe_card_list()
+
+    -- stats pane in upper-middle
+    function frames.cafe.redraw_stats_pane(card_id, stats)
+      if frames.cafe.stats_pane then
+        frames.cafe.stats_pane:Remove()
+      end
+      local stats_pane = loveframes.Create("frame")
+      frames.cafe.stats_pane = stats_pane
+      stats_pane:SetState("cafe")
+      stats_pane:SetPos(x + w + 10, y)
+      stats_pane:SetSize(380, 200)
+      stats_pane:ShowCloseButton(false)
+      stats_pane:SetDraggable(false)
+      local texts = {"Wisdom: ", "Sensitivity: ", "Glamour: ", "Personality: ", "Like: "}
+      local values = frames.cafe.active_character_stats
+      local maximums = {400, 400, 400, 400, 100}
+      for i=1,5 do
+        local text = loveframes.Create("text", stats_pane)
+        text:SetText(texts[i])
+        text:SetX(stats_pane:GetWidth()/2)
+        text:SetY(30*i)
+        local progressbar = loveframes.Create("progressbar", stats_pane)
+        progressbar:SetX(stats_pane:GetWidth()/2)
+        progressbar:SetY(15+30*i)
+        progressbar:SetWidth(stats_pane:GetWidth()/2-10)
+        progressbar:SetHeight(10)
+        progressbar:SetMax(maximums[i])
+        progressbar:SetValue(values[i])
+      end
+      if frames.cafe.active_character_card_id then
+        local card = Card(frames.cafe.active_character_card_id, 0)
+        local image = loveframes.Create("image", stats_pane)
+        image.card = card
+        image:SetSize(80, 120)
+        image.Draw = function(self)
+          local x = self:GetX()
+          local y = self:GetY()
+          love.graphics.setColor(255, 255, 255, 255)
+          draw_card(self.card, x, y, function() end)
+        end
+        image:SetX(40)
+        image:CenterY()
+      end
+    end
+    frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
+
+    --feeding area
+    local card_list = loveframes.Create("list")
+    card_list:SetState("cafe")
+    card_list:SetX(cafe_pane:GetX()*2+cafe_pane:GetWidth())
+    card_list:SetY(300)
+    card_list:SetHeight(300)
+    card_list:SetWidth(800-2*card_list:GetX())
+    card_list:EnableHorizontalStacking(true)
+    function card_list:Draw() end
+    card_list:SetSpacing(5)
+
+    local button_width = 20
+    local lbutton = loveframes.Create("button")
+    lbutton:SetState("cafe")
+    lbutton:SetX((800 - (cafe_pane:GetX()*2+cafe_pane:GetWidth())) - 2*button_width - 5)
+    lbutton:SetY(570)
+    lbutton:SetSize(20,20)
+    lbutton:SetText("<")
+    function lbutton:OnClick()
+      frames.cafe.page_num = frames.cafe.page_num - 1
+      frames.cafe.update_list()
+    end
+
+    local rbutton = loveframes.Create("button")
+    rbutton:SetState("cafe")
+    rbutton:SetX((800 - (cafe_pane:GetX()*2+cafe_pane:GetWidth())) - button_width)
+    rbutton:SetY(570)
+    rbutton:SetSize(20,20)
+    rbutton:SetText(">")
+    function rbutton:OnClick()
+      frames.cafe.page_num = frames.cafe.page_num + 1
+      frames.cafe.update_list()
+    end
+
+    function frames.cafe.update_feeding_list()
+      frames.cafe.populate_feeding_card_list(feedable_coll(user_data.collection))
+    end
+
+    function frames.cafe.populate_feeding_card_list(collection)
+      card_list:Clear()
+      local coll = tspairs(collection)
+      frames.cafe.npages = ceil(#coll/8)
+      if frames.cafe.npages > 0 then
+        frames.cafe.page_num = bound(1,frames.cafe.page_num,frames.cafe.npages)
+      else
+        frames.cafe.page_num = 1
+      end
+      local lbound = (frames.cafe.page_num-1)*8+1
+      for i=lbound,lbound+7 do
+        if not coll[i] then return end
+        local k,v = coll[i][1],coll[i][2]
+        card_list:AddItem(card_list_button(k, 0, v, function()
+            -- TODO add a check for confirm_box
+            if not frames.cafe.active_character_card_id then
+              return false
+            end 
+            local confirm_box = loveframes.Create("frame", cafe)
+            frames.cafe.confirm_box = confirm_box
+            confirm_box:SetState("cafe")
+            confirm_box:SetName("Really feed this card?")
+            confirm_box:SetWidth(250)
+            confirm_box:SetHeight(180)
+            confirm_box:CenterX()
+            confirm_box:CenterY()
+            confirm_box:SetModal(true)
+            loveframes.modalobject.modalbackground:SetState("cafe")
+            confirm_box:ShowCloseButton(false)
+            local card = Card(k, 0)
+            local image = loveframes.Create("image", confirm_box)
+            image.card = card
+            image:SetSize(80, 120)
+            image.Draw = function(self)
+              local x = self:GetX()
+              local y = self:GetY()
+              love.graphics.setColor(255, 255, 255, 255)
+              draw_card(self.card, x, y, function() end)
+            end
+            image:SetY(40)
+            image:CenterX()
+            local no_button = loveframes.Create("button", confirm_box)
+            no_button:SetWidth(40)
+            no_button:SetHeight(20)
+            no_button:CenterY()
+            no_button:SetX(confirm_box:GetWidth()-65)
+            no_button:SetText("No")
+            no_button.OnClick = function() confirm_box:Remove() end
+            local yes_button = loveframes.Create("button", confirm_box)
+            yes_button:SetWidth(40)
+            yes_button:SetHeight(20)
+            yes_button:CenterY()
+            yes_button:SetX(25)
+            yes_button:SetText("Yes")
+            yes_button.OnClick = function()  
+              if user_data.fed then
+                user_data.fed = nil
+              end
+              local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
+              net_send({type="feed_card", msg=msg})
+              user_data.fed = "feeding"
+              --needs to wait for server to respond back with update_cafe json
+            end
+          end))
+      end
+    end
+    frames.cafe.update_feeding_list()
+  end
+
+  loveframes.SetState("cafe")
+  while true do
+    wait()
+    if user_data.fed == "feeding" then
+      wait()
+    end
+    if user_data.fed == "fed" then
+      user_data.fed = nil
+      frames.cafe.confirm_box:Remove()
+      frames.cafe.populate_cafe_card_list()
+      frames.cafe.update_feeding_list()
+      if frames.cafe.active_character_card_id and frames.cafe.active_character_cafe_id then
+        frames.cafe.active_character_stats = user_data.cafe[frames.cafe.active_character_card_id][frames.cafe.active_character_cafe_id]
+        frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
+      elseif frames.cafe.stats_pane then
+        frames.cafe.stats_pane:Remove()
+      end
+    end
+    if from_cafe and (not user_data.fed) then
+      local ret = from_cafe
+      from_cafe = nil
+      return unpack(ret)
+    end
+  end
+end
+
 
 function main_select_boss()
   local which = nil

@@ -126,6 +126,15 @@ function handlers.update_collection(msg)
   end
 end
 
+function handlers.update_cafe(msg)
+  user_data.cafe = fix_num_keys(msg.cafe)
+  user_data.fed = "fed"
+  if frames.cafe then
+    frames.cafe.active_character_card_id = msg.card_id
+    frames.cafe.active_character_cafe_id = msg.cafe_id
+  end
+end
+
 function handlers.set_deck(msg)
   local deck = fix_num_keys(msg.deck)
   user_data.decks[msg.idx] = msg.deck
@@ -148,4 +157,27 @@ end
 
 function handlers.nope_nope_nope(msg)
   crash_msg = msg.reason or "nope_nope_nope"
+end
+
+function handlers.server_message(msg)
+  local state = loveframes.GetState()
+  local modal = loveframes.Create("frame")
+  modal:SetName("Server message!")
+  modal:SetSize(300, 120)
+  modal:ShowCloseButton(false)
+  modal:SetDraggable(false)
+  modal:Center()
+  modal:SetState(state)
+  modal:SetModal(true)
+  local modaltext = loveframes.Create("text", modal)
+  modaltext:SetText(msg.message)
+  modaltext:Center()
+  modaltext:SetY(65)
+  local okbutton = loveframes.Create("button", modal)
+  okbutton:SetPos(5, 90)
+  okbutton:SetWidth(290)
+  okbutton:SetText("OK")
+  okbutton.OnClick = function()
+    modal:Remove()
+  end
 end
