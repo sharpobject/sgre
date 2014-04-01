@@ -622,7 +622,7 @@ function Connection:feed_card(msg)
   end
   if not data.cafe[eater_id][cafe_id] then
     local num_cafe_character = #data.cafe[eater_id]
-    if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 101 then
+    if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 11 then
       data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0} 
       cafe_id = num_cafe_character+1
       -- the above 5 numbers are {WIS, SENS, PERS, GLAM, LIKE}

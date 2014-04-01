@@ -1126,6 +1126,7 @@ function main_cafe()
       end
       local stats_pane = loveframes.Create("frame")
       frames.cafe.stats_pane = stats_pane
+      stats_pane:SetName("Stats")
       stats_pane:SetState("cafe")
       stats_pane:SetPos(x + w + 10, y)
       stats_pane:SetSize(380, 200)
@@ -1184,7 +1185,7 @@ function main_cafe()
     lbutton:SetText("<")
     function lbutton:OnClick()
       frames.cafe.page_num = frames.cafe.page_num - 1
-      frames.cafe.update_list()
+      frames.cafe.update_feeding_list()
     end
 
     local rbutton = loveframes.Create("button")
@@ -1195,7 +1196,7 @@ function main_cafe()
     rbutton:SetText(">")
     function rbutton:OnClick()
       frames.cafe.page_num = frames.cafe.page_num + 1
-      frames.cafe.update_list()
+      frames.cafe.update_feeding_list()
     end
 
     function frames.cafe.update_feeding_list()
