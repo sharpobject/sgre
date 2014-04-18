@@ -231,6 +231,7 @@ function Connection:opponent_disconnected()
   print("OP DIS")
   self.opponent = nil
   self.game:game_over(self.player_index)
+  destroy_game(self, true)
   self:send({type="opponent_disconnected"})
 end
 
@@ -496,6 +497,38 @@ end
 
 function start_fight(aid, bid)
   local a,b = uid_to_connection[aid], uid_to_connection[bid]
+  local function on_fight_over(self, score)
+    local data = uid_to_data[self.uid]
+    local num_accessories = 0
+    if score < 0 then
+      num_accessories = 0
+    elseif score <= 20 then
+      num_accessories = 2
+    elseif score <= 30 then
+      num_accessories = 3
+    elseif score <= 50 then
+      num_accessories = 4
+    else
+      num_accessories = 5
+    end
+    local rewards = {}
+    local s1_accessories = {"210001", "210002", "210003", "210004", "210005", "210006", "210007"}
+    if num_accessories > 0 then
+      for i=1,num_accessories do
+        local acc_id = uniformly(s1_accessories)
+        if not rewards[acc_id] then
+          rewards[acc_id] = 1
+        else
+          rewards[acc_id] = rewards[acc_id] + 1
+        end
+      end
+    end
+    self:update_collection(rewards)
+    self:send({type="dungeon_rewards",rewards=rewards})
+    modified_file(data)
+  end
+  a.on_fight_over = on_fight_over
+  b.on_fight_over = on_fight_over
   setup_game(a,b)
 end
 
@@ -767,11 +800,46 @@ function prep_deck(uid)
   return ret
 end
 
+function score_game(game)
+  local scores = {0, 0}
+  local turn_bonus = 0
+  if game.turn < 3 then
+    turn_bonus = -100
+  elseif game.turn < 7 then
+    turn_bonus = 20
+  elseif game.turn < 10 then
+    turn_bonus = 30
+  else
+    turn_bonus = 40
+  end
+  for i,player in pairs({game.P1, game.P2}) do
+    local deck_bonus = 0
+    if #player.deck > 23 then
+      deck_bonus = -100
+    elseif #player.deck < 10 then
+      deck_bonus = 10
+    end
+    local life_bonus = 0
+    if player.lose then
+      life_bonus = -10
+    elseif player.character.life < 10 then
+      life_bonus = 10
+    end
+    scores[i] = deck_bonus + turn_bonus + life_bonus
+  end
+  return scores
+end
 function destroy_game(a, win)
+  local scores = score_game(a.game)
+  local score = scores[a.player_index]
   a.game = nil
   a.player_index = nil
   a.opponent = nil
   a.state = "lobby"
+  if a.on_fight_over then
+    a:on_fight_over(score)
+  end
+  a.on_fight_over = nil
   if a.on_game_over then
     a:on_game_over(win)
   end
