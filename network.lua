@@ -124,6 +124,9 @@ function handlers.update_collection(msg)
       user_data.collection[k] = nil
     end
   end
+  if msg.reason == "craft" and frames.craft.enable_buttons then
+    frames.craft.enable_buttons()
+  end
 end
 
 function handlers.update_cafe(msg)
@@ -169,6 +172,7 @@ function handlers.server_message(msg)
   modal:Center()
   modal:SetState(state)
   modal:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState(state)
   local modaltext = loveframes.Create("text", modal)
   modaltext:SetText(msg.message)
   modaltext:Center()
