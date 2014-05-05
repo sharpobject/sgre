@@ -294,6 +294,9 @@ function Connection:J(jmsg)
         self:send({type="server_message",message="feeding failed D="})
       end
     end
+    if message.type == "craft" then
+      self:try_craft(message)
+    end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
     self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
@@ -496,7 +499,7 @@ function start_fight(aid, bid)
   setup_game(a,b)
 end
 
-function Connection:update_collection(diff)
+function Connection:update_collection(diff, reason)
   local data = uid_to_data[self.uid]
   for k,v in pairs(diff) do
     if (data.collection[k] or 0) + v < 0 then
@@ -509,7 +512,7 @@ function Connection:update_collection(diff)
       data.collection[k] = nil
     end
   end
-  self:send({type="update_collection",diff=diff})
+  self:send({type="update_collection",diff=diff,reason=reason})
   modified_file(data)
   return true
 end
@@ -714,6 +717,37 @@ function Connection:feed_card(msg)
   self:send({type="server_message",message="you fed!"})
   modified_file(data)
   return true
+end
+
+function Connection:try_craft(msg)
+  local ret_diff = {}
+  local id = msg.id
+  local data = uid_to_data[self.uid]
+  if type(id) == "number" then
+    local recipe = recipes[msg.id]
+    if recipe then
+      local used_amt = {}
+      for _,deck in pairs(data.decks) do
+        for input,_ in pairs(recipe) do
+          used_amt[input] = max(deck[input] or 0, used_amt[input] or 0)
+        end
+      end
+      local enough = true
+      for input,_ in pairs(recipe) do
+        if (data.collection[input] or 0) - used_amt[input] < recipe[input] then
+          enough = false
+          break
+        end
+      end
+      if enough then
+        for k,v in pairs(recipe) do
+          ret_diff[k] = -v
+        end
+        ret_diff[id] = (ret_diff[id] or 0) + 1
+      end
+    end
+  end
+  self:update_collection(ret_diff, "craft")
 end
 
 function prep_deck(uid)

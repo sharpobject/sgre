@@ -1452,7 +1452,6 @@ end
 
 function Game:client_run()
   while true do
-    wait(20)
     while net_q:len() == 0 do
       wait()
     end

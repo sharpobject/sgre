@@ -1,3 +1,5 @@
+require "cards"
+local recipes = recipes
 local ceil = math.ceil
 
 function wait(n)
@@ -16,6 +18,7 @@ frames = {}
 local frames = frames
 
 function fmainloop()
+  --local func, arg = main_craft, nil
   local func, arg = main_login, nil
   --local func, arg = main_go_hard, nil
   while true do
@@ -383,7 +386,6 @@ function main_forgot_password(email, password)
         from_forgot_password = {main_login, {textinput1:GetText(),
           frames.forgot_password.password}}
       end
-      -- TODO from_login = {main_forgot_password, {textinput1:GetText()}}
     end
   end
 
@@ -452,6 +454,7 @@ function rewards(data)
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState("playing")
   frame:Center()
   
   -- make text in frame
@@ -472,7 +475,7 @@ function rewards(data)
 
   -- spit out rewards received from msg.  if there are too many rewards, let it scroll
   local rewards_list = loveframes.Create("list", frame)
-  local test_button = card_list_button(300001, 0, 1, function() end)
+  local test_button = card_list_button(300001, false, 1, function() end)
   local card_width = test_button:GetWidth()
   local spacing = 5
   local ncards = 0
@@ -481,7 +484,7 @@ function rewards(data)
   rewards_list:SetSpacing(spacing)
   for i, v in pairs(data) do 
     ncards = ncards + 1
-    rewards_list:AddItem(card_list_button(i, 0, v, function() end))
+    rewards_list:AddItem(card_list_button(i, false, v, function() end))
   end
   local width = math.min(ncards * card_width + (ncards - 1) * spacing, spacing * 4 + card_width * 5 + 15) -- 15 is scrollbar width
   rewards_list:SetWidth(width)
@@ -705,11 +708,17 @@ local function deck_cmp(a, b)
   return false
 end
 
+local function name_cmp(a, b)
+  return id_to_canonical_card[a].name:lower() <
+      id_to_canonical_card[b].name:lower()
+end
+
 local from_craft = nil
 function main_craft()
   if not frames.craft then
     frames.craft = {}
     frames.craft.page_num = 1
+    frames.craft.stack = {}
 
     local list, text = get_hover_list_text("craft")
     frames.craft.card_text_list = list
@@ -737,16 +746,134 @@ function main_craft()
       draw_hover_frame(self.x, self.y, self.width, self.height)
     end
 
-    local craft_card_list = loveframes.Create("list", craft_pane)
-    craft_card_list:SetWidth(w-12)
-    craft_card_list:Center()
-    craft_card_list:SetY(60)
-    craft_card_list:SetHeight(480)
-    craft_card_list:SetPadding(0)
-    craft_card_list:SetSpacing(0)
-    function craft_card_list:Draw() end
+    local text_card_list = loveframes.Create("list", craft_pane)
+    text_card_list:SetWidth(w-12)
+    text_card_list:Center()
+    text_card_list:SetY(60)
+    text_card_list:SetHeight(480)
+    text_card_list:SetPadding(0)
+    text_card_list:SetSpacing(0)
+    function text_card_list:Draw() end
 
     function frames.craft.update_list()
+      frames.craft.populate_text_card_list(recipes)
+      frames.craft.populate_card_list(recipes)
+    end
+
+    function frames.craft.spawn_craft_frame(id)
+      local frame = loveframes.Create("frame")
+      frame:SetName("Let's craft the "..id_to_canonical_card[id].name)
+      frame:SetSize(400, 400)
+      frame:ShowCloseButton(false)
+      frame:SetDraggable(false)
+      frame:SetState("craft")
+      frame:SetModal(true)
+      loveframes.modalobject.modalbackground:SetState("craft")
+      frame:Center()
+
+      local in_list = loveframes.Create("list", frame)
+      local test_button = card_list_button(300001, false, 1, function() end)
+      local card_width = test_button:GetWidth()
+      local card_height = test_button:GetHeight()
+      local spacing = 5
+      local ncards = 0
+      in_list:EnableHorizontalStacking(true)
+      in_list:SetSpacing(spacing)
+      local width = spacing * 3 + card_width * 4
+      local height = spacing + card_height * 2
+      in_list:SetWidth(width)
+      in_list:SetHeight(height)
+      frame:SetWidth(width+2*spacing+2)
+      frame:SetHeight(30 + height + spacing+card_height+spacing+1)
+      frame:Center()
+      for i, v in pairs(recipes[id]) do 
+        local coll_amt = frames.craft.collection[i] or 0
+        local gray = coll_amt < v
+        in_list:AddItem(card_list_button(i, gray, coll_amt.."/"..v,
+          function()
+            if recipes[i] then
+              local stack = frames.craft.stack
+              stack[#stack+1] = id
+              frame:SetModal(false)
+              frame:Remove()
+              frames.craft.spawn_craft_frame(i)
+            end
+          end))
+        ncards = ncards + 1
+      end
+      in_list:CenterX()
+      in_list:SetY(30)
+      function in_list.Draw() end
+
+      local out_card = card_list_button(id, false, nil, function() end)
+      out_card:SetParent(frame)
+      out_card:SetY(30+2*spacing+2*card_height)
+      out_card:SetX(math.floor(spacing+1+(card_width+spacing)/2))
+
+      local back_button
+      local craft_button = loveframes.Create("button", frame)
+      craft_button:SetText("Craft!")
+      craft_button:SetWidth(card_width)
+      craft_button:SetHeight(card_height/2)
+      craft_button:SetX(out_card:GetStaticX()+spacing+card_width)
+      craft_button:SetY(out_card:GetStaticY()+card_height/4)
+      craft_button.OnClick = function()
+        net_send({type="craft", id=id})
+        function frames.craft.enable_buttons()
+          craft_button:SetEnabled(true)
+          back_button:SetEnabled(true)
+          for _,button in pairs(in_list.children) do
+            button:SetEnabled(true)
+          end
+          frames.craft.collection = collection_ex_deck(
+              user_data.collection, union_counters(user_data.decks))
+          for k,v in pairs(recipes[id]) do
+            if (frames.craft.collection[k] or 0) < v then
+              craft_button:SetEnabled(false)
+              break
+            end
+          end
+          frames.craft.enable_buttons = nil
+        end
+        craft_button:SetEnabled(false)
+        back_button:SetEnabled(false)
+        for _,button in pairs(in_list.children) do
+          button:SetEnabled(false)
+        end
+      end
+
+      for k,v in pairs(recipes[id]) do
+        if (frames.craft.collection[k] or 0) < v then
+          craft_button:SetEnabled(false)
+          break
+        end
+      end
+
+      back_button = loveframes.Create("button", frame)
+      back_button:SetText("Close")
+      back_button:SetWidth(card_width)
+      back_button:SetHeight(card_height/2)
+      back_button:SetX(out_card:GetStaticX()+2*spacing+2*card_width)
+      back_button:SetY(out_card:GetStaticY()+card_height/4)
+      back_button.OnClick = function()
+        frame:SetModal(false)
+        frame:Remove()
+        local stack = frames.craft.stack
+        if #stack > 0 then
+          frames.craft.spawn_craft_frame(stack[#stack])
+          stack[#stack] = nil
+        end
+      end
+
+    end
+
+    function frames.craft.populate_text_card_list(recipes)
+      for k,v in spairs(recipes, name_cmp) do
+        text_card_list:AddItem(deck_card_list_button(k, 0, v, function()
+          frames.craft.spawn_craft_frame(k)
+        end))
+      end
+      frames.craft.populate_text_card_list = function() end
     end
 
     local card_list = loveframes.Create("list")
@@ -784,7 +911,7 @@ function main_craft()
 
     function frames.craft.populate_card_list(collection)
       card_list:Clear()
-      local coll = tspairs(collection)
+      local coll = tspairs(collection, deck_cmp)
       frames.craft.npages = ceil(#coll/16)
       if frames.craft.npages > 0 then
         frames.craft.page_num = bound(1,frames.craft.page_num,frames.craft.npages)
@@ -795,12 +922,17 @@ function main_craft()
       for i=lbound,lbound+15 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
-          -- TODO: open a popup that lets you craft this card
+        card_list:AddItem(card_list_button(k, false, v, function()
+          frames.craft.spawn_craft_frame(k)
         end))
       end
     end
   end
+
+  frames.craft.collection = collection_ex_deck(
+      user_data.collection, union_counters(user_data.decks))
+
+  frames.craft.update_list(recipes)
 
   loveframes.SetState("craft")
   while true do
@@ -877,17 +1009,6 @@ function main_decks()
     deck_card_list:SetSpacing(0)
     function deck_card_list:Draw() end
 
-    local function deck_cmp(a, b)
-      -- a<b
-      a, b = tostring(a), tostring(b)
-      if a[1]==b[1] then
-        return tonumber(a)<tonumber(b)
-      end
-      if a[1] == "1" then return true end
-      if b[1] == "1" then return false end
-      if a[1] == "3" then return true end
-      return false
-    end
 
     function frames.decks.update_list()
       frames.decks.populate_deck_card_list(frames.decks.deck)
@@ -952,7 +1073,7 @@ function main_decks()
 
     function frames.decks.populate_card_list(collection)
       card_list:Clear()
-      local coll = tspairs(collection)
+      local coll = tspairs(collection, deck_cmp)
       frames.decks.npages = ceil(#coll/16)
       if frames.decks.npages > 0 then
         frames.decks.page_num = bound(1,frames.decks.page_num,frames.decks.npages)
@@ -963,7 +1084,7 @@ function main_decks()
       for i=lbound,lbound+15 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
+        card_list:AddItem(card_list_button(k, false, v, function()
           if Card(k).limit == 0 then return end
           if k < 200000 then
             local current_char = get_char(frames.decks.deck)
@@ -1216,7 +1337,7 @@ function main_cafe()
       for i=lbound,lbound+7 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
+        card_list:AddItem(card_list_button(k, false, v, function()
             -- TODO add a check for confirm_box
             if not frames.cafe.active_character_card_id then
               return false

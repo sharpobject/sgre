@@ -164,8 +164,9 @@ function draw_hover_card(text_obj)
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
   love.graphics.setColor(28 ,28 ,28)
-  local text = card.name.."\n".."Limit "..card.limit.." "..
-    card.points.."pt "..card.rarity.."\n\n"
+  local text = card.name.."\n".."Limit "..card.limit.."      "..
+    card.points.."pt      "..card.rarity.."      "..
+    card.episode.." ".."\n\n"
   text = text .. (skill_text[card.id] or "")
   if card.type == "follower" then
     local skills = card.skills or {}
@@ -673,7 +674,9 @@ function deck_card_list_button(id, upgrade, count, cb)
     love.graphics.setColor(0, 0, 0, 255)
     love.graphics.setFont(load_vera(10))
     love.graphics.print(id_to_canonical_card[id].name, x, y)
-    love.graphics.printf(count, x, y, w, "right")
+    if type(count) == "number" then
+      love.graphics.printf(count, x, y, w, "right")
+    end
   end
   button.Update = function(self)
     if self:GetHover() then
@@ -685,9 +688,10 @@ function deck_card_list_button(id, upgrade, count, cb)
   return button
 end
 
-function card_list_button(id, upgrade, count, cb)
+function card_list_button(id, gray, count, cb)
   id = tonumber(id)
   local card = Card(id, upgrade)
+  if gray then card.active = false end
   local button = loveframes.Create("imagebutton")
   button.card = card
   button:SetSize(80, 120)
@@ -707,10 +711,12 @@ function card_list_button(id, upgrade, count, cb)
 
     if self.card then
       draw_card(self.card, x, y, lighten_frame)
-      love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
-      love.graphics.setFont(load_vera(10))
-      love.graphics.setColor(0, 0, 0, 255)
-      love.graphics.printf(count, x, y+83, 66, "right")
+      if type(count) ~= "nil" and type(count) ~= "table" then
+        love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
+        love.graphics.setFont(load_vera(10))
+        love.graphics.setColor(0, 0, 0, 255)
+        love.graphics.printf(tostring(count), x, y+83, 66, "right")
+      end
     end
   end
   button.Update = function(self)
