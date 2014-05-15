@@ -1,10 +1,4 @@
 function love.mousepressed(x,y,which)
-  --print("mouse pressed!")
-  if which=="l" then
-    mouse_down = true
-    mouse_x = x
-    mouse_y = y
-  end
   loveframes.mousepressed(x, y, which)
 end
 

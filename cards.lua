@@ -21,6 +21,7 @@ function cards_init()
     card.type = in_card.type:lower()
     card.faction = in_card.faction[1]
     card.name = in_card.name
+    card.episode = in_card.episode
     card.limit = in_card.limit + 0
     card.kr_name = in_card.kr_name
     card.id = in_card.id + 0
