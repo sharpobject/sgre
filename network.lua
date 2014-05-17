@@ -140,7 +140,7 @@ end
 
 function handlers.set_deck(msg)
   local deck = fix_num_keys(msg.deck)
-  user_data.decks[msg.idx] = msg.deck
+  user_data.decks[msg.idx] = deck
 end
 
 function handlers.set_active_deck(msg)
