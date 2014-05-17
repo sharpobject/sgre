@@ -105,7 +105,7 @@ function love.update(dt)
       love.filesystem.mount(k, "")
     end
     require("main_again")
-    love.run()
+    love.load()
   end
 end
 
