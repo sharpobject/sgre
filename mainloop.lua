@@ -40,15 +40,10 @@ function str_to_deck(s)
 end
 
 local file_to_deck = function(s)
-  local file, err = io.open(ABSOLUTE_PATH.."decks"..PATH_SEP..s..".txt", "r")
-  if file then
-    s = file:read("*a")
-    file:close()
-  else
-    file = love.filesystem.newFile("decks/"..s..".txt")
-    file:open("r")
-    s = file:read(file:getSize())
-  end
+  file = love.filesystem.newFile("decks/"..s..".txt")
+  file:open("r")
+  s = file:read(file:getSize())
+  file:close()
   return str_to_deck(s)
 end
 

@@ -41,16 +41,7 @@ do
 end
 
 function load_img(s)
-  if not pcall(function() s = love.image.newImageData("swordgirlsimages/"..s) end) then
-    local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
-    if not file then
-      error(err)
-    end
-    local contents = file:read("*a")
-    file:close()
-    local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
-    s = love.image.newImageData(data)
-  end
+  s = love.image.newImageData("swordgirlsimages/"..s)
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -74,16 +65,7 @@ do
   function load_asset(s)
     local orig_s = s
     if asset_map[s] then return unpack(asset_map[s]) end
-    if not pcall(function() s = love.image.newImageData("sg_assets/"..s) end) then
-      local file, err = io.open(ABSOLUTE_PATH.."sg_assets"..PATH_SEP..s, "rb")
-      if not file then
-        error(err)
-      end
-      local contents = file:read("*a")
-      file:close()
-      local data = love.filesystem.newFileData(contents, "foo.png", "file")
-      s = love.image.newImageData(data)
-    end
+    s = love.image.newImageData("sg_assets/"..s)
     local w, h = s:getWidth(), s:getHeight()
     local ret = love.graphics.newImage(s)
     asset_map[orig_s] = {ret, w, h}

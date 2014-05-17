@@ -22,33 +22,8 @@ local N_FRAMES = 0
 local min = math.min
 
 function love.load(arg)
+  arg = arg or {}
   GLOBAL_EMAIL, GLOBAL_PASSWORD = arg[2], arg[3]
-  local min_k = 99
-  for k,v in pairs(arg) do
-    if k < min_k then
-      min_k = k
-    end
-    --print(k,v)
-  end
-  PATH_SEP = "/"
-  if love._os == "Windows" then
-    PATH_SEP = "\\"
-  end
-  local path = arg[min_k]
-  local last_sep = nil
-  for i=1,path:len() do
-    if path[i] == PATH_SEP then
-      last_sep = i
-    end
-  end
-  if last_sep then
-    path = path:sub(1,last_sep)
-    --print(path)
-  end
-  ABSOLUTE_PATH = path
-  for k,v in pairs(love) do
-    --print(k,v)
-  end
 
   math.randomseed(os.time())
   for i=1,4 do math.random() end
