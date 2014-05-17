@@ -173,17 +173,20 @@ function draw_hover_card(text_obj)
   text_obj:SetText(text:gsub("\n"," \n "))
 end
 
-local bkg_grad, bkg_quad = nil, nil
+local bkg_grad, bkg_batch = nil, nil
 function draw_background()
   bkg_grad = bkg_grad or gradient({direction="horizontal", {254, 248, 164, 0}, {254, 248, 164}})
   local bkg, bkg_width, bkg_height = load_asset("background.png")
   bkg:setWrap('repeat','repeat')
-  if not bkg_quad then
-    local window_width = love.graphics.getWidth()
-    local window_height = love.graphics.getHeight()
-    bkg_quad = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
+  if not bkg_batch then
+    bkg_batch = love.graphics.newSpriteBatch(bkg, 4000, "static")
+    for x=0,800,20 do
+      for y=0,600,20 do
+        bkg_batch:add(x,y)
+      end
+    end
   end
-  (love.graphics.drawq or love.graphics.draw)(bkg, bkg_quad, 0, 0)
+  love.graphics.draw(bkg_batch)
   love.graphics.draw(bkg_grad, 0, -love.graphics.getHeight()/2, 0,
       love.graphics.getWidth()/bkg_grad:getWidth(),
       love.graphics.getHeight()*2/bkg_grad:getHeight())
