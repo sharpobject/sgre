@@ -479,14 +479,17 @@ function rewards(data)
   rewards_list:SetSpacing(spacing)
   for i, v in pairs(data) do 
     ncards = ncards + 1
-    rewards_list:AddItem(card_list_button(i, false, v, function() end))
   end
+  if ncards < 1 then
+    rewards_list:Remove()
+  end
+
   local width = math.min(ncards * card_width + (ncards - 1) * spacing, spacing * 4 + card_width * 5 + 15) -- 15 is scrollbar width
   rewards_list:SetWidth(width)
   rewards_list:CenterX()
   rewards_list:CenterY()
-  if ncards < 1 then
-    rewards_list:Remove()
+  for i, v in pairs(data) do 
+    rewards_list:AddItem(card_list_button(i, false, v, function() end))
   end
 
   -- sit around and wait until 'close' is true, then remove this frame
