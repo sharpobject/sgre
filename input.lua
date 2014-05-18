@@ -7,6 +7,9 @@ function love.mousereleased(x, y, which)
 end
 
 function love.keypressed(key, unicode)
+  if key == "f12" then
+    DISPLAY_FRAMERATE = not DISPLAY_FRAMERATE
+  end
   loveframes.keypressed(key, unicode)
 end
 

@@ -82,4 +82,7 @@ function love.draw()
   end
   --love.graphics.print("FPS: "..love.timer.getFPS(),315,15)
   loveframes.draw()
+  if DISPLAY_FRAMERATE then
+    love.graphics.print(tostring(love.timer.getFPS()), 0, 0)
+  end
 end
