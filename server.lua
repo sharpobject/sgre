@@ -346,7 +346,7 @@ function Connection:read()
   print("CONN READ")
   local junk, err, data = self.socket:receive("*a")
   if not err then
-    error("shitfuck")
+    print("something unusual happened",junk,err,data)
   end
   if err == "closed" then
     self:close()
