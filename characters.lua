@@ -54,11 +54,10 @@ end
 
 local cinia_pacifica = function(player)
   local target_idxs = player.opponent:get_follower_idxs()
-  if #target_idxs == 0 then
-    return
+  if #target_idxs > 0 then
+    local target_idx = uniformly(target_idxs)
+    OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
   end
-  local target_idx = uniformly(target_idxs)
-  OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
   if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
@@ -66,11 +65,10 @@ end
 
 local luthica_preventer = function(player)
   local target_idxs = player:field_idxs_with_preds(pred[player.character.faction], pred.follower)
-  if #target_idxs == 0 then
-    return
+  if #target_idxs > 0 then
+    local target_idx = uniformly(target_idxs)
+    OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
   end
-  local target_idx = uniformly(target_idxs)
-  OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
   if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end

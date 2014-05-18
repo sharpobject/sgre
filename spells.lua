@@ -703,6 +703,7 @@ end,
       buff[i] = {atk={"+",3},sta={"+",3}}
     end
   end
+  buff:apply()
 end,
 
 -- magic stone found
