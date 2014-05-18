@@ -236,7 +236,6 @@ function Connection:opponent_disconnected()
   print("OP DIS")
   self.opponent = nil
   self.game:game_over(self.player_index)
-  destroy_game(self, true)
   self:send({type="opponent_disconnected"})
   in_opponent_disconnected = false
 end
