@@ -227,11 +227,17 @@ function Connection:send(stuff)
   end
 end
 
+local in_opponent_disconnected = false
 function Connection:opponent_disconnected()
+  if in_opponent_disconnected then
+    return
+  end
+  in_opponent_disconnected = true
   print("OP DIS")
   self.opponent = nil
   self.game:game_over(self.player_index)
   self:send({type="opponent_disconnected"})
+  in_opponent_disconnected = false
 end
 
 function Connection:close()
@@ -435,6 +441,9 @@ function Connection:try_dungeon(msg)
   local which = msg.idx
   if (not which) or (not dungeons.npcs[which]) then
     return
+  end
+  if uid_waiting_for_fight == self.uid then
+    uid_waiting_for_fight = nil
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
