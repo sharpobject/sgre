@@ -347,6 +347,7 @@ function Connection:read()
   local junk, err, data = self.socket:receive("*a")
   if not err then
     print("something unusual happened",junk,err,data)
+    pcall(function() self:close() end)
   end
   if err == "closed" then
     self:close()
