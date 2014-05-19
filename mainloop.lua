@@ -759,7 +759,11 @@ function main_craft()
     end
 
     function frames.craft.spawn_craft_frame(id)
+      if frames.craft.craft_frame then
+        return
+      end
       local frame = loveframes.Create("frame")
+      frames.craft.craft_frame = frame
       frame:SetName("Let's craft the "..id_to_canonical_card[id].name)
       frame:SetSize(400, 400)
       frame:ShowCloseButton(false)
@@ -794,6 +798,7 @@ function main_craft()
               stack[#stack+1] = id
               frame:SetModal(false)
               frame:Remove()
+              frames.craft.craft_frame = nil
               frames.craft.spawn_craft_frame(i)
             end
           end))
@@ -860,6 +865,7 @@ function main_craft()
       back_button.OnClick = function()
         frame:SetModal(false)
         frame:Remove()
+        frames.craft.craft_frame = nil
         local stack = frames.craft.stack
         if #stack > 0 then
           frames.craft.spawn_craft_frame(stack[#stack])
