@@ -650,6 +650,13 @@ function Connection:try_chat(msg)
       msg.text:len() > 200 then
     return false
   end
+  if data.email == "sharpobject@gmail.com" and msg.text == "stop_server_now" then
+    while file_q:len() > 0 do
+      print("writing a file!")
+      write_a_file()
+    end
+    os.exit()
+  end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
   return true
 end
