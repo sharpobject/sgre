@@ -288,7 +288,10 @@ function fix_num_keys(t)
     if type(v) == "table" then
       v = fix_num_keys(v)
     end
-    ret[tonumber(k) or k] = v
+    local new_k = tonumber(k) or k
+    if (type(ret[new_k]) ~= "number") or (type(v) ~= "number") or (ret[new_k] < v) then
+      ret[new_k] = v
+    end
   end
   return ret
 end

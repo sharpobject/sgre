@@ -52,6 +52,16 @@ local uid_waiting_for_fight = nil
 local file_q = Queue()
 local chat_q = Queue()
 
+function no_string_keys(tab)
+  for k,v in pairs(tab) do
+    if (type(k) ~= "number") and (tonumber(k) ~= nil) then
+      print(k)
+      return false
+    end
+  end
+  return true
+end
+
 starter_decks = json.decode(file_contents("starter_decks.json"))
 starter_decks = fix_num_keys(starter_decks)
 
@@ -472,7 +482,7 @@ function Connection:try_dungeon(msg)
       local reward_floor = dungeons.rewards[which][my_floor] or dungeons.rewards[which][0]
       local reward_data = reward_floor[data.dungeon_clears[which]] or reward_floor[0]
       local num_ores=reward_data["ore"] or 0
-      local ores={"210008", "210009", "210011", "210012"}
+      local ores={210008, 210009, 210011, 210012}
       local rewards={}
       if num_ores > 0 then
         for i=1,num_ores do
@@ -521,7 +531,7 @@ function start_fight(aid, bid)
       num_accessories = 5
     end
     local rewards = {}
-    local s1_accessories = {"210001", "210002", "210003", "210004", "210005", "210006", "210007"}
+    local s1_accessories = {210001, 210002, 210003, 210004, 210005, 210006, 210007}
     if num_accessories > 0 then
       for i=1,num_accessories do
         local acc_id = uniformly(s1_accessories)
@@ -966,6 +976,10 @@ function main()
     end
 
     write_a_file()
+
+    for k,v in pairs(uid_to_data) do
+      assert(no_string_keys(v.collection))
+    end
 
     --[[local now = time()
     if now ~= prev_now then
