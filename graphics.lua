@@ -710,6 +710,15 @@ function card_list_button(id, gray, count, cb)
     end
   end
   button.OnClick = cb
+  assert(button.set_count == nil)
+  function button:set_count(n)
+    count = n
+  end
+  function button:set_gray(new_gray)
+    gray = new_gray
+    card.active = not gray
+  end
+  button.card_id = id
   return button
 end
 

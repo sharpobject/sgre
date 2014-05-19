@@ -820,11 +820,15 @@ function main_craft()
         function frames.craft.enable_buttons()
           craft_button:SetEnabled(true)
           back_button:SetEnabled(true)
-          for _,button in pairs(in_list.children) do
-            button:SetEnabled(true)
-          end
           frames.craft.collection = collection_ex_deck(
               user_data.collection, union_counters(user_data.decks))
+          for _,button in pairs(in_list.children) do
+            button:SetEnabled(true)
+            local have_amt = frames.craft.collection[button.card_id] or 0
+            local req_amt = recipes[id][button.card_id]
+            button:set_count(have_amt.."/"..req_amt)
+            button:set_gray(have_amt < req_amt)
+          end
           for k,v in pairs(recipes[id]) do
             if (frames.craft.collection[k] or 0) < v then
               craft_button:SetEnabled(false)
