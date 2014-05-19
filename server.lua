@@ -772,7 +772,9 @@ function Connection:try_craft(msg)
   local ret_diff = {}
   local id = msg.id
   local data = uid_to_data[self.uid]
+  print("trying to craft for "..data.username)
   if type(id) == "number" then
+    print("they sent us a number!")
     local recipe = recipes[msg.id]
     if recipe then
       local used_amt = {}
@@ -784,6 +786,8 @@ function Connection:try_craft(msg)
       local enough = true
       for input,_ in pairs(recipe) do
         if (data.collection[input] or 0) - used_amt[input] < recipe[input] then
+          print("they do not have enough of "..input.."!")
+          print(used_amt[input].." in decks, "..(data.collection[input] or 0).." total, "..recipe[input].." needed")
           enough = false
           break
         end
