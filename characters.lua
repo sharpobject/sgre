@@ -1223,6 +1223,9 @@ end,
   end
 end,
 
+-- newbie guide rico
+[100089] = function() end,
+
 -- swimsuit sita
 [100090] = function(player, opponent, my_card)
   local do_second = player.character.life < opponent.character.life
@@ -1616,6 +1619,11 @@ end,
 -- hero iri
 [100185] = hanbok_iri,
 
+-- Bunny Lady
+[110001] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {sta={"+",1}})
+end,
+
 -- Wind Shear
 [110002] = function(player, opponent, my_card)
   buff_random(player, opponent, my_card, {sta={"+",1}})
@@ -1779,6 +1787,89 @@ end,
 --Wind Girl
 [110023] = function(player)
   OneBuff(player, 0, {life={"+",1}}):apply()
+end,
+
+--Night Witch Nytitch
+[110024] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  buff.field[opponent][0] = {life={"-",2}}
+  buff.field[player][0] = {life={"-",1}}
+  buff:apply()
+end,
+
+--Night Witch Laetitia Ful
+[110025] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:hand_idxs_with_preds(pred.spell))
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.hand[opponent][idx] = {size={"+",2}}
+    buff:apply()
+  end
+end,
+
+--Night Witch Magy Shen
+[110026] = function(player, opponent, my_card)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.D))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {atk={"+",1},sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+--Night Witch Seriot
+[110027] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:hand_idxs_with_preds(pred.spell))
+  if idx then
+    opponent:hand_to_grave(idx)
+  end
+end,
+
+--Succubus Cantabile
+[110028] = function(player, opponent, my_card)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {def={"-",1}}
+  end
+  buff:apply()
+end,
+
+--True Nytitch
+[110029] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  buff.field[opponent][0] = {life={"-",1}}
+  buff.field[player][0] = {life={"+",1}}
+  buff:apply()
+end,
+
+--True Laetitia Ful
+[110030] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:hand_idxs_with_preds(pred.spell))
+  local field_idx = opponent:first_empty_field_slot()
+  if idx and field_idx then
+    opponent:hand_to_field(idx)
+    opponent.field[field_idx].active = false
+  end
+end,
+
+--True Magy Shen
+[110031] = function(player, opponent, my_card)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.D))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {atk={"+",1},def={"+",1},sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+--True Seriot
+[110032] = function(player, opponent, my_card)
+  for i=1,5 do
+    while opponent.hand[i] and pred.spell(opponent.hand[i]) do
+      opponent:hand_to_grave(i)
+    end
+  end
 end,
 
 -- rio
@@ -2327,6 +2418,13 @@ end,
 -- Twilight Wolf Ginger
 [120004] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {atk={"+",3}})
+end,
+
+-- Twin Flame Laevateinn
+[120005] = function(player, opponent, my_card)
+  if player.character.life <= 9 then
+    OneBuff(player, 0, {life={"+",5}}):apply()
+  end
 end,
 
 -- true vampire god

@@ -2714,6 +2714,11 @@ end,
   buff:apply()
 end,
 
+-- Guide Rio
+[1355] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, {def={"+", 1}}):apply()
+end,
+
 -- l. esprit, quest for truth!
 [1389] = lesprit,
 

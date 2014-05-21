@@ -254,7 +254,7 @@ end,
   if target_idx then
     local def_amt = #(player:hand_idxs_with_preds({pred.faction.A}))
     local other_amt = ceil(abs(def_amt - player.field[target_idx].def)/2)
-    buff.field[player][target_idx] = {def={"=", other_amt},atk={"+", other_amt},
+    buff.field[player][target_idx] = {def={"=", def_amt},atk={"+", other_amt},
       sta={"+", other_amt}}
     buff:apply()
   end
@@ -593,6 +593,7 @@ end,
         buff[targets[i]] = {atk={"-",2},def={"-",1},sta={"-",2}}
       end
     end
+    buff:apply()
   end
 end,
 
