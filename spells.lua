@@ -430,7 +430,7 @@ end,
         buff[i]={size={"-",1},atk={"+",2},sta={"+",2}}
       end
     end
-    if opponent.field[i] and pred.follower(opponent.field[i]) then
+    if opponent.field[i] then
       opponent.field[i].active = false
     end
   end
