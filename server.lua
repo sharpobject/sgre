@@ -595,6 +595,9 @@ function Connection:set_deck(idx, deck)
 end
 
 function Connection:try_update_deck(msg)
+  if uid_waiting_for_fight == self.uid then
+    uid_waiting_for_fight = nil
+  end
   local idx = msg.idx
   local diff = fix_num_keys(msg.diff)
   local data = uid_to_data[self.uid]
