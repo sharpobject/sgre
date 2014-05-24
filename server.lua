@@ -569,9 +569,9 @@ function Connection:update_collection(diff, reason)
   return true
 end
 
-function Connection:update_cafe(card_id, cafe_id)
+function Connection:update_cafe(card_id, cafe_id, transform)
   local data = uid_to_data[self.uid]
-  self:send({type="update_cafe",cafe=data.cafe,card_id=card_id, cafe_id=cafe_id})
+  self:send({type="update_cafe",cafe=data.cafe,card_id=card_id, cafe_id=cafe_id, transform=transform})
 end
 
 function Connection:set_deck(idx, deck)
@@ -755,6 +755,7 @@ function Connection:feed_card(msg)
   end
 
   -- check for transformation
+  local transform = false
   if cafe_stats[5] > 99 then
     if giftable[eater_id][5] and cafe_stats[1] > 200 and cafe_stats[2] > 200 and cafe_stats[3] > 200 and cafe_stats[4] > 200 then
       cafe_stats = nil
@@ -772,16 +773,15 @@ function Connection:feed_card(msg)
       cafe_stats = nil
       self:update_collection({[eater_id]=-1, [giftable[eater_id][4]]=1})
     end
-    self:send({type="server_message",message="HENSHIN!"})
+    transform = true
     table.remove(data.cafe[eater_id], cafe_id)
     eater_id = nil
     cafe_id = nil
   end
 
   -- cleanup
-  self:update_cafe(eater_id, cafe_id)
+  self:update_cafe(eater_id, cafe_id, transform)
   self:update_collection({[food_id]=-1})
-  self:send({type="server_message",message="you fed!"})
   modified_file(data)
   return true
 end
