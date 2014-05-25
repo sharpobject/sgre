@@ -942,6 +942,7 @@ end,
   for i=1,min(#targets,2) do
     buff[targets[i]] = {sta={"+",ceil(total_size/2)}}
   end
+  buff:apply()
 end,
 
 -- fatal blow
