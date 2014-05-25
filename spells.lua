@@ -788,6 +788,7 @@ end,
   if old_idx and new_idx then
     player.field[new_idx] = opponent.field[old_idx]
     opponent.field[old_idx] = nil
+    player.field[new_idx].active = false
   end
 end,
 
@@ -820,9 +821,8 @@ end,
     player:field_to_grave(idx)
   end
   -- TODO: does this pick first or at random?
-  -- should that be + 2 instead of + 3?
   local target = player:hand_idxs_with_preds({pred.follower, pred.faction.C,
-    function(card) return card.size <= #followers + 3 end })[1]
+    function(card) return card.size <= #followers + 2 end })[1]
   if target and player.field[4] == nil then
     local card = player:remove_from_hand(target)
     player.field[4] = card
@@ -843,19 +843,22 @@ end,
 
 -- luthica's ward
 [200061] = function(player, opponent)
-  local amt = 2
-  -- This 3 will later be buffed to 4...
-  for i=1,3 do
-    local idx = uniformly(player:grave_idxs_with_preds(pred.faction.C))
+  local amt = 0
+  for i=1,4 do
+    local idx = uniformly(player:grave_idxs_with_preds())
     if idx then
       player:grave_to_exile(idx)
       amt = amt + 1
     end
   end
-  local targets = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.C}))
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(#targets,2) do
-    buff[targets[i]] = {atk={"+",amt},sta={"+",amt}}
+    if pred.C(player.field[targets[i]]) then
+      buff[targets[i]] = {atk={"+",2*amt},sta={"+",2*amt}}
+    else
+      buff[targets[i]] = {atk={"+",2+amt},sta={"+",2+amt}}
+    end
   end
   buff:apply()
 end,
