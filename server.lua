@@ -781,7 +781,7 @@ function Connection:feed_card(msg)
 
   -- cleanup
   self:update_cafe(eater_id, cafe_id, transform)
-  self:update_collection({[food_id]=-1})
+  self:update_collection({[food_id]=-1, [reason]="cafe"})
   modified_file(data)
   return true
 end
