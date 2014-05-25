@@ -131,10 +131,11 @@ end
 
 function handlers.update_cafe(msg)
   user_data.cafe = fix_num_keys(msg.cafe)
-  user_data.fed = "fed"
   if frames.cafe then
     frames.cafe.active_character_card_id = msg.card_id
     frames.cafe.active_character_cafe_id = msg.cafe_id
+    frames.cafe.fed = "fed"
+    frames.cafe.transform = msg.transform
   end
 end
 

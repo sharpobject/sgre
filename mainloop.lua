@@ -1198,8 +1198,10 @@ function main_cafe()
   if not frames.cafe then
     frames.cafe = {}
     frames.cafe.page_num = 1
-    frames.cafe.active_character_card_id = nil
-    frames.cafe.active_character_cafe_id = nil
+    frames.cafe.fed = false
+    frames.cafe.transform = false
+    frames.cafe.active_character_card_id = false
+    frames.cafe.active_character_cafe_id = false
     frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
 
     -- list of cafe cards on the left
@@ -1261,7 +1263,7 @@ function main_cafe()
           if uncafe_number > 0 then
             cafe_card_list:AddItem(deck_card_list_button(card_id, 0, uncafe_number, function()
                 frames.cafe.active_character_card_id = card_id
-                frames.cafe.active_character_cafe_id = nil
+                frames.cafe.active_character_cafe_id = false
                 frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
                 frames.cafe.redraw_stats_pane(card_id, {0, 0, 0, 0, 0})
               end))
@@ -1318,15 +1320,15 @@ function main_cafe()
     frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
 
     --feeding area
-    local card_list = loveframes.Create("list")
-    card_list:SetState("cafe")
-    card_list:SetX(cafe_pane:GetX()*2+cafe_pane:GetWidth())
-    card_list:SetY(300)
-    card_list:SetHeight(300)
-    card_list:SetWidth(800-2*card_list:GetX())
-    card_list:EnableHorizontalStacking(true)
-    function card_list:Draw() end
-    card_list:SetSpacing(5)
+    local feeding_card_list = loveframes.Create("list")
+    feeding_card_list:SetState("cafe")
+    feeding_card_list:SetX(cafe_pane:GetX()*2+cafe_pane:GetWidth())
+    feeding_card_list:SetY(300)
+    feeding_card_list:SetHeight(300)
+    feeding_card_list:SetWidth(800-2*feeding_card_list:GetX())
+    feeding_card_list:EnableHorizontalStacking(true)
+    function feeding_card_list:Draw() end
+    feeding_card_list:SetSpacing(5)
 
     local button_width = 20
     local lbutton = loveframes.Create("button")
@@ -1356,7 +1358,7 @@ function main_cafe()
     end
 
     function frames.cafe.populate_feeding_card_list(collection)
-      card_list:Clear()
+      feeding_card_list:Clear()
       local coll = tspairs(collection)
       frames.cafe.npages = ceil(#coll/8)
       if frames.cafe.npages > 0 then
@@ -1368,8 +1370,7 @@ function main_cafe()
       for i=lbound,lbound+7 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, false, v, function()
-            -- TODO add a check for confirm_box
+        feeding_card_list:AddItem(card_list_button(k, false, v, function()
             if not frames.cafe.active_character_card_id then
               return false
             end 
@@ -1410,12 +1411,12 @@ function main_cafe()
             yes_button:SetX(25)
             yes_button:SetText("Yes")
             yes_button.OnClick = function()  
-              if user_data.fed then
-                user_data.fed = nil
+              if frames.cafe.fed then
+                frames.cafe.fed = false
               end
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
-              user_data.fed = "feeding"
+              frames.cafe.fed = "feeding"
               --needs to wait for server to respond back with update_cafe json
             end
           end))
@@ -1424,14 +1425,36 @@ function main_cafe()
     frames.cafe.update_feeding_list()
   end
 
+  function frames.cafe.popup_transform_notification()
+    local transform_notification = loveframes.Create("frame", cafe)
+    frames.cafe.transform_notification = transform_notification
+    transform_notification:SetState("cafe")
+    transform_notification:SetName("Transformation!")
+    transform_notification:SetWidth(250)
+    transform_notification:SetHeight(180)
+    transform_notification:CenterX()
+    transform_notification:CenterY()
+    transform_notification:SetModal(true)
+    loveframes.modalobject.modalbackground:SetState("cafe")
+    transform_notification:ShowCloseButton(false)
+
+    local ok_button = loveframes.Create("button", transform_notification)
+    ok_button:SetWidth(40)
+    ok_button:SetHeight(20)
+    ok_button:CenterY()
+    ok_button:CenterX()
+    ok_button:SetText("Okay")
+    ok_button.OnClick = function() transform_notification:Remove() end
+  end
+
   loveframes.SetState("cafe")
   while true do
     wait()
-    if user_data.fed == "feeding" then
+    if frames.cafe.fed == "feeding" then
       wait()
     end
-    if user_data.fed == "fed" then
-      user_data.fed = nil
+    if frames.cafe.fed == "fed" then
+      frames.cafe.fed = false
       frames.cafe.confirm_box:Remove()
       frames.cafe.populate_cafe_card_list()
       frames.cafe.update_feeding_list()
@@ -1441,8 +1464,12 @@ function main_cafe()
       elseif frames.cafe.stats_pane then
         frames.cafe.stats_pane:Remove()
       end
+      if frames.cafe.transform then
+        frames.cafe.transform = false
+        frames.cafe.popup_transform_notification()
+      end
     end
-    if from_cafe and (not user_data.fed) then
+    if from_cafe and (not frames.cafe.fed) then
       local ret = from_cafe
       from_cafe = nil
       return unpack(ret)
