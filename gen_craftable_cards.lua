@@ -7,6 +7,7 @@ local eps = arr_to_set{
   "EP0",
   "EP1",
   "EP2",
+  "EP3",
   "EP5", -- only adds rico and game starter
 }
 
@@ -35,6 +36,7 @@ local ore = {
 local dungeon_mats = {
   210013, -- ruins fragment
   210014, -- heart stone
+  210015, -- holy water tear
 }
 local materials = {s1_fight, ore, dungeon_mats}
 local reachable_cards = {}
