@@ -126,6 +126,9 @@ function handlers.update_collection(msg)
   end
   if msg.reason == "craft" and frames.craft.enable_buttons then
     frames.craft.enable_buttons()
+  elseif msg.reason == "cafe" and frames.cafe.update_feeding_list then
+    frames.cafe.update_feeding_list()
+    frames.cafe.populate_cafe_card_list()
   end
 end
 
@@ -134,8 +137,12 @@ function handlers.update_cafe(msg)
   if frames.cafe then
     frames.cafe.active_character_card_id = msg.card_id
     frames.cafe.active_character_cafe_id = msg.cafe_id
-    frames.cafe.fed = "fed"
-    frames.cafe.transform = msg.transform
+    frames.cafe.populate_cafe_card_list()
+    frames.cafe.refresh_stats_pane()
+    if msg.transform and loveframes.GetState() == "cafe" then
+      frames.cafe.stats_pane:Remove()
+      frames.cafe.popup_notification("Transformation!")
+    end
   end
 end
 
@@ -164,25 +171,7 @@ function handlers.nope_nope_nope(msg)
 end
 
 function handlers.server_message(msg)
-  local state = loveframes.GetState()
-  local modal = loveframes.Create("frame")
-  modal:SetName("Server message!")
-  modal:SetSize(300, 120)
-  modal:ShowCloseButton(false)
-  modal:SetDraggable(false)
-  modal:Center()
-  modal:SetState(state)
-  modal:SetModal(true)
-  loveframes.modalobject.modalbackground:SetState(state)
-  local modaltext = loveframes.Create("text", modal)
-  modaltext:SetText(msg.message)
-  modaltext:Center()
-  modaltext:SetY(65)
-  local okbutton = loveframes.Create("button", modal)
-  okbutton:SetPos(5, 90)
-  okbutton:SetWidth(290)
-  okbutton:SetText("OK")
-  okbutton.OnClick = function()
-    modal:Remove()
+  if loveframes.GetState() == "cafe" then
+    frames.cafe.popup_notification(msg.message)
   end
 end
