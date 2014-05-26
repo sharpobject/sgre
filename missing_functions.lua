@@ -8,6 +8,11 @@ require("spells")
 require("characters")
 recipes = fix_num_keys(json.decode(file_contents("recipes_current.json"), nil))
 npc_decks = fix_num_keys(json.decode(file_contents("npc_decks.json"), nil))
+npc_decks_manual = json.decode(file_contents("npc_decks_manual.json"))
+npc_decks_manual = fix_num_keys(npc_decks)
+for k,v in pairs(npc_decks_manual) do
+  npc_decks[k] = v
+end
 cards = {}
 char_ids = {}
 spell_ids = {}

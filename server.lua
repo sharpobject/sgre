@@ -70,6 +70,12 @@ npc_decks = fix_num_keys(npc_decks)
 for k,v in pairs(npc_decks) do
   v[k] = 1
 end
+npc_decks_manual = json.decode(file_contents("npc_decks_manual.json"))
+npc_decks_manual = fix_num_keys(npc_decks_manual)
+for k,v in pairs(npc_decks_manual) do
+  v[k] = 1
+  npc_decks[k] = v
+end
 
 dungeons = json.decode(file_contents("dungeons.json"))
 dungeons=fix_num_keys(dungeons)
