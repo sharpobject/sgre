@@ -139,7 +139,7 @@ function handlers.update_cafe(msg)
     frames.cafe.active_character_cafe_id = msg.cafe_id
     frames.cafe.populate_cafe_card_list()
     frames.cafe.refresh_stats_pane()
-    if msg.transform and frames.cafe.stats_pane then
+    if msg.transform and loveframes.GetState() == "cafe" then
       frames.cafe.stats_pane:Remove()
       frames.cafe.popup_notification("Transformation!")
     end
@@ -171,7 +171,7 @@ function handlers.nope_nope_nope(msg)
 end
 
 function handlers.server_message(msg)
-  if frames.cafe then
+  if loveframes.GetState() == "cafe" then
     frames.cafe.popup_notification(msg.message)
   end
 end
