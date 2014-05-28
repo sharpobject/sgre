@@ -1279,7 +1279,7 @@ function Game:wait_for_clients()
   assert((not self.P1.and_this_is_crazy) and (not self.P2.and_this_is_crazy))
   while (not self.P1.and_this_is_crazy) or
       (not self.P2.and_this_is_crazy) do
-    print("waiting for it to be crazy")
+    --print("waiting for it to be crazy")
     coroutine.yield()
   end
   self.P1.and_this_is_crazy = nil
@@ -1377,7 +1377,7 @@ function Game:run()
       end
       print("sent can_act")
       while not (P1.ready and P2.ready) do
-        print("waiting for ready")
+        --print("waiting for ready")
         if (not self.time_limit) or (os.time() < self.time_limit) then
           coroutine.yield()
         else

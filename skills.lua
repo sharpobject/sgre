@@ -84,7 +84,7 @@ skill_id_to_type = map_dict(function(n) return skill_numtype_to_type[n] end,
                     [1272]=3, [1273]=1, [1408]=2, [1483]=1, [1485]=2,
                     [1626]=1,
                     [1706]=1, [1707]=3, [1708]=3,
-                    [1749]=3, [1752]=2,
+                    [1749]=3, [1752]=2, [1854]=3,
                     -- todo: this does not belong in a source file...
                     })
 setmetatable(skill_id_to_type, {__index = function() return "start" end})
@@ -2850,6 +2850,29 @@ end,
     my_card.active = true
     OneBuff(player, my_idx, {atk={"+",2}}):apply()
   end
+end,
+
+-- occultist iris juvia
+[1854] = function(player, my_idx, my_card, skill_idx)
+  local mag = 0
+  local pred_name = function(card) return card.name == my_card.name end
+  for i=1,5 do
+    local idx = player:hand_idxs_with_preds(pred_name)[1]
+    if idx then
+      player:hand_to_grave(idx)
+      mag = mag + 1
+    end
+  end
+  for i=1,#player.deck do
+    local idx = player:deck_idxs_with_preds(pred_name)[1]
+    if idx then
+      player:deck_to_grave(idx)
+      mag = mag + 1
+    else
+      break
+    end
+  end
+  OneBuff(player, my_idx, {atk={"+",mag},def={"+",mag},sta={"+",mag}}):apply()
 end,
 }
 

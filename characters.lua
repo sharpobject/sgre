@@ -1872,6 +1872,124 @@ end,
   end
 end,
 
+--New Paramedic Lina
+[110047] = function(player, opponent, my_card)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  local amt = 5-#opponent.hand
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {sta={"+",amt}}
+  end
+  buff:apply()
+end,
+
+--Scribe Cecilia
+[110048] = function(player, opponent, my_card)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {atk={"-",1}}
+  end
+  buff:apply()
+end,
+
+--Swordswoman Karen
+[110049] = function(player, opponent, my_card)
+  local my_idx = player:field_idxs_with_preds(pred.follower)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_idx and target then
+    OneBuff(opponent, target, {sta={"-",player.field[my_idx].size}}):apply()
+  end
+end,
+
+--Tactician Ellie
+[110050] = function(player, opponent, my_card)
+  local target = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if target then
+    local card = opponent:remove_from_hand(target)
+    player:to_bottom_deck(card)
+  end
+end,
+
+--Superior Officer Marianne
+[110051] = function(player, opponent, my_card)
+  local function wrong_faction(card)
+    return card.faction ~= opponent.character.faction
+  end
+  local amt = ceil(#opponent:hand_idxs_with_preds(wrong_faction)/2)
+  for i=1,amt do
+    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if target then
+      opponent:field_to_grave(target)
+    end
+  end
+end,
+
+--Instructor Pipin
+[110052] = function(player, opponent, my_card)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {atk={"+",2},sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+--Instructor Rena
+[110053] = function(player, opponent, my_card)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {atk={"+",1},sta={"+",2}}
+  end
+  buff:apply()
+end,
+
+--Paramedic Lina
+[110054] = function(player, opponent, my_card)
+  buff_all(player, opponent, my_card, {sta={"+",#player.hand}})
+end,
+
+--Top Scribe Cecilia
+[110055] = function(player, opponent, my_card)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {size={"+",1},atk={"-",1}}
+  end
+  buff:apply()
+end,
+
+--Swordmaster Karen
+[110056] = function(player, opponent, my_card)
+  local my_idx = player:field_idxs_with_preds(pred.follower)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_idx and target then
+    OneBuff(opponent, target, {sta={"-",player.field[my_idx].atk}}):apply()
+  end
+end,
+
+--Expert Tactician Ellie
+[110057] = function(player, opponent, my_card)
+  local target = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  local slot = opponent:first_empty_field_slot()
+  if target and slot then
+    opponent:hand_to_field(target)
+    opponent.field[slot].active = false
+    OneBuff(opponent, slot, {atk={"-",1},sta={"-",1}}):apply()
+  end
+end,
+
+--General Marianne
+[110058] = function(player, opponent, my_card)
+  local target = uniformly(player:deck_idxs_with_preds(pred.follower))
+  local slot = player:first_empty_field_slot()
+  if target and slot then
+    player:deck_to_field(target, slot)
+    OneBuff(player, slot, {atk={"+",1},def={"+",1},sta={"+",1}}):apply()
+  end
+end,
+
 -- rio
 [110133] = function(player, opponent, mycard)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
@@ -2425,6 +2543,22 @@ end,
   if player.character.life <= 9 then
     OneBuff(player, 0, {life={"+",5}}):apply()
   end
+end,
+
+-- Pegasus Sigma
+[120007] = function(player, opponent, my_card)
+  local hand_sz = #opponent.hand
+  local targets = {}
+  for i=1,5 do
+    if opponent.field[i] and (i+hand_sz)%2==0 then
+      targets[#targets+1] = i
+    end
+  end
+  local target = uniformly(targets)
+  if target then
+    opponent:field_to_grave(target)
+  end
+  buff_all(player, opponent, my_card, {atk={"+",1},sta={"+",1}})
 end,
 
 -- true vampire god
