@@ -624,6 +624,16 @@ function main_lobby()
     table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
+    button:SetPos(300,0)
+    button:SetSize(50, 50)
+    button:SetText("SIGMA")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="dungeon", idx=7})
+    end
+    table.insert(frames.lobby.game_buttons, button)
+
+    local button = loveframes.Create("button")
     button:SetPos(700,0)
     button:SetSize(50, 50)
     button:SetText("CAFE")

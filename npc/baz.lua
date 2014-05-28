@@ -18,7 +18,11 @@ ep_cap = {
   EP4="EP4",
 }
 -- Some NPCs can have more than 3 of a card. Most cannot....
-can_exceed_3 = {}
+can_exceed_3 = {
+["120006"]=true,
+["120007"]=true,
+["120022"]=true,
+}
 
 
 function game_to_cards(game)
@@ -93,9 +97,10 @@ function try_wiggling_it(char_id, target_n, sum, acc)
   while(vsum(acc) < target_n) do
     local candidate, value = "000000", -1000000000
     for k,v in pairs(sum) do
-      if acc[k] < 3 or can_exceed_3[char_id] then
+      if acc[k] < math.max(3,id_to_card[tostring(k)].limit)
+          or can_exceed_3[char_id] then
         local expected_obs = acc[k] * n_obs / target_n
-        local this_val = (v - expected_obs) / math.pow(acc[k]+1, 1.4)
+        local this_val = (v - expected_obs) / (acc[k]+1)
         --print(this_val)
         if this_val > value then
           candidate, value = k,this_val

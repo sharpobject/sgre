@@ -71,6 +71,20 @@ npcs[7] ={
 [10]={120007},
 }
 
+-- panica
+npcs[8] ={
+[1]={110059},
+[2]={110059},
+[3]={110060},
+[4]={110060},
+[5]={110061},
+[6]={110061},
+[7]={110062},
+[8]={110062},
+[9]={110063},
+[10]={120008},
+}
+
 rewards = {}
 -- format is rewards[dungeon#][floor#][clear#]["typeofreward"]
 -- a floor# or clear# of 0 is the default
@@ -122,5 +136,12 @@ rewards[7] = {
         [11]=0,
         [100]={cards={[210015]=20,[210001]=20,[210006]=20,[210007]=20}}}
 }
-dungeons={npcs=npcs,rewards=rewards,multiplier=3}
+rewards[8] = {
+  [0]={[0]={ore=1, cards={[210016]=1}}},
+  [10]={[0]={cards={[210016]=10,[210004]=4,[210005]=4,[210006]=4,[210007]=4}},
+        [10]={cards={[100058]=1}},
+        [11]=0,
+        [100]={cards={[210016]=20,[210001]=20,[210006]=20,[210007]=20}}}
+}
+dungeons={npcs=npcs,rewards=rewards}
 print(json.encode(dungeons))

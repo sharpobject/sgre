@@ -52,6 +52,8 @@ local uid_waiting_for_fight = nil
 local file_q = Queue()
 local chat_q = Queue()
 
+local reward_multiplier = 3
+
 function no_string_keys(tab)
   for k,v in pairs(tab) do
     if (type(k) ~= "number") and (tonumber(k) ~= nil) then
@@ -491,23 +493,15 @@ function Connection:try_dungeon(msg)
       local ores={210008, 210009, 210011, 210012}
       local rewards={}
       if num_ores > 0 then
-        for i=1,num_ores do
+        for i=1,num_ores*reward_multiplier do
           local ore_id=uniformly(ores)
-          if not rewards[ore_id] then
-            rewards[ore_id] = 1
-          else
-            rewards[ore_id] = rewards[ore_id] + 1
-          end
+          rewards[ore_id] = (rewards[ore_id] or 0) + 1
         end
       end
       local reward_cards=reward_data["cards"]
       if reward_cards then
         for i, v in pairs(reward_cards) do
-          if not rewards[i] then
-            rewards[i] = v
-          else
-            rewards[i] = rewards[i] + v
-          end
+          rewards[i] = (rewards[i] or 0) + v*reward_multiplier
         end
       end
       self:update_collection(rewards)
@@ -538,15 +532,9 @@ function start_fight(aid, bid)
     end
     local rewards = {}
     local s1_accessories = {210001, 210002, 210003, 210004, 210005, 210006, 210007}
-    if num_accessories > 0 then
-      for i=1,num_accessories do
-        local acc_id = uniformly(s1_accessories)
-        if not rewards[acc_id] then
-          rewards[acc_id] = 1
-        else
-          rewards[acc_id] = rewards[acc_id] + 1
-        end
-      end
+    for i=1,num_accessories*reward_multiplier do
+      local acc_id = uniformly(s1_accessories)
+      rewards[acc_id] = (rewards[acc_id] or 0) + 1
     end
     self:update_collection(rewards)
     self:send({type="dungeon_rewards",rewards=rewards})
