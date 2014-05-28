@@ -5,10 +5,21 @@ local start_time = 1/0
 
 function love.load()
   async.load()
-  async.ensure.exactly(3)
+  async.ensure.exactly(1)
+
+  if love._os == "OS X" then
+    package.cpath = love.filesystem.getSourceBaseDirectory() .. "/?.so;" ..
+        package.cpath
+    require("ssl.https")
+  end
 
   httprequest = async.define("httprequest", function(url)
     require("socket")
+    if love._os == "OS X" and not love.DID_CPATH then
+      love.DID_CPATH = true
+      package.cpath = love.filesystem.getSourceBaseDirectory() .. "/?.so;" ..
+          package.cpath
+    end
     local https = require("ssl.https")
     local accept_digest = "235f0db09c9ec586a1a4d55d6d3188892a038e70a43f42cd3e2e94a553ba8fe8"
     local body, code, headers, status, digest = https.request(url)
@@ -69,6 +80,10 @@ function love.load()
     success = function(result, digest)
       print(result, type(result))
       print(digest, type(digest))
+      if not result then
+        update_failed()
+        return
+      end
       local remote_versions = json.decode(result)
       local file = love.filesystem.newFile("version.dat")
       file:open("r")
