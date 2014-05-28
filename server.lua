@@ -912,7 +912,7 @@ function setup_pve(a,b)
 end
 
 function resume_game(game)
-  print("RESUME GAME")
+  --print("RESUME GAME")
   if coroutine.status(game.thread) == "suspended" then
     local status, err = coroutine.resume(game.thread)
     if not status then
@@ -929,7 +929,7 @@ function main()
 
   local prev_now = time()
   while true do
-    print("MAINLOOP")
+    --print("MAINLOOP")
     server_socket:settimeout(0)
     local new_conn = server_socket:accept()
     if new_conn then
