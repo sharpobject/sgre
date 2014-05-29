@@ -789,15 +789,15 @@ function main_craft()
     function text_card_list:Draw() end
 
     function frames.craft.update_list()
-    local substr = ""
-    if craft_search_bar then substr = craft_search_bar:GetText() end
-    if substr ~= "" then
-      frames.craft.populate_text_card_list(recipes, substr, true)
-    frames.craft.populate_card_list(recipes, substr)
+      local substr = ""
+      if craft_search_bar then substr = craft_search_bar:GetText() end
+      if substr ~= "" then
+        frames.craft.populate_text_card_list(recipes, substr, true)
+        frames.craft.populate_card_list(recipes, substr)
       else
         frames.craft.populate_text_card_list(recipes)
         frames.craft.populate_card_list(recipes)
-    end
+      end
     end
 
     function frames.craft.spawn_craft_frame(id)
