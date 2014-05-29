@@ -1848,7 +1848,7 @@ function main_dungeon()
     --close button was clicked, so return to lobby
       local ret = from_dungeon
       from_dungeon = nil
-    frame:Remove()
+      frame:Remove()
     
       return unpack(ret)
     end
