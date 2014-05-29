@@ -150,10 +150,9 @@ function add_decks_filters()
   deckepisodefilter:SetState(state)
   deckepisodefilter:SetChoice("Episode")
   deckepisodefilter:AddChoice("Episode")
-  deckepisodefilter:AddChoice("EP0")
-  deckepisodefilter:AddChoice("EP1")
-  deckepisodefilter:AddChoice("EP2")
-  deckepisodefilter:AddChoice("EP5")
+  for i=1,#eps do
+    deckepisodefilter:AddChoice(eps[i])
+  end
   deckepisodefilter:SetX(280)
   deckepisodefilter:SetY(530)
   deckepisodefilter:SetWidth(filter_width)
