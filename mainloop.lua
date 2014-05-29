@@ -1000,33 +1000,33 @@ function main_craft()
       local coll = {}
       local collindex = 1
       for i=1,#coll2 do
-      filtering = Card(coll2[i][1], 0)
-      local card_skill_text = ""
-      if skill_text[filtering.id] then card_skill_text = string.lower(skill_text[filtering.id]) end
-      if filtering.type == "follower" then
-            local skills = filtering.skills or {}
-            for i=1,3 do
-              if skills[i] then
-                if skill_text[skills[i]] then
-                  card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
-                end
-              end
-              if i < 3 then
-                card_skill_text = card_skill_text .. "\n\n"
+        filtering = Card(coll2[i][1], 0)
+        local card_skill_text = ""
+        if skill_text[filtering.id] then card_skill_text = string.lower(skill_text[filtering.id]) end
+        if filtering.type == "follower" then
+          local skills = filtering.skills or {}
+          for i=1,3 do
+            if skills[i] then
+              if skill_text[skills[i]] then
+                card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
               end
             end
+            if i < 3 then
+              card_skill_text = card_skill_text .. "\n\n"
+            end
           end
-      if ((not craft_filter_values[1]) or craft_filter_values[1] == filtering.type)
-      and ((not craft_filter_values[2]) or craft_filter_values[2] == filtering.episode)
-      and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
-      and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
-      and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size or filtering.type == "character")
-      and ((not substr) or string.find(string.lower(filtering.name), substr) 
-        or string.find(card_skill_text, substr)) then
-        coll[collindex] = coll2[i]
-      collindex = collindex + 1
+        end
+        if ((not craft_filter_values[1]) or craft_filter_values[1] == filtering.type)
+            and ((not craft_filter_values[2]) or craft_filter_values[2] == filtering.episode)
+            and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
+            and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
+            and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size or filtering.type == "character")
+            and ((not substr) or string.find(string.lower(filtering.name), substr) 
+            or string.find(card_skill_text, substr)) then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
       end
-    end
       
       frames.craft.npages = ceil(#coll/16)
       if frames.craft.npages > 0 then
@@ -1196,20 +1196,19 @@ function main_decks()
     function frames.decks.populate_card_list(collection)
       card_list:Clear()
       local coll2 = tspairs(collection, deck_cmp)
-    
-    local coll = {}
+      local coll = {}
       local collindex = 1
       for i=1,#coll2 do
-      filtering = Card(coll2[i][1], 0)
-      if ((not decks_filter_values[1]) or decks_filter_values[1] == filtering.type)
-      and ((not decks_filter_values[2]) or decks_filter_values[2] == filtering.episode)
-      and ((not decks_filter_values[3]) or decks_filter_values[3] == filtering.rarity)
-      and ((not decks_filter_values[4]) or decks_filter_values[4] == filtering.faction)
-      and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size or filtering.type == "character") then
-        coll[collindex] = coll2[i]
-      collindex = collindex + 1
+        filtering = Card(coll2[i][1], 0)
+        if ((not decks_filter_values[1]) or decks_filter_values[1] == filtering.type)
+            and ((not decks_filter_values[2]) or decks_filter_values[2] == filtering.episode)
+            and ((not decks_filter_values[3]) or decks_filter_values[3] == filtering.rarity)
+            and ((not decks_filter_values[4]) or decks_filter_values[4] == filtering.faction)
+            and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size or filtering.type == "character") then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
       end
-    end
       frames.decks.npages = ceil(#coll/16)
       if frames.decks.npages > 0 then
         frames.decks.page_num = bound(1,frames.decks.page_num,frames.decks.npages)
