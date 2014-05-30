@@ -624,7 +624,7 @@ function main_lobby()
       net_send({type="dungeon", idx=5})
     end
     table.insert(frames.lobby.game_buttons, button)
-]]
+
     local button = loveframes.Create("button")
     button:SetPos(300,0)
     button:SetSize(50, 50)
@@ -634,7 +634,7 @@ function main_lobby()
       net_send({type="dungeon", idx=7})
     end
     table.insert(frames.lobby.game_buttons, button)
-
+]]
     local button = loveframes.Create("button")
     button:SetPos(700,0)
     button:SetSize(50, 50)
@@ -661,8 +661,8 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_craft}
     end
-	
-	local button = loveframes.Create("button")
+    
+    local button = loveframes.Create("button")
     button:SetPos(50,0)
     button:SetSize(70, 50)
     button:SetText("DUNGEON")
@@ -682,7 +682,7 @@ function main_lobby()
   -- goes back to dungeon select screen after a dungeon battle
   if gobacktodungeon then
     gobacktodungeon = false
-	from_lobby = {main_dungeon}
+    from_lobby = {main_dungeon}
   end
 
   while true do
@@ -690,15 +690,15 @@ function main_lobby()
     if net_q:len() ~= 0 then
       local msg = net_q:pop()
       if msg.type=="game_start" then
-	    -- check if dungeon, prepare to return to dungeon select screen if so
-	    if from_dungeon then
-		  gobacktodungeon = true
-		  frames.dungeon = from_dungeon
-		  from_dungeon = false
-		end
+        -- check if dungeon, prepare to return to dungeon select screen if so
+        if from_dungeon then
+          gobacktodungeon = true
+          frames.dungeon = from_dungeon
+          from_dungeon = false
+        end
         from_lobby = {main_fight, {msg}}
       end
-	end
+    end
     if from_lobby then
       local ret = from_lobby
       from_lobby = nil
@@ -1289,7 +1289,7 @@ function main_cafe()
       stats_pane:SetSize(380, 200)
       stats_pane:ShowCloseButton(false)
       stats_pane:SetDraggable(false)
-      local texts = {"Wisdom: ", "Sensitivity: ", "Glamour: ", "Personality: ", "Like: "}
+      local texts = {"Wisdom: ", "Sensitivity: ", "Personality: ", "Glamour: ", "Like: "}
       local maximums = {400, 400, 400, 400, 100}
       for i=1,5 do
         local text = loveframes.Create("text", stats_pane)
@@ -1565,8 +1565,8 @@ function main_fight(msg)
   return main_lobby
 end
 
-local easy_dungeons = {{"Beginner Dungeon", "en_dungeon_icon_001.png"}, {"Intermediate Dungeon", "en_dungeon_icon_002.png"}, {"Advanced Dungeon", "en_dungeon_icon_003.png"}}
-local normal_dungeons = {{"Frontier Ruins", "en_dungeon_icon_004.png"}, {"Witch's Tower", "en_dungeon_icon_005.png"}}
+local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2}, {"Advanced Dungeon", 3}}
+local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}}
 local hard_dungeons = {}
 
 function main_dungeon()
@@ -1575,21 +1575,21 @@ function main_dungeon()
     frames.dungeon = {}
   end
   if not frames.dungeon.page_num then
-	frames.dungeon.page_num = 1
+    frames.dungeon.page_num = 1
   end
   if not frames.dungeon.difficulty then
-	frames.dungeon.difficulty = easy_dungeons
+    frames.dungeon.difficulty = easy_dungeons
   end
   if not frames.dungeon.showing then
-	frames.dungeon.showing = {}
+    frames.dungeon.showing = {}
   end
   if not frames.dungeon.showingfloor then
-	frames.dungeon.showingfloor = {}
+    frames.dungeon.showingfloor = {}
   end
   if not frames.dungeon.showingclear then
-	frames.dungeon.showingclear = {}
+    frames.dungeon.showingclear = {}
   end
-	
+    
 
   local frame = loveframes.Create("frame")
   frame:SetName("Dungeons")
@@ -1598,35 +1598,35 @@ function main_dungeon()
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:Center()
-	
-	
-	
+    
+    
+    
   local prevbutton = loveframes.Create("button", frame)
   prevbutton:SetPos(10, 400)
   prevbutton:SetSize(30, 30)
   prevbutton:SetText("<")
   function prevbutton:OnClick()
-	if frames.dungeon.page_num > 1 then
-	  frames.dungeon.page_num = frames.dungeon.page_num - 1
-	end
-	update_dungeon_list(frame)
+    if frames.dungeon.page_num > 1 then
+      frames.dungeon.page_num = frames.dungeon.page_num - 1
+    end
+    update_dungeon_list(frame)
   end
-	
+    
   local nextbutton = loveframes.Create("button", frame)
   nextbutton:SetPos(70, 400)
   nextbutton:SetSize(30, 30)
   nextbutton:SetText(">")
   function nextbutton:OnClick()
-	if frames.dungeon.page_num < ceil(#frames.dungeon.difficulty / 4) then
-	  frames.dungeon.page_num = frames.dungeon.page_num + 1
-	end
-	update_dungeon_list(frame)
+    if frames.dungeon.page_num < ceil(#frames.dungeon.difficulty / 4) then
+      frames.dungeon.page_num = frames.dungeon.page_num + 1
+    end
+    update_dungeon_list(frame)
   end
-	
+    
   local text1 = loveframes.Create("text", frame)
   text1:SetPos(45, 410)
   text1:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
-	
+    
   local easybutton, normalbutton, hardbutton
   easybutton = loveframes.Create("button", frame)
   easybutton:SetPos(135, 400)
@@ -1634,130 +1634,133 @@ function main_dungeon()
   easybutton:SetText("EASY")
   easybutton:SetEnabled(false)
   function easybutton:OnClick()
-	frames.dungeon.difficulty = easy_dungeons
-	frames.dungeon.page_num = 1
-	update_dungeon_list(frame)
+    frames.dungeon.difficulty = easy_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
   end
-	
+    
   normalbutton = loveframes.Create("button", frame)
   normalbutton:SetPos(245, 400)
   normalbutton:SetSize(80, 30)
   normalbutton:SetText("NORMAL")
   function normalbutton:OnClick()
-	frames.dungeon.difficulty = normal_dungeons
-	frames.dungeon.page_num = 1
-	update_dungeon_list(frame)
+    frames.dungeon.difficulty = normal_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
   end
-	
+    
   hardbutton = loveframes.Create("button", frame)
   hardbutton:SetPos(355, 400)
   hardbutton:SetSize(80, 30)
   hardbutton:SetText("HARD")
   function hardbutton:OnClick()
-	frames.dungeon.difficulty = hard_dungeons
-	frames.dungeon.page_num = 1
-	update_dungeon_list(frame)
+    frames.dungeon.difficulty = hard_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
   end
-	
+    
   local closebutton = loveframes.Create("button", frame)
   closebutton:SetPos(520, 400)
   closebutton:SetSize(60, 30)
   closebutton:SetText("CLOSE")
   function closebutton:OnClick() 
-	from_dungeon = {main_lobby}
-	close = true
+    from_dungeon = {main_lobby}
+    close = true
   end 
-	
+    
   function update_dungeon_list(frame)
 
     local index = 1
     while index < 5 do
       if frames.dungeon.showing[index] then
-	    frames.dungeon.showing[index]:Remove()
-	    frames.dungeon.showingfloor[index]:Remove()
-	    frames.dungeon.showingclear[index]:Remove()
-	    frames.dungeon.showing[index] = nil
-	    frames.dungeon.showingfloor[index] = nil
-	    frames.dungeon.showingclear[index] = nil
-	  end
-	  index = index + 1
+        frames.dungeon.showing[index]:Remove()
+        frames.dungeon.showingfloor[index]:Remove()
+        frames.dungeon.showingclear[index]:Remove()
+        frames.dungeon.showing[index] = nil
+        frames.dungeon.showingfloor[index] = nil
+        frames.dungeon.showingclear[index] = nil
+      end
+      index = index + 1
     end
-	
+    
     index = 1
     if frames.dungeon.difficulty == easy_dungeons then
       normalbutton:SetEnabled(true)
-	  hardbutton:SetEnabled(true)
-	  easybutton:SetEnabled(false)
+      hardbutton:SetEnabled(true)
+      easybutton:SetEnabled(false)
     elseif frames.dungeon.difficulty == normal_dungeons then
-  	  normalbutton:SetEnabled(false)
-	  hardbutton:SetEnabled(true)
-	  easybutton:SetEnabled(true)
+        normalbutton:SetEnabled(false)
+      hardbutton:SetEnabled(true)
+      easybutton:SetEnabled(true)
     else
-  	  normalbutton:SetEnabled(true)
-	  hardbutton:SetEnabled(false)
-	  easybutton:SetEnabled(true)
+        normalbutton:SetEnabled(true)
+      hardbutton:SetEnabled(false)
+      easybutton:SetEnabled(true)
     end
     while index < 5 do
       local currentdungeon = frames.dungeon.difficulty[(frames.dungeon.page_num - 1) * 4 + index]
-	  if currentdungeon then
-	  
-	    local dungeon_id = string.format("%d", string.match(currentdungeon[2], "%d+"))
-        dungeon_id = tonumber(dungeon_id)
-		
+      if currentdungeon then
+        local dungeon_id = currentdungeon[2]
+        local img_filename = tostring(dungeon_id)
+        while(img_filename:len() < 3) do
+          img_filename = "0"..img_filename
+        end
+        img_filename = "en_dungeon_icon_"..img_filename..".png"
+        
         local image = loveframes.Create("button", frame)
         image:SetSize(121, 255)
         image:SetX(28 + 136 * (index - 1))
         image:CenterY()
-	    image.OnClick = function()
-	      from_dungeon = "start game"
-		  net_send({type="dungeon", idx=dungeon_id})
-	    end
-	    image.Draw = function(self)
-	      local x = self:GetX()
-		  local y = self:GetY()
-		  love.graphics.setColor(255, 255, 255, 255)
-		  love.graphics.draw(load_asset(currentdungeon[2]), x, y)
-	    end
-	  
-	    local text = loveframes.Create("text", frame)
-	    text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
-	    text:SetX(63 + 136 * (index - 1))
-	    text:SetY(355)
-	  
-	    local text2 = loveframes.Create("text", frame)
-	    text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
-	    text2:SetX(62 + 136 * (index - 1))
-	    text2:SetY(370)
-	  
-	  
-	    frames.dungeon.showing[index] = image
-	    frames.dungeon.showingfloor[index] = text
-	    frames.dungeon.showingclear[index] = text2
-		
-	    index = index + 1
-	  else
-	    break
-	  end
+        image.OnClick = function()
+          from_dungeon = "start game"
+          net_send({type="dungeon", idx=dungeon_id})
+        end
+        image.Draw = function(self)
+          local x = self:GetX()
+          local y = self:GetY()
+          love.graphics.setColor(255, 255, 255, 255)
+          love.graphics.draw(load_asset(img_filename), x, y)
+        end
+      
+        local text = loveframes.Create("text", frame)
+        text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
+        text:SetX(63 + 136 * (index - 1))
+        text:SetY(355)
+      
+        local text2 = loveframes.Create("text", frame)
+        text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
+        text2:SetX(62 + 136 * (index - 1))
+        text2:SetY(370)
+      
+      
+        frames.dungeon.showing[index] = image
+        frames.dungeon.showingfloor[index] = text
+        frames.dungeon.showingclear[index] = text2
+        
+        index = index + 1
+      else
+        break
+      end
     end
   end 
-	
+    
   update_dungeon_list(frame)
-	
+    
   while true do
     wait()
-	
-	if from_dungeon == "start game" then
-	  --a dungeon was entered, prepare for battle
-	  local ret = {main_lobby}
-	  from_dungeon = frames.dungeon
-	  frame:Remove()
-	  return unpack(ret)
+    
+    if from_dungeon == "start game" then
+      --a dungeon was entered, prepare for battle
+      local ret = {main_lobby}
+      from_dungeon = frames.dungeon
+      frame:Remove()
+      return unpack(ret)
     elseif from_dungeon then
-	  --close button was clicked, so return to lobby
+      --close button was clicked, so return to lobby
       local ret = from_dungeon
       from_dungeon = nil
-	  frame:Remove()
-	  
+      frame:Remove()
+      
       return unpack(ret)
     end
   end
