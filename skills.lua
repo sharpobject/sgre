@@ -723,6 +723,9 @@ end,
 
 -- vanguard knight, orders from above
 [1052] = function(player, my_idx)
+  while #player.deck > 0 and #player.hand < 4 do
+    player:draw_a_card()
+  end
   local buffsize = #player:hand_idxs_with_preds({pred.C})
   OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"+",buffsize}}):apply()
 end,

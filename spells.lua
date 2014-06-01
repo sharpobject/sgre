@@ -1427,6 +1427,7 @@ end,
     local buff_amt = 0
     if player.field[2] then buff_amt = buff_amt + player.field[2].size end
     if player.field[4] then buff_amt = buff_amt + player.field[4].size end
+    buff_amt = min(buff_amt, 8)
     OneBuff(player, 5, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
   end
 end,
