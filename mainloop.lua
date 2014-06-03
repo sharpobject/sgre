@@ -1693,8 +1693,8 @@ function main_dungeon()
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:Center()
-  
-  
+  frame:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState("lobby")
   
   local prevbutton = loveframes.Create("button", frame)
   prevbutton:SetPos(10, 400)
