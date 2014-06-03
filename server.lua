@@ -481,6 +481,7 @@ function Connection:try_dungeon(msg)
   end
   data.dungeon_floors[which] = lose_floor
   modified_file(data)
+  self:send_update_dungeon()
   function self:on_game_over(win)
     if win then
       if my_floor == total_floors then
@@ -509,9 +510,17 @@ function Connection:try_dungeon(msg)
       -- end dungeon rewards section
       data.dungeon_floors[which] = win_floor
       modified_file(data)
+      self:send_update_dungeon()
     end
   end
   setup_pve(self, npc_id)
+end
+
+function Connection:send_update_dungeon()
+  local data = uid_to_data[self.uid]
+  self:send({type="update_dungeon",
+      dungeon_clears = data.dungeon_clears,
+      dungeon_floors = data.dungeon_floors})
 end
 
 function start_fight(aid, bid)

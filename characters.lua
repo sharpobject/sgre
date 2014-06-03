@@ -97,7 +97,7 @@ local thorn_witch_rose = function(player)
   end
   local target_idx = uniformly(nme_followers)
   local buff_size = ceil(math.abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)/2)
-  OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
+  OneBuff(player.opponent,target_idx,{atk={"-",buff_size},def={"-",1},sta={"-",buff_size}}):apply()
 end
 
 local head_knight_jaina = function(player)
@@ -738,7 +738,6 @@ end,
 -- wedding dress rose
 [100035] = function(player)
   thorn_witch_rose(player)
-  wedding_shuffles(player)
 end,
 
 -- wedding dress sita
@@ -1990,6 +1989,50 @@ end,
   end
 end,
 
+-- New Knight
+[110059] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(opponent, target, {atk={"-",1},sta={"-",1}}):apply()
+  end
+end,
+
+-- Chief Maid
+[110060] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2}}):apply()
+  end
+end,
+
+-- Frett
+[110061] = function(player, opponent, my_card)
+  local function size_3(card) return card.size == 3 end
+  local targets = player:field_idxs_with_preds(pred.follower, size_3)
+  local buff = OnePlayerBuff(player)
+  for i=1,#targets do
+    buff[targets[i]] = {atk={"+",1},sta={"+",1}}
+  end
+end,
+
+-- Mop Maid
+[110062] = function(player, opponent, my_card)
+  local buff = OnePlayerBuff(player)
+  for i=1,5 do
+    if player.field[i] and pred.follower(player.field[i]) and
+        ((player.field[i-1] and pred.follower(player.field[i-1])) or
+        (player.field[i+1] and pred.follower(player.field[i+1]))) then
+      buff[i] = {atk={"+",2}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Layna Scentriver
+[110063] = function(player, opponent, my_card)
+  buff_all(player, opponent, my_card, {sta={"+",#player.hand}})
+end,
+
 -- rio
 [110133] = function(player, opponent, mycard)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
@@ -2559,6 +2602,19 @@ end,
     opponent:field_to_grave(target)
   end
   buff_all(player, opponent, my_card, {atk={"+",1},sta={"+",1}})
+end,
+
+-- Cinia's Pet Panica
+[120008] = function(player, opponent, my_card)
+  local stat = "atk"
+  if player.game.turn % 2 == 0 then
+    stat = "sta"
+  end
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    local new_value = ceil(opponent.field[target][stat] / 2)
+    OneBuff(opponent, target, {[stat]={"=",new_value}}):apply()
+  end
 end,
 
 -- true vampire god

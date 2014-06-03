@@ -564,10 +564,10 @@ end,
     end
   end
   buff:apply()
+  -- this card is actually supposed to be able to kill something
+  -- with the first clause, then check the 2nd clause against the new
+  -- number of followers!
   local idxs = opponent:field_idxs_with_preds(pred.follower)
-  if #idxs == 0 then
-    return
-  end
   if #idxs <= 2 then
     local buff = OnePlayerBuff(opponent)
     for _,idx in ipairs(idxs) do
@@ -760,7 +760,11 @@ end,
       end
     end
     if smaller ~= fake then
-      opponent:field_to_bottom_deck(sidx)
+      if pred.faction.A(player.character) then
+        opponent:field_to_grave(sidx)
+      else
+        opponent:field_to_bottom_deck(sidx)
+      end
     end
   end
 end,
@@ -1147,12 +1151,12 @@ end,
   if my_follower and target then
     opponent:field_to_grave(target)
     if my_card.size > 1 then
-      local slot = opponent:first_empty_field_slot()
-      opponent.field[slot] = deepcpy(my_card)
-      opponent.field[slot].size = opponent.field[slot].size - 1
-      opponent.field[slot].active = false
+      my_card.size = 1
+      player.field[my_idx] = nil
+      opponent:to_top_deck(my_card)
+    else
+      player:field_to_exile(my_idx)
     end
-    player:field_to_exile(my_idx)
   end
 end,
 
@@ -1160,14 +1164,18 @@ end,
 [200085] = function(player, opponent)
   local acad = player:hand_idxs_with_preds(pred.faction.A)[1]
   if acad then
+    local sent = 0
     while acad do
       player.hand[acad].size = max(player.hand[acad].size-1, 1)
       player:hand_to_bottom_deck(acad)
+      sent = sent + 1
       acad = player:hand_idxs_with_preds(pred.faction.A)[1]
     end
-    for i=1,5 do
-      if opponent.field[i] then
-        opponent.field[i].active = false
+    if sent >= 2 then
+      for i=1,5 do
+        if opponent.field[i] then
+          opponent.field[i].active = false
+        end
       end
     end
     local target = opponent:hand_idxs_with_preds(pred.spell)[1]
@@ -1252,13 +1260,19 @@ end,
 -- crux command
 [200092] = function(player, opponent)
   local targets = shuffle(player:field_idxs_with_preds(pred.follower))
-  local teh_buff = {def={"+",2},sta={"+",1}}
+  local normal_buff = {def={"+",2},sta={"+",2}}
+  local c_buff = {atk={"+",2},def={"+",2},sta={"+",2}}
   if #player.deck < 10 then
-    teh_buff = {size={"+",1},atk={"+",6},sta={"+",6}}
+    normal_buff = {size={"+",1},atk={"+",6},sta={"+",6}}
+    c_buff = normal_buff
   end
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#targets) do
-    buff[targets[i]] = teh_buff
+    if pred.C(player.field[targets[i]]) then
+      buff[targets[i]] = c_buff
+    else
+      buff[targets[i]] = normal_buff
+    end
   end
   buff:apply()
 end,
@@ -1359,15 +1373,17 @@ end,
     end
   end
   buff:apply()
-  if myspells[1] then
-    player:hand_to_grave(myspells[1])
-  end
-  if opspells[1] then
-    opponent:hand_to_grave(opspells[1])
-  end
-  local target = opponent:field_idxs_with_preds(pred.spell)[1]
-  if target then
-    opponent:field_to_grave(target)
+  if pred.D(player.character) then
+    if myspells[1] then
+      player:hand_to_grave(myspells[1])
+    end
+    if opspells[1] then
+      opponent:hand_to_grave(opspells[1])
+    end
+    local targets = opponent:field_idxs_with_preds(pred.spell)
+    for i=1,#targets do
+      opponent:field_to_grave(targets[i])
+    end
   end
 end,
 
@@ -1411,6 +1427,7 @@ end,
     local buff_amt = 0
     if player.field[2] then buff_amt = buff_amt + player.field[2].size end
     if player.field[4] then buff_amt = buff_amt + player.field[4].size end
+    buff_amt = min(buff_amt, 8)
     OneBuff(player, 5, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
   end
 end,

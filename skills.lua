@@ -650,13 +650,11 @@ end,
 
 -- visitor ophelia, academic curiosity
 [1046] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local buff = GlobalBuff(player)
-  local buffsize = math.min(math.abs(my_card.size - (my_card.def - 1)),5)
-  buff.field[player][my_idx] = {def={"-",1}}
+  local amt = math.min(math.abs(my_card.size - my_card.def),5)
   if other_card then
-    buff.field[player.opponent][other_idx] = {atk={"-",buffsize}, def={"-",buffsize}, sta={"-",buffsize}}
+    OneBuff(player.opponent, other_idx, {atk={"-",amt},
+        def={"-",amt}, sta={"-",amt}}):apply()
   end
-  buff:apply()
 end,
 
 -- episode 3 follower skills
@@ -725,6 +723,9 @@ end,
 
 -- vanguard knight, orders from above
 [1052] = function(player, my_idx)
+  while #player.deck > 0 and #player.hand < 4 do
+    player:draw_a_card()
+  end
   local buffsize = #player:hand_idxs_with_preds({pred.C})
   OneBuff(player, my_idx, {atk={"+",buffsize}, sta={"+",buffsize}}):apply()
 end,
