@@ -661,6 +661,9 @@ end,
 
 -- genius student nanai, great power!
 [1047] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   local player_grave_idxs = player:grave_idxs_with_preds({function(card)
     return card.size == other_card.size end})
   local opp_grave_idxs = player.opponent:grave_idxs_with_preds(
@@ -675,7 +678,7 @@ end,
     player.opponent:grave_to_exile(idx)
     buffsize = buffsize + 1
   end
-  if buffsize > 0 and other_card then
+  if buffsize > 0 then
     OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
   end
 end,
@@ -711,7 +714,7 @@ end,
 -- linia pacifica, master's command
 [1051] = function(player, my_idx, my_card)
   local buffsize = math.ceil(my_card.size / 2)
-  local target_idxs = player:field_idxs_with_preds({pred.A, pred.follower})
+  local target_idxs = player:field_idxs_with_preds({pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(target_idxs) do
     if math.abs(idx - my_idx) <= 1 then
@@ -829,7 +832,9 @@ end,
       for i=1,sent do
         player:grave_to_bottom_deck(math.random(#player.grave))
       end
-      OneBuff(player.opponent, other_idx, {atk={"-",math.ceil(sent/2)}}):apply()
+      if other_card then
+        OneBuff(player.opponent, other_idx, {atk={"-",math.ceil(sent/2)}}):apply()
+      end
     end
     my_card:remove_skill(skill_idx)
   end
@@ -903,6 +908,9 @@ end,
 
 -- sweet lady isfeldt, sweet count
 [1074] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
+    return
+  end
   if other_card.size <= my_card.size then
     player.opponent:field_to_top_deck(other_idx)
     my_card.skills[skill_idx] = 1073
@@ -1045,7 +1053,7 @@ end,
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   local buff_size = #player:hand_idxs_with_preds({function(card)
     return pred.maid(card) or pred.lady(card) end})
-  if buff_size > 0 then
+  if opp_target_idx and buff_size > 0 then
     OneBuff(player.opponent, opp_target_idx, {sta={"-",buff_size}}):apply()
     my_card:remove_skill_until_refresh(skill_idx)
   end
@@ -1513,6 +1521,7 @@ end,
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {atk={"-",buff_size}, sta={"-",buff_size}}
     buff.field[player][0] = {life={"+", math.ceil(buff_size/2)}}
+    buff:apply()
   end
   my_card:remove_skill_until_refresh(skill_idx)
 end,

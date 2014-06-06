@@ -514,9 +514,14 @@ end,
   local hand_size = #player.hand
   local buff_size = math.ceil(hand_size/2)
   if hand_size < 4 then
+    local buff = GlobalBuff(player)
     for i=1,hand_size do
-      local buff = GlobalBuff(player)
-      buff.hand[player][1] = {atk={"+",buff_size},sta={"+",buff_size}}
+      if pred.follower(player.hand[i]) then
+        buff.hand[player][i] = {atk={"+",buff_size},sta={"+",buff_size}}
+      end
+    end
+    buff:apply()
+    for i=1,hand_size do
       player:hand_to_bottom_deck(1)
     end
   else
@@ -571,14 +576,14 @@ end,
   local target = player.opponent.field[5]
   if target then
     if pred.follower(target) then
-      OneBuff(player.opponent,5,{atk={"-",1}})
+      OneBuff(player.opponent,5,{atk={"-",1}}):apply()
     end
     player.opponent:field_to_bottom_deck(5)
   end
-  if player.opponent:field_size() == 0 then
+  local target_idx = uniformly(player.opponent:field_idxs_with_preds())
+  if not target_idx then
     return
   end
-  local target_idx = uniformly(player.opponent:field_idxs_with_preds())
   local card = player.opponent.field[target_idx]
   for i=target_idx,4 do
     if not player.opponent.field[i+1] then
@@ -1525,14 +1530,14 @@ end,
   local buff = GlobalBuff(player)
   if #opponent.deck > 0 and pred.spell(opponent.deck[#opponent.deck]) then
     buff.deck[opponent][#opponent.deck] = {size={"+",1}}
-  end
-  if #player.deck > 0 then
+  elseif #player.deck > 0 then
     if pred.follower(player.deck[#player.deck]) then
       buff.deck[player][#player.deck] = {size={"-",1},atk={"+",1},sta={"+",1}}
     else
       buff.deck[player][#player.deck] = {size={"-",1}}
     end
   end
+  buff:apply()
   ep7_recycle(player)
 end,
 
@@ -1582,10 +1587,11 @@ end,--]]
       player:deck_to_hand(idx)
       if pred.follower(player.hand[#player.hand]) then
         do_default = false
-        buff.hand[player][#player.hand] = {atk={"+",1},sta={"+",1}}
+        buff.hand[player][#player.hand] = {size={"-",1},atk={"-",1},sta={"-",1}}
       end
     end
   end
+  buff:apply()
   if do_default then
     local idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
@@ -2013,6 +2019,7 @@ end,
   for i=1,#targets do
     buff[targets[i]] = {atk={"+",1},sta={"+",1}}
   end
+  buff:apply()
 end,
 
 -- Mop Maid
