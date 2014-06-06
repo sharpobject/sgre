@@ -173,6 +173,9 @@ function Player:upkeep_phase()
           else
             skill_func[skill_id](self, idx, card, skill_idx)
           end
+          if BUFF_COUNTER and BUFF_COUNTER > 1 then
+            error("oh no")
+          end
           self.game:snapshot()
           self:check_hand()
           self.opponent:check_hand()
@@ -709,8 +712,19 @@ function Player:follower_combat_round(idx, target_idx)
             wait(50)
             attacker.trigger = nil
             self.game:send_trigger(attack_player.player_index, attack_idx, "attack")
+            local flicker_follower = GO_HARD and (math.random(20) == 1)
+            if flicker_follower then
+              flicker_follower = defend_player.field[defend_idx]
+              other_card, defend_player.field[defend_idx] = nil, nil
+            end
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
+            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+              error("oh no")
+            end
+            if flicker_follower then
+              defend_player.field[defend_idx] = flicker_follower
+            end
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -742,8 +756,19 @@ function Player:follower_combat_round(idx, target_idx)
             wait(50)
             defender.trigger = nil
             self.game:send_trigger(defend_player.player_index, defend_idx, "defend")
+            local flicker_follower = GO_HARD and (math.random(20) == 1)
+            if flicker_follower then
+              flicker_follower = attack_player.field[attack_idx]
+              other_card, attack_player.field[attack_idx] = nil, nil
+            end
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
+            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+              error("oh no")
+            end
+            if flicker_follower then
+              attack_player.field[attack_idx] = flicker_follower
+            end
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -814,6 +839,9 @@ function Player:combat_round()
     card.trigger = nil
     self.game:send_trigger(self.player_index, idx, "spell")
     spell_func[card.id](self, self.opponent, idx, card)
+    if BUFF_COUNTER and BUFF_COUNTER > 1 then
+      error("oh no")
+    end
     self.game:snapshot()
     self:check_hand()
     self.opponent:check_hand()
