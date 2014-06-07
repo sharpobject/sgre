@@ -129,6 +129,9 @@ function handlers.update_collection(msg)
   elseif msg.reason == "cafe" and frames.cafe.update_feeding_list then
     frames.cafe.update_feeding_list()
     frames.cafe.populate_cafe_card_list()
+  elseif msg.reason == "xmute" then
+    frames.xmute.enable_buttons()
+    frames.xmute.populate_xmutable_card_list()
   end
 end
 

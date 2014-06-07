@@ -641,7 +641,25 @@ function main_lobby()
     button:SetText("CAFE")
     button:SetState("lobby")
     button.OnClick = function()
+      if frames.cafe then
+        frames.cafe.populate_cafe_card_list()
+        frames.cafe.update_feeding_list()
+        frames.cafe.refresh_stats_pane()
+      end
       from_lobby = {main_cafe}
+    end
+
+    local button = loveframes.Create("button")
+    button:SetPos(750, 100)
+    button:SetSize(50, 50)
+    button:SetText("XMUTE")
+    button:SetState("lobby")
+    button.OnClick = function()
+      if frames.xmute then
+        frames.xmute.xmute_type = nil
+        frames.xmute.populate_xmutable_card_list()
+      end
+      from_lobby = {main_xmute}
     end
 
     local button = loveframes.Create("button")
@@ -1565,6 +1583,253 @@ function main_cafe()
     if from_cafe then
       local ret = from_cafe
       from_cafe = nil
+      return unpack(ret)
+    end
+  end
+end
+
+
+local from_xmute = nil
+function main_xmute()
+  if not frames.xmute then
+    frames.xmute = {}
+    frames.xmute.page_num = 1
+    frames.xmute.xmute_type = nil
+
+    -- set up buttons and hover area
+    local list, text = get_hover_list_text("xmute")
+    frames.xmute.card_text_list = list
+    frames.xmute.card_text = text
+
+    local lobby_button = loveframes.Create("button")
+    frames.xmute.lobby_button = lobby_button
+    lobby_button:SetState("xmute")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      from_xmute = {main_lobby}
+    end
+
+    local xmute_pane = loveframes.Create("frame")
+    xmute_pane:SetState("xmute")
+    local x,y,w,h = left_hover_frame_pos()
+    xmute_pane:SetPos(x,y)
+    xmute_pane:SetSize(w,h)
+    xmute_pane:ShowCloseButton(false)
+    xmute_pane:SetDraggable(false)
+    xmute_pane.Draw = function(self)
+      draw_hover_frame(self.x, self.y, self.width, self.height)
+    end
+
+    local dr_button = loveframes.Create("button", xmute_pane)
+    dr_button:SetState("xmute")
+    dr_button:SetWidth(120)
+    dr_button:SetHeight(60)
+    dr_button:CenterX()
+    dr_button:SetY(math.ceil(h*0.15))
+    dr_button:SetText("Double Rares")
+    function dr_button:OnClick()
+      frames.xmute.xmute_type = "DR"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    local accessories_button = loveframes.Create("button", xmute_pane)
+    accessories_button:SetState("xmute")
+    accessories_button:SetWidth(120)
+    accessories_button:SetHeight(60)
+    accessories_button:CenterX()
+    accessories_button:SetY(math.ceil(h*0.45))
+    accessories_button:SetText("Accessories")
+    function accessories_button:OnClick()
+      frames.xmute.xmute_type = "accessory"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    local ore_button = loveframes.Create("button", xmute_pane)
+    ore_button:SetState("xmute")
+    ore_button:SetWidth(120)
+    ore_button:SetHeight(60)
+    ore_button:CenterX()
+    ore_button:SetY(math.ceil(h*0.75))
+    ore_button:SetText("Ores")
+    function ore_button:OnClick()
+      frames.xmute.xmute_type = "ore"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    --List of transmutable cards of xmute_type
+    local xmutable_card_list = loveframes.Create("list")
+    xmutable_card_list:SetState("xmute")
+    xmutable_card_list:SetX(xmute_pane:GetX()*2+xmute_pane:GetWidth())
+    xmutable_card_list:SetY(250)
+    xmutable_card_list:SetHeight(140)
+    xmutable_card_list:SetWidth(800-2*xmutable_card_list:GetX())
+    xmutable_card_list:SetDisplayType("horizontal")
+    function xmutable_card_list:Draw() end
+    xmutable_card_list:SetSpacing(5)
+
+    function frames.xmute.populate_xmutable_card_list() 
+      local xmute_type = frames.xmute.xmute_type
+      xmutable_card_list:Clear()
+      frames.xmute.populate_xmute_to_card_list()
+      frames.xmute.draw_preview_pane()
+      frames.xmute.collection = collection_ex_deck(user_data.collection, union_counters(user_data.decks))
+      local coll = tspairs(frames.xmute.collection)
+      local card_list = {}
+      for i=1,#coll do
+        local k, v = coll[i][1],coll[i][2]
+        if xmute_type=="DR" then
+          if Card(k).rarity == "DR" and Card(k).faction ~= "N" then
+            table.insert(card_list,{k,v})
+          end
+        elseif xmute_type=="accessory" then
+          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) then
+            table.insert(card_list,{k,v})
+          end
+        elseif xmute_type=="ore" then
+          if (k >= 210008 and k <= 210012) then
+            table.insert(card_list,{k,v})
+          end
+        end
+      end
+      for i =1,#card_list do
+        local k, v = card_list[i][1],card_list[i][2]
+        xmutable_card_list:AddItem(card_list_button(k, false, v, function() 
+          frames.xmute.populate_xmute_to_card_list(xmute_type, k)
+          frames.xmute.draw_preview_pane(nil, k, xmute_type)
+          end))
+      end
+    end
+
+    --List of cards we can transmute to
+    local xmute_to_card_list = loveframes.Create("list")
+    xmute_to_card_list:SetState("xmute")
+    xmute_to_card_list:SetX(xmute_pane:GetX()*2+xmute_pane:GetWidth())
+    xmute_to_card_list:SetY(400)
+    xmute_to_card_list:SetHeight(140)
+    xmute_to_card_list:SetWidth(800-2*xmute_to_card_list:GetX())
+    xmute_to_card_list:SetDisplayType("horizontal")
+    function xmute_to_card_list:Draw() end
+    xmute_to_card_list:SetSpacing(5)
+
+    function frames.xmute.populate_xmute_to_card_list(xmute_type, from_card_id)
+      xmute_to_card_list:Clear()
+      if not xmute_type then return end
+      for k, v in pairs(xmutable[xmute_type]) do
+        if v[from_card_id] then
+          for to_card_id, _ in spairs(v) do
+            if to_card_id ~= from_card_id then
+              xmute_to_card_list:AddItem(card_list_button(to_card_id, false, nil, function() 
+                frames.xmute.draw_preview_pane(to_card_id, from_card_id, xmute_type)
+                end))
+            end
+          end
+        end
+      end
+    end
+
+    --Top area where we preview our desired xmute and quantity
+    function frames.xmute.draw_preview_pane(to_card_id, from_card_id, xmute_type)
+      if frames.xmute.preview_pane then
+        frames.xmute.preview_pane:Remove()
+      end
+
+      local multiplier = 4
+      if xmute_type == "DR" then
+        multiplier = 1
+      end
+
+      local preview_pane = loveframes.Create("frame")
+      frames.xmute.preview_pane = preview_pane
+      preview_pane:SetName("Transmute...")
+      preview_pane:SetState("xmute")
+      preview_pane:SetPos(x + w + 10, y)
+      preview_pane:SetSize(380, 200)
+      preview_pane:ShowCloseButton(false)
+      preview_pane:SetDraggable(false)
+
+      local arrow = loveframes.Create("text", preview_pane)
+      arrow:SetText("->")
+      arrow:SetPos(130, 80)
+
+      local xmute_numberbox = loveframes.Create("numberbox", preview_pane)
+      xmute_numberbox:SetPos(280, 50)
+      xmute_numberbox:SetValue(1)
+      xmute_numberbox:SetMin(0)
+      xmute_numberbox:SetMax(100)
+      local value = xmute_numberbox:GetValue()
+      frames.xmute.draw_preview_cards(to_card_id, from_card_id, value, multiplier*value)
+      xmute_numberbox.OnValueChanged = function(object, value)
+        frames.xmute.draw_preview_cards(to_card_id, from_card_id, value, multiplier*value)
+        end
+
+      local xmute_button = loveframes.Create("button", preview_pane)
+      frames.xmute.xmute_button = xmute_button
+      xmute_button:SetPos(280, 90)
+      xmute_button:SetSize(80, 40)
+      xmute_button:SetText("Transmute!")
+      xmute_button.OnClick = function() 
+        local value = xmute_numberbox:GetValue()
+        if value * multiplier > frames.xmute.collection[from_card_id] or value < 1 then
+          return
+        end
+        net_send({type="xmute", to_card_id=to_card_id, from_card_id=from_card_id, to_card_number=value, xmute_type=xmute_type})
+        xmute_button:SetEnabled(false)
+        frames.xmute.lobby_button:SetEnabled(false)
+        end
+    end
+
+    function frames.xmute.draw_preview_cards(to_card_id, from_card_id, to_card_number, from_card_number)
+      if not frames.xmute.preview_pane then return end
+      if from_card_id then
+        local button = card_list_button(from_card_id, false, nil, function() end)
+        button:SetParent(frames.xmute.preview_pane)
+        button:SetPos(30, 30)
+        if frames.xmute.from_card_button then frames.xmute.from_card_button:Remove() end
+        frames.xmute.from_card_button = button
+      end
+      if to_card_id then
+        local button = card_list_button(to_card_id, false, nil, function() end)
+        button:SetParent(frames.xmute.preview_pane)
+        button:SetPos(160, 30)
+        if frames.xmute.to_card_id then frames.xmute.to_card_id:Remove() end
+        frames.xmute.to_card_id = button
+      end
+
+      if from_card_id and to_card_id then
+        if from_card_number then
+          local number = loveframes.Create("text", frames.xmute.preview_pane)
+          number:SetPos(60, 155)
+          number:SetText("x"..tostring(from_card_number))
+          if frames.xmute.from_card_number then frames.xmute.from_card_number:Remove() end
+          frames.xmute.from_card_number = number
+        end
+        if to_card_number then
+          local number = loveframes.Create("text", frames.xmute.preview_pane)
+          number:SetPos(190, 155)
+          number:SetText("x"..tostring(to_card_number))
+          if frames.xmute.to_card_number then frames.xmute.to_card_number:Remove() end
+          frames.xmute.to_card_number = number
+        end
+      end
+    end
+    frames.xmute.draw_preview_pane()
+
+    function frames.xmute.enable_buttons()
+      frames.xmute.lobby_button:SetEnabled(true)
+      frames.xmute.xmute_button:SetEnabled(true)
+    end
+  end
+
+  loveframes.SetState("xmute")
+  while true do
+    wait()
+    if from_xmute then
+      local ret = from_xmute
+      from_xmute = nil
       return unpack(ret)
     end
   end

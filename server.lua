@@ -18,6 +18,7 @@ print"required it"
 require("ssl")
 require("validate")
 require("giftable")
+require("xmutable")
 
 local byte = string.byte
 local char = string.char
@@ -320,6 +321,9 @@ function Connection:J(jmsg)
     end
     if message.type == "craft" then
       self:try_craft(message)
+    end
+    if message.type == "xmute" then
+      self:try_xmute(message)
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
@@ -818,6 +822,46 @@ function Connection:try_craft(msg)
     end
   end
   self:update_collection(ret_diff, "craft")
+end
+
+function Connection:try_xmute(msg)
+  local data = uid_to_data[self.uid]
+  local to_card_id = msg.to_card_id
+  local from_card_id = msg.from_card_id
+  local to_card_number = msg.to_card_number
+  local xmute_type = msg.xmute_type
+  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then 
+    return false 
+  end
+  if to_card_number < 1 or to_card_number > 100 then
+    return false
+  end
+  local multiplier = 4
+  if xmute_type == "DR" then
+    multiplier = 1
+  end
+  if data.collection[from_card_id] < to_card_number * multiplier then
+    return false  --we don't have enough stuff
+  end
+  for _,deck in pairs(data.decks) do
+    if deck[from_card_id] and deck[from_card_id] * to_card_number >= data.collection[from_card_id] then
+      return false --stuff is being used in decks
+    end
+  end
+  local bad_xmute = true
+  for k, v in pairs(xmutable[xmute_type]) do
+    if v[from_card_id] and v[to_card_id] then
+      bad_xmute = false  --invalid xmute (DRs not in same episode, etc.)
+    end
+  end
+  if bad_xmute then
+    return false
+  end
+
+  local ret_diff = {}
+  ret_diff[to_card_id] = to_card_number
+  ret_diff[from_card_id] = -multiplier * to_card_number
+  self:update_collection(ret_diff, "xmute")
 end
 
 function prep_deck(uid)
