@@ -670,6 +670,7 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_dungeon}
     end
+    table.insert(frames.lobby.game_buttons, button)
   end
 
   local enable_buttons = check_active_deck()
@@ -776,6 +777,7 @@ function main_craft()
     craft_pane.Draw = function(self)
       draw_hover_frame(self.x, self.y, self.width, self.height)
     end
+  
 
     local text_card_list = loveframes.Create("list", craft_pane)
     text_card_list:SetWidth(w-12)
@@ -787,8 +789,15 @@ function main_craft()
     function text_card_list:Draw() end
 
     function frames.craft.update_list()
-      frames.craft.populate_text_card_list(recipes)
-      frames.craft.populate_card_list(recipes)
+      local substr = ""
+      if craft_search_bar then substr = craft_search_bar:GetText() end
+      if substr ~= "" then
+        frames.craft.populate_text_card_list(recipes, substr, true)
+        frames.craft.populate_card_list(recipes, substr)
+      else
+        frames.craft.populate_text_card_list(recipes)
+        frames.craft.populate_card_list(recipes)
+      end
     end
 
     function frames.craft.spawn_craft_frame(id)
@@ -914,7 +923,40 @@ function main_craft()
           frames.craft.spawn_craft_frame(k)
         end))
       end
-      frames.craft.populate_text_card_list = function() end
+    
+    complete_card_list = deepcpy(text_card_list)
+      frames.craft.populate_text_card_list = function(recipes, substr, search_changed) 
+      if substr and search_changed then
+        text_card_list:Clear()
+        for k,v in spairs(recipes, name_cmp) do
+          local comparing_card = Card(k, 0)
+          local card_name = string.lower(comparing_card.name)
+          local card_skill_text = ""
+          if skill_text[k] then card_skill_text = string.lower(skill_text[k]) end
+          if comparing_card.type == "follower" then
+            local skills = comparing_card.skills or {}
+            for i=1,3 do
+              if skills[i] then
+                if skill_text[skills[i]] then
+                  card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
+                end
+              end
+              if i < 3 then
+                card_skill_text = card_skill_text .. "\n\n"
+              end
+            end
+          end
+          if string.find(card_name, substr) or string.find(card_skill_text, substr) then
+            text_card_list:AddItem(deck_card_list_button(k, 0, v, function()
+            frames.craft.spawn_craft_frame(k)
+            end))
+          end
+        end
+      elseif search_changed and not substr then
+        text_card_list = deepcpy(complete_card_list)
+      end
+    end
+    
     end
 
     local card_list = loveframes.Create("list")
@@ -949,10 +991,43 @@ function main_craft()
       frames.craft.page_num = frames.craft.page_num + 1
       frames.craft.update_list()
     end
-
-    function frames.craft.populate_card_list(collection)
+    add_search_bar(craft_pane)
+    add_craft_filters()
+  
+    function frames.craft.populate_card_list(collection, substr)
       card_list:Clear()
-      local coll = tspairs(collection, deck_cmp)
+      local coll2 = tspairs(collection, deck_cmp)
+      local coll = {}
+      local collindex = 1
+      for i=1,#coll2 do
+        filtering = Card(coll2[i][1], 0)
+        local card_skill_text = ""
+        if skill_text[filtering.id] then card_skill_text = string.lower(skill_text[filtering.id]) end
+        if filtering.type == "follower" then
+          local skills = filtering.skills or {}
+          for i=1,3 do
+            if skills[i] then
+              if skill_text[skills[i]] then
+                card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
+              end
+            end
+            if i < 3 then
+              card_skill_text = card_skill_text .. "\n\n"
+            end
+          end
+        end
+        if ((not craft_filter_values[1]) or craft_filter_values[1] == filtering.type)
+            and ((not craft_filter_values[2]) or craft_filter_values[2] == filtering.episode)
+            and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
+            and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
+            and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size or filtering.type == "character")
+            and ((not substr) or string.find(string.lower(filtering.name), substr) 
+            or string.find(card_skill_text, substr)) then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
+      end
+      
       frames.craft.npages = ceil(#coll/16)
       if frames.craft.npages > 0 then
         frames.craft.page_num = bound(1,frames.craft.page_num,frames.craft.npages)
@@ -972,10 +1047,14 @@ function main_craft()
 
   frames.craft.collection = collection_ex_deck(
       user_data.collection, union_counters(user_data.decks))
-
+    
+    
+  list_init = true
   frames.craft.update_list(recipes)
+  
 
   loveframes.SetState("craft")
+  reset_filters("craft")
   while true do
     wait()
     if from_craft then
@@ -1111,10 +1190,25 @@ function main_decks()
       end
       return n < 30 and ((deck[id] or 0) < Card(id).limit)
     end
+  
+    add_decks_filters()
 
     function frames.decks.populate_card_list(collection)
       card_list:Clear()
-      local coll = tspairs(collection, deck_cmp)
+      local coll2 = tspairs(collection, deck_cmp)
+      local coll = {}
+      local collindex = 1
+      for i=1,#coll2 do
+        filtering = Card(coll2[i][1], 0)
+        if ((not decks_filter_values[1]) or decks_filter_values[1] == filtering.type)
+            and ((not decks_filter_values[2]) or decks_filter_values[2] == filtering.episode)
+            and ((not decks_filter_values[3]) or decks_filter_values[3] == filtering.rarity)
+            and ((not decks_filter_values[4]) or decks_filter_values[4] == filtering.faction)
+            and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size or filtering.type == "character") then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
+      end
       frames.decks.npages = ceil(#coll/16)
       if frames.decks.npages > 0 then
         frames.decks.page_num = bound(1,frames.decks.page_num,frames.decks.npages)
@@ -1191,6 +1285,7 @@ function main_decks()
   multichoice:SelectChoice(current_str)
 
   loveframes.SetState("decks")
+  reset_filters("decks")
   while true do
     wait()
     if from_decks then
@@ -1590,7 +1685,6 @@ function main_dungeon()
     frames.dungeon.showingclear = {}
   end
     
-
   local frame = loveframes.Create("frame")
   frame:SetName("Dungeons")
   frame:SetState("lobby")
@@ -1598,9 +1692,10 @@ function main_dungeon()
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:Center()
-    
-    
-    
+  frame:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState("lobby")
+  
+
   local prevbutton = loveframes.Create("button", frame)
   prevbutton:SetPos(10, 400)
   prevbutton:SetSize(30, 30)
@@ -1622,10 +1717,6 @@ function main_dungeon()
     end
     update_dungeon_list(frame)
   end
-    
-  local text1 = loveframes.Create("text", frame)
-  text1:SetPos(45, 410)
-  text1:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
     
   local easybutton, normalbutton, hardbutton
   easybutton = loveframes.Create("button", frame)
@@ -1670,16 +1761,10 @@ function main_dungeon()
     
   function update_dungeon_list(frame)
 
-    local index = 1
-    while index < 5 do
-      if frames.dungeon.showing[index] then
-        frames.dungeon.showing[index]:Remove()
-        frames.dungeon.showingfloor[index]:Remove()
-        frames.dungeon.showingclear[index]:Remove()
-        frames.dungeon.showing[index] = nil
-        frames.dungeon.showingfloor[index] = nil
-        frames.dungeon.showingclear[index] = nil
-      end
+    local index = 1   
+    while frames.dungeon.showing[index] do
+      frames.dungeon.showing[index]:Remove()
+      frames.dungeon.showing[index] = nil
       index = index + 1
     end
     
@@ -1689,11 +1774,11 @@ function main_dungeon()
       hardbutton:SetEnabled(true)
       easybutton:SetEnabled(false)
     elseif frames.dungeon.difficulty == normal_dungeons then
-        normalbutton:SetEnabled(false)
+      normalbutton:SetEnabled(false)
       hardbutton:SetEnabled(true)
       easybutton:SetEnabled(true)
     else
-        normalbutton:SetEnabled(true)
+      normalbutton:SetEnabled(true)
       hardbutton:SetEnabled(false)
       easybutton:SetEnabled(true)
     end
@@ -1706,7 +1791,6 @@ function main_dungeon()
           img_filename = "0"..img_filename
         end
         img_filename = "en_dungeon_icon_"..img_filename..".png"
-        
         local image = loveframes.Create("button", frame)
         image:SetSize(121, 255)
         image:SetX(28 + 136 * (index - 1))
@@ -1723,25 +1807,29 @@ function main_dungeon()
         end
       
         local text = loveframes.Create("text", frame)
+        local text2 = loveframes.Create("text", frame)
+        
         text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
         text:SetX(63 + 136 * (index - 1))
         text:SetY(355)
       
-        local text2 = loveframes.Create("text", frame)
         text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
         text2:SetX(62 + 136 * (index - 1))
         text2:SetY(370)
-      
-      
-        frames.dungeon.showing[index] = image
-        frames.dungeon.showingfloor[index] = text
-        frames.dungeon.showingclear[index] = text2
+        
+        frames.dungeon.showing[#frames.dungeon.showing+1] = image
+        frames.dungeon.showing[#frames.dungeon.showing+1] = text
+        frames.dungeon.showing[#frames.dungeon.showing+1] = text2
         
         index = index + 1
       else
         break
       end
     end
+    local pagetext = loveframes.Create("text", frame)
+    pagetext:SetPos(45, 410)
+    pagetext:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
+    frames.dungeon.showing[#frames.dungeon.showing+1] = pagetext
   end 
     
   update_dungeon_list(frame)
