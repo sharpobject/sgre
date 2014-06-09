@@ -3,14 +3,7 @@ local json = require "dkjson"
 local recipes = fix_num_keys(json.decode(file_contents("recipes.json")))
 local id_to_card = fix_num_keys(json.decode(file_contents("swogi.json")).id_to_card)
 
-local eps = arr_to_set{
-  "EP0",
-  "EP1",
-  "EP2",
-  "EP3",
-  "EX1",
-  "EP5", -- only adds rico and game starter
-}
+local eps = arr_to_set(require("episodes"))
 
 for k,v in pairs(recipes) do
   if not eps[(id_to_card[k] or {episode="ASS"}).episode] then

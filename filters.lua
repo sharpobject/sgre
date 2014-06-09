@@ -1,7 +1,6 @@
 local substr
 
---update this list when new episodes are released
-local eps = { "EP0", "EP1", "EP2", "EP3", "EP5" }
+local eps = require("episodes")
 
 function add_craft_filters()
   filter_width = 56
@@ -85,6 +84,7 @@ function add_craft_filters()
   craftfactionfilter:AddChoice("Academy")
   craftfactionfilter:AddChoice("Crux")
   craftfactionfilter:AddChoice("Darklore")
+  craftfactionfilter:AddChoice("Neutral")
 
   craftfactionfilter:SetX(400)
   craftfactionfilter:SetY(530)
@@ -204,6 +204,7 @@ function add_decks_filters()
   deckfactionfilter:AddChoice("Academy")
   deckfactionfilter:AddChoice("Crux")
   deckfactionfilter:AddChoice("Darklore")
+  deckfactionfilter:AddChoice("Neutral")
 
   deckfactionfilter:SetX(400)
   deckfactionfilter:SetY(530)
