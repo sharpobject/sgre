@@ -1020,7 +1020,7 @@ function main_craft()
             and ((not craft_filter_values[2]) or craft_filter_values[2] == filtering.episode)
             and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
             and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
-            and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size or filtering.type == "character")
+            and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size)
             and ((not substr) or string.find(string.lower(filtering.name), substr) 
             or string.find(card_skill_text, substr)) then
           coll[collindex] = coll2[i]
@@ -1661,7 +1661,7 @@ function main_fight(msg)
 end
 
 local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2}, {"Advanced Dungeon", 3}, {"Bamboo Garden", 8}}
-local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}}
+local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}, {"Linia's Mansion", 9}}
 local hard_dungeons = {}
 
 function main_dungeon()

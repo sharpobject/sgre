@@ -2040,6 +2040,60 @@ end,
   buff_all(player, opponent, my_card, {sta={"+",#player.hand}})
 end,
 
+-- Disaster Maid
+[110069] = function(player, opponent, my_card)
+  p = uniformly({player, opponent})
+  local idx = p:field_idxs_with_preds(pred.follower)[1]
+  if idx then
+    OneBuff(p, idx, {sta={"-",5}}):apply()
+  end
+end,
+
+-- Master Kitchen Maid
+[110070] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",1},def={"+",1},sta={"+",2}})
+end,
+
+-- Master Cleaning Maid
+[110071] = function(player, opponent, my_card)
+  p = uniformly({player, opponent})
+  for i=1,2 do
+    local slot = p:first_empty_field_slot()
+    if #opponent.hand > 0 and slot then
+      p.field[slot] = opponent:remove_from_hand(1)
+    end
+  end
+end,
+
+-- Tea Maid
+[110072] = function(player, opponent, my_card)
+  p = uniformly({player, opponent})
+  local buff = {life={"-",1}}
+  if p == opponent then
+    buff = {life={"-",3}}
+  end
+  OneBuff(p, 0, buff):apply()
+end,
+
+-- Head Maid Rise
+[110073] = function(player, opponent, my_card)
+  p = uniformly({player, opponent})
+  local idx = uniformly(p:field_idxs_with_preds())
+  if idx then
+    p:destroy(idx)
+  end
+end,
+
+-- R. Chief Maid
+[110074] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",3}})
+end,
+
+-- R. Mop Maid
+[110075] = function(player, opponent, my_card)
+  buff_random(player, opponent, my_card, {atk={"+",2},sta={"+",2}})
+end,
+
 -- rio
 [110133] = function(player, opponent, mycard)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
@@ -2624,14 +2678,22 @@ end,
   end
 end,
 
+-- Artificial Vampire God
+[120009] = function(player, opponent, my_card)
+  recycle_one(player)
+  if opponent.character.life <= 10 then
+    OneBuff(opponent, 0, {life={"-",10}}):apply()
+  end
+end,
+
 -- true vampire god
 [120010] = function(player, opponent)
+  recycle_one(player)
   if opponent.character.life >= 15 then
     OneBuff(opponent, 0, {life={"-",1}}):apply()
   elseif opponent.character.life <= 8 then
-    OneBuff(opponent, 0, {life={"=",0}}):apply()
+    OneBuff(opponent, 0, {life={"-",8}}):apply()
   end
-  recycle_one(player)
 end,
 
 -- ereshkigal
