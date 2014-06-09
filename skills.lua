@@ -2795,7 +2795,7 @@ end,
   OneBuff(player, my_idx, {sta={"+", 3}}):apply()
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card.skills[1] == 1258 or card.skills[2] == 1258
-      or card.skills[3] == 1258 end)
+      or card.skills[3] == 1258 end))
   my_card.skills[skill_idx] = nil
   if idx then
     player.field[idx] = 1258
@@ -2854,7 +2854,7 @@ end,
   end
   player:grave_to_bottom_deck(idx)
   my_card:remove_skill(skill_idx)
-end
+end,
 
 -- Half Price
 [1265] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
