@@ -844,7 +844,9 @@ function Connection:try_xmute(msg)
     return false  --we don't have enough stuff
   end
   for _,deck in pairs(data.decks) do
-    if deck[from_card_id] and deck[from_card_id] * to_card_number >= data.collection[from_card_id] then
+    if deck[from_card_id] and
+        data.collection[from_dard_id] - deck[from_card_id] <
+        to_card_number * multiplier then
       return false --stuff is being used in decks
     end
   end

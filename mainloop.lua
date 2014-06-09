@@ -1222,7 +1222,7 @@ function main_decks()
             and ((not decks_filter_values[2]) or decks_filter_values[2] == filtering.episode)
             and ((not decks_filter_values[3]) or decks_filter_values[3] == filtering.rarity)
             and ((not decks_filter_values[4]) or decks_filter_values[4] == filtering.faction)
-            and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size or filtering.type == "character") then
+            and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size) then
           coll[collindex] = coll2[i]
           collindex = collindex + 1
         end
