@@ -32,6 +32,7 @@ local dungeon_mats = {
   210014, -- heart stone
   210015, -- holy water tear
   210016, -- bamboo
+  210017, -- lily
 }
 local materials = {s1_fight, ore, dungeon_mats}
 local reachable_cards = {}
