@@ -1773,7 +1773,11 @@ function main_xmute()
       xmute_button:SetText("Transmute!")
       xmute_button.OnClick = function() 
         local value = xmute_numberbox:GetValue()
-        if value * multiplier > frames.xmute.collection[from_card_id] or value < 1 then
+        if not (frames.xmute.collection and from_card_id and to_card_id) then
+          return
+        end
+        if value * multiplier > (frames.xmute.collection[from_card_id] or 0)
+            or value < 1 then
           return
         end
         net_send({type="xmute", to_card_id=to_card_id, from_card_id=from_card_id, to_card_number=value, xmute_type=xmute_type})
