@@ -286,7 +286,7 @@ characters_func = {
   local buff = GlobalBuff(player) --stolen from Tower of Books
   buff.hand[player][hand_idx] = {size={"+",1}}
   buff:apply()
-  local my_cards = player:field_idxs_with_preds(function(card) return card.size > 2 end)
+  local my_cards = player:field_idxs_with_preds(function(card) return card.size >= 2 end)
   if #my_cards == 0 then
     return
   end

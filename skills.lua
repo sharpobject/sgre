@@ -712,7 +712,11 @@ end,
 -- sanctuary hunter asmis, quest for truth
 [1062] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
-    OneBuff(player, 0, {life={"+",8}}):apply()
+    local amt = 5
+    if player.character.life < player.opponent.character.life then
+      amt = 8
+    end
+    OneBuff(player, 0, {life={"+",amt}}):apply()
     my_card:remove_skill(skill_idx)
   end
 end,
@@ -802,7 +806,8 @@ end,
       if field_idx then
         player.field[field_idx] = deepcpy(target_card)
         local buff_size = my_card.def
-        OneBuff(player, field_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
+        OneBuff(player, field_idx, {size={"=",my_card.size+1},
+            atk={"+",buff_size}, sta={"+",buff_size}}):apply()
       end
     end
     my_card:remove_skill(skill_idx)

@@ -1339,6 +1339,7 @@ end,
 -- impulse
 [200098] = function(player, opponent)
   if pred.faction.D(player.character) then
+    OneBuff(player, 0, {life={"-",1}}):apply()
     local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
     if target_idxs[1] then
       OneBuff(opponent, target_idxs[1], {sta={"-",5}}):apply()
@@ -1544,8 +1545,8 @@ end,
     local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
     -- For the rest of the spell to happen, we need a vampire and an empty slot.
     local slot = player:first_empty_field_slot()
-    local vampires = player:field_idxs_with_preds(pred.union(
-      pred.scardel, pred.crescent, pred.flina))
+    local vampires = player:field_idxs_with_preds(pred.follower,
+      pred.union(pred.scardel, pred.crescent, pred.flina))
     if slot and #vampires > 0 then
       player.field[slot] = card
       local buff_amt = 0
@@ -1562,6 +1563,9 @@ end,
 
 -- final answer
 [200111] = function(player, opponent)
+  if not pred.D(player.character) then
+    return
+  end
   local target = opponent:field_idxs_with_most_and_preds(
       function(card) return card.atk + card.sta end, pred.follower)[1]
   local amt = #player.hand + #opponent.hand
@@ -1800,7 +1804,7 @@ end,
   end
 end,
 
--- fast forward
+-- extreme acceleration
 [200126] = function(player, opponent, my_idx, my_card)
   local buff_amt = 0
   for i=1,5 do
@@ -1810,8 +1814,9 @@ end,
     end
   end
   local targets = player:field_idxs_with_preds(pred.follower)
+  local target = targets[#targets]
   if target then
-    OneBuff(player, targets[#targets], {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
+    OneBuff(player, target, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
   end
 end,
 
@@ -1888,9 +1893,9 @@ end,
 
 -- false delivery
 [200131] = function(player, opponent, my_idx, my_card)
-  for _,p in ipairs(player, opponent) do
+  for _,p in ipairs({player, opponent}) do
     for i=1,5 do
-      while p.hand[i].faction ~= p.character.faction do
+      while p.hand[i] and p.hand[i].faction ~= p.character.faction do
         p:hand_to_grave(i)
       end
     end
@@ -1904,6 +1909,9 @@ end,
       local slot = player:first_empty_field_slot()
       player:hand_to_field(1)
       player.field[slot].size = random(2,3)
+      if pred.spell(player.field[slot]) then
+        player.field[slot].active = false
+      end
     end
   end
 end,
@@ -1975,13 +1983,15 @@ end,
       #opp_spell > 0 then
     local nlife = #opp_spell
     for _,idx in ipairs(opp_spell) do
-      opponent:field_to_grave(idx)
+      opponent:field_to_bottom_deck(idx)
     end
-    OneBuff(opponent, 0, {life={"-",nlife}}):apply()
+    OneBuff(player, 0, {life={"-",nlife}}):apply()
   elseif #opp_spell == 0 then
     local nlife = #my_spell
     for _,idx in ipairs(my_spell) do
-      player:field_to_grave(idx)
+      if idx ~= my_idx then
+        player:field_to_bottom_deck(idx)
+      end
     end
     OneBuff(player, 0, {life={"-",nlife}}):apply()
   end
@@ -1994,6 +2004,10 @@ end,
         function(card) return card.size >= 3 and card.size <= 5 end)
     for _,idx in ipairs(targets) do
       opponent:field_to_grave(idx)
+    end
+    targets = player:field_idxs_with_preds(pred.neg(pred.D), pred.follower)
+    for _,idx in ipairs(targets) do
+      player:field_to_grave(idx)
     end
   end
 end,
