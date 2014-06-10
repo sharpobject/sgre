@@ -5,6 +5,9 @@ name_to_ids = {}
 group_to_ids = {}
 skill_text = {}
 recipes = {}
+skill_id_to_type = {}
+
+local letter_to_skill_type = {T="start",A="attack",D="defend",B="defend"}
 
 function cards_init()
   local teh_json = file_contents("swogi.json")
@@ -80,6 +83,12 @@ function cards_init()
 
   for k,v in pairs(decoded.skill_text) do
     skill_text[0+k] = v
+    if 0+k < 10000 then
+      local type = letter_to_skill_type[v[4]]
+      if v[4] == "B" then print(v) end
+      assert(type)
+      skill_id_to_type[0+k] = type
+    end
   end
 
   -- recipes
