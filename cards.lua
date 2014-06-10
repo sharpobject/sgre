@@ -6,6 +6,7 @@ group_to_ids = {}
 skill_text = {}
 recipes = {}
 skill_id_to_type = {}
+setmetatable(skill_id_to_type, {__index = function() return "start" end})
 
 local letter_to_skill_type = {T="start",A="attack",D="defend",B="defend"}
 
