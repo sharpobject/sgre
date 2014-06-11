@@ -122,6 +122,23 @@ function Player:check_hand()
   local str2 = "ngrave = "..ngrave.." #grave = "..#self.grave
   assert(ndeck == #self.deck, str1)
   assert(ngrave == #self.grave, str2)
+  local unique_things = {}
+  for _,player in ipairs({self, self.opponent}) do
+    for _,zone in ipairs({"deck", "field", "hand", "grave", "exile"}) do
+      for _,card in ipairs(player[zone]) do
+        if unique_things[card] then
+          error("no card aliasing pls")
+        end
+        unique_things[card] = true
+        if card.skills then
+          if unique_things[card.skills] then
+            error("no skill aliasing pls")
+          end
+          unique_things[card] = true
+        end
+      end
+    end
+  end
 end
 
 function Player:untap_phase()
@@ -144,7 +161,7 @@ function Player:upkeep_phase()
         local skill_id = card.skills[skill_idx]
         if skill_id and skill_id_to_type[skill_id] == "start" and
             self.field[idx] == card then
-          --print("About to run skill func for id "..skill_id)
+          print("About to run skill func for id "..skill_id)
           self:check_hand()
           self.opponent:check_hand()
           card.trigger = true
@@ -155,6 +172,9 @@ function Player:upkeep_phase()
             characters_func[skill_id](self, self.opponent, card)
           else
             skill_func[skill_id](self, idx, card, skill_idx)
+          end
+          if BUFF_COUNTER and BUFF_COUNTER > 1 then
+            error("oh no")
           end
           self.game:snapshot()
           self:check_hand()
@@ -300,8 +320,10 @@ function Player:mill(n)
   end
 end
 
-function Player:deck_to_field(n)
-  local slot = self:first_empty_field_slot()
+function Player:deck_to_field(n, slot)
+  if not slot then
+    slot = self:first_empty_field_slot()
+  end
   local card = table.remove(self.deck, n)
   self.field[slot] = card
   assert(self.field[slot] == card, "deck_to_field()")
@@ -449,6 +471,27 @@ function Player:deck_idxs_with_preds(...)
     end
   end
   return ret
+end
+
+function Player:deck_idxs_with_least_and_preds(func, ...)
+  local idxs = self:deck_idxs_with_preds(...)
+  local best = 99999
+  local ret = {}
+  for i=1,#idxs do
+    local card = self.deck[idxs[i]]
+    local score = func(card)
+    if score < best then
+      ret = {idxs[i]}
+      best = score
+    elseif score == best then
+      ret[#ret+1] = idxs[i]
+    end
+  end
+  return ret
+end
+
+function Player:deck_idxs_with_most_and_preds(func, ...)
+  return self:deck_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
 function Player:field_idxs_with_least_and_preds(func, ...)
@@ -658,22 +701,30 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = attacker.skills[skill_idx]
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
-            --print("About to run skill func for id "..skill_id)
-            local other_card = defend_player.field[defend_idx]
-            --[[
+            print("About to run skill func for id "..skill_id)
             local other_card = defender
             if other_card ~= defend_player.field[defend_idx] then
               other_card = nil
             end
-            ]]
             self:check_hand()
             self.opponent:check_hand()
             attacker.trigger = true
             wait(50)
             attacker.trigger = nil
             self.game:send_trigger(attack_player.player_index, attack_idx, "attack")
+            local flicker_follower = GO_HARD and (math.random(20) == 1)
+            if flicker_follower then
+              flicker_follower = defend_player.field[defend_idx]
+              other_card, defend_player.field[defend_idx] = nil, nil
+            end
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
+            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+              error("oh no")
+            end
+            if flicker_follower then
+              defend_player.field[defend_idx] = flicker_follower
+            end
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -694,22 +745,30 @@ function Player:follower_combat_round(idx, target_idx)
           local skill_id = defender.skills[skill_idx]
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
-            --print("About to run skill func for id "..skill_id)
-            local other_card = attack_player.field[attack_idx]
-            --[[
+            print("About to run skill func for id "..skill_id)
             local other_card = attacker
             if other_card ~= attack_player.field[attack_idx] then
               other_card = nil
             end
-            ]]
             self:check_hand()
             self.opponent:check_hand()
             defender.trigger = true
             wait(50)
             defender.trigger = nil
             self.game:send_trigger(defend_player.player_index, defend_idx, "defend")
+            local flicker_follower = GO_HARD and (math.random(20) == 1)
+            if flicker_follower then
+              flicker_follower = attack_player.field[attack_idx]
+              other_card, attack_player.field[attack_idx] = nil, nil
+            end
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
+            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+              error("oh no")
+            end
+            if flicker_follower then
+              attack_player.field[attack_idx] = flicker_follower
+            end
             self.game:snapshot()
             self:check_hand()
             self.opponent:check_hand()
@@ -772,7 +831,7 @@ function Player:combat_round()
     self.game:snapshot()
   else
     self.send_spell_to_grave = true
-    --print("About to run spell func for id "..card.id)
+    print("About to run spell func for id "..card.id)
     self:check_hand()
     self.opponent:check_hand()
     card.trigger = true
@@ -780,6 +839,9 @@ function Player:combat_round()
     card.trigger = nil
     self.game:send_trigger(self.player_index, idx, "spell")
     spell_func[card.id](self, self.opponent, idx, card)
+    if BUFF_COUNTER and BUFF_COUNTER > 1 then
+      error("oh no")
+    end
     self.game:snapshot()
     self:check_hand()
     self.opponent:check_hand()
@@ -1245,7 +1307,7 @@ function Game:wait_for_clients()
   assert((not self.P1.and_this_is_crazy) and (not self.P2.and_this_is_crazy))
   while (not self.P1.and_this_is_crazy) or
       (not self.P2.and_this_is_crazy) do
-    print("waiting for it to be crazy")
+    --print("waiting for it to be crazy")
     coroutine.yield()
   end
   self.P1.and_this_is_crazy = nil
@@ -1343,7 +1405,7 @@ function Game:run()
       end
       print("sent can_act")
       while not (P1.ready and P2.ready) do
-        print("waiting for ready")
+        --print("waiting for ready")
         if (not self.time_limit) or (os.time() < self.time_limit) then
           coroutine.yield()
         else
