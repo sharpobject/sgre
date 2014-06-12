@@ -1,5 +1,5 @@
 require("util")
-xmutable = {}
+local xmutable = {}
 
 xmutable["DR"] = {
 	{200030, 200007, 200019, 200040}, --EP1
@@ -43,3 +43,4 @@ xmutable["accessory"] = {arr_to_set({210001, 210002, 210003, 210004, 210005, 210
 
 xmutable["ore"] = {arr_to_set({210008, 210009, 210010, 210011, 210012})}
 
+return xmutable

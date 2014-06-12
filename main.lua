@@ -19,9 +19,11 @@ require("validate")
 require("giftable")
 require("filters")
 require("xmutable")
+--require("imagedata-ffi")
 
 local N_FRAMES = 0
 local min = math.min
+local mainloop
 
 function love.load(arg)
   arg = arg or {}

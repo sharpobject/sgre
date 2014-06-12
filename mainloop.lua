@@ -1,6 +1,7 @@
 require "cards"
 local recipes = recipes
 local ceil = math.ceil
+local xmutable = require "xmutable"
 
 function wait(n)
   n = n or 1
@@ -12,7 +13,8 @@ end
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
 local main_modal_notice, main_select_faction, main_lobby
-local main_fight, main_decks
+local main_fight, main_decks, main_xmute
+local main_cafe, main_craft, main_dungeon
 
 frames = {}
 local frames = frames
@@ -22,7 +24,7 @@ local gobacktodungeon
 function fmainloop()
   --local func, arg = main_craft, nil
   local func, arg = main_login, nil
-  --local func, arg = main_go_hard, nil
+  local func, arg = main_go_hard, nil
   while true do
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
@@ -72,14 +74,22 @@ end
 local function go_hard()
   Player.user_act = Player.ai_act
   GO_HARD = true
+  BUFF_COUNTER = 0
   wait = function() end
   game = Game(get_deck(), get_deck())
 end
 
 function main_go_hard()
+  local strictness = require 'strictness'
+  for _,t in ipairs({skill_func, spell_func, characters_func}) do
+    for k,v in pairs(t) do
+      t[k] = strictness.strictf(v)
+    end
+  end
   while true do
     go_hard()
     game:run()
+    coroutine.yield()
   end
 end
 

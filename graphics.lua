@@ -76,7 +76,7 @@ end
 do
   local real_load_img = load_img
   load_img = function(s)
-    status,a,b,c,d = pcall(function()
+    local status,a,b,c,d = pcall(function()
         return real_load_img(s)
       end)
     if status then
@@ -452,7 +452,7 @@ function faction_button(faction, x, y)
   return button
 end
 
-function modal_choice(prompt, lt, rt, lcb, rcb)
+local function modal_choice(prompt, lt, rt, lcb, rcb)
   prompt = prompt or "Is this prompt dumb?"
   lt = lt or "Yes"
   rt = rt or "No"

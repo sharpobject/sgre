@@ -408,9 +408,9 @@ end,
 
 -- traumatized hilde, sad memory
 [1034] = function(player, my_idx, my_card)
-  local target_idxs = shuffle(player:get_follower_idxs())
-  local buff = OnePlayerBuff(player)
   if my_card.atk > 0 then
+    local target_idxs = shuffle(player:get_follower_idxs())
+    local buff = OnePlayerBuff(player)
     buff[my_idx] = {atk={"-",1}}
     for i=1,math.min(2, #target_idxs) do
       if buff[target_idxs[i]] then
@@ -583,12 +583,12 @@ end,
       function(card) return card.size == other_card.size end)
   local buffsize = 0
   for i=#player_grave_idxs,1,-1 do
-    player:grave_to_exile(idx)
+    player:grave_to_exile(i)
     buffsize = buffsize + 1
   end
   for i=#opp_grave_idxs,1,-1 do
     local idx = opp_grave_idxs[i]
-    player.opponent:grave_to_exile(idx)
+    player.opponent:grave_to_exile(i)
     buffsize = buffsize + 1
   end
   if buffsize > 0 then
@@ -742,7 +742,7 @@ end,
 end,
 
 -- arbiter rivelta answer, friendly advice
-[1065] = function(player, my_idx, my_card, skill_idx, other_idx)
+[1065] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if my_card.faction == player.character.faction then
     local sent = math.min(#player.grave, 5)
     if sent > 0 then
@@ -1239,7 +1239,7 @@ end,
 -- lady misfortune, lady call
 [1109] = function(player, my_idx, my_card, skill_idx)
   if #player.hand < 5 then
-    deck_target_idx = player:deck_idxs_with_preds({pred.lady})[1]
+    local deck_target_idx = player:deck_idxs_with_preds({pred.lady})[1]
     if deck_target_idx then
       player:deck_to_hand(deck_target_idx)
     end
@@ -2630,7 +2630,7 @@ end,
     for _,stat in ipairs({"atk","def","sta"}) do
       if other_card[stat] > id_to_canonical_card[other_card.id][stat] then
         do_default = false
-        amt = ceil((other_card[stat] - id_to_canonical_card[other_card.id][stat])/2)
+        local amt = ceil((other_card[stat] - id_to_canonical_card[other_card.id][stat])/2)
         buff.field[player][my_idx][stat] = {"+",amt}
         buff.field[player.opponent][other_idx][stat] = {"-",amt}
       end

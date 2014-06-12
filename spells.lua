@@ -3812,8 +3812,8 @@ end,
 
 -- artificer
 [200270] = function(player, opponent, my_idx, my_card)
-  targets = shuffle(player:field_idxs_with_preds(pred.follower, pred.seeker))
-  buff = OnePlayerBuff(player)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower, pred.seeker))
+  local buff = OnePlayerBuff(player)
   for i=1,2 do
     if targets[i] then
       local amt = #player.field[targets[i]]:squished_skills() + 1
@@ -6663,8 +6663,9 @@ Witchification Plans
 [200430] = function(player, opponent)
   local pred_faction = function(card) return card.faction ~= opponent.character.faction end
   local mag = 0
-  for i=1,min(3,#opponent:grave_idxs_with_preds(pred_faction)) do
-    opponent:grave_to_exile()
+  local idxs = reverse(opponent:grave_idxs_with_preds(pred_faction))
+  for i=1,min(3,#idxs) do
+    opponent:grave_to_exile(idxs[i])
     mag = mag + 1
   end
   OneBuff(player, 0, {life={"+",mag}}):apply()

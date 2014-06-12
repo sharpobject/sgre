@@ -634,7 +634,7 @@ end
 function Player:ai_act()
   for i=1,3 do
     if #self.hand > 0 then
-      idx = math.random(#self.hand)
+      local idx = math.random(#self.hand)
       if self:can_play_card(idx) then
         self.hand[idx].hidden = true
         self:play_card(idx)

@@ -12,15 +12,15 @@ local letter_to_skill_type = {T="start",A="attack",D="defend",B="defend"}
 
 function cards_init()
   local teh_json = file_contents("swogi.json")
-  decoded = json.decode(teh_json)
+  local decoded = json.decode(teh_json)
   decoded.id_to_card.ID = nil
   decoded.name_to_ids.NAME = nil
   decoded.name_to_ids["KR NAME"] = nil
-  cards = decoded.id_to_card
+  local cards = decoded.id_to_card
   for id,in_card in pairs(cards) do
     id = id + 0
     --print("LOADING "..id)
-    card = {}
+    local card = {}
     id_to_canonical_card[id] = card
     card.type = in_card.type:lower()
     card.faction = in_card.faction[1]

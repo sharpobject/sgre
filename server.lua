@@ -18,7 +18,7 @@ print"required it"
 require("ssl")
 require("validate")
 require("giftable")
-require("xmutable")
+local xmutable = require("xmutable")
 
 local byte = string.byte
 local char = string.char

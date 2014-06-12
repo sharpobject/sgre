@@ -675,12 +675,15 @@ end,
 --Night Denizen Vernika
 [100029] = function(player)
   local nme_followers = player.opponent:get_follower_idxs()
-  if #nme_followers == 0 then
-    return
+  if #nme_followers > 0 then
+    local target_idx = uniformly(nme_followers)
+    OneBuff(player.opponent,target_idx,{sta={"-",3}}):apply()
+    OneBuff(player, 0, {life={"+",1}}):apply()
   end
-  local target_idx = uniformly(nme_followers)
-  OneBuff(player.opponent,target_idx,{sta={"-",3}}):apply()
-  OneBuff(player, 0, {life={"+",1}}):apply()
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
+  if target then
+    OneBuff(player, target, {sta={"+",2}}):apply()
+  end
 end,
 
 --Thorn Witch Rose
@@ -926,7 +929,7 @@ end,
   end
 end,
 
--- hot springs sita
+-- onsen sita
 [100054] = function(player, opponent, my_card)
   local buff = OnePlayerBuff(opponent)
   for i=2,4 do
@@ -941,38 +944,38 @@ end,
   end
 end,
 
--- hot springs cinia
+-- onsen cinia
 [100055] = function(player, opponent, my_card)
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if target then
-    if opponent.field[target].def <= 0 then
-      OneBuff(opponent, target, {atk={"-",2},sta={"-",2}}):apply()
+    if opponent.field[target].def >= 1 then
+      OneBuff(opponent, target, {atk={"-",2},def={"-",1},sta={"-",2}}):apply()
     else
-      OneBuff(opponent, target, {def={"-",1},sta={"-",1}}):apply()
+      OneBuff(opponent, target, {atk={"-",1},sta={"-",1}}):apply()
     end
   end
 end,
 
--- hot springs luthica
+-- onsen luthica
 [100056] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
-    if player.field[target].def >= 1 then
-      OneBuff(player, target, {atk={"+",2},sta={"+",2}}):apply()
+    if player.field[target].def <= 2 then
+      OneBuff(player, target, {atk={"+",2},def={"+",1},sta={"+",2}}):apply()
     else
-      OneBuff(player, target, {def={"+",1},sta={"+",1}}):apply()
+      OneBuff(player, target, {atk={"+",2},sta={"+",2}}):apply()
     end
   end
 end,
 
--- hot springs iri
+-- onsen iri
 [100057] = function(player, opponent, my_card)
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if target then
-    if opponent.field[target].sta >= 10 then
-      OneBuff(opponent, target, {sta={"-",4}}):apply()
+    if opponent.field[target].sta >= 12 then
+      OneBuff(opponent, target, {atk={"-",2},def={"-",1},sta={"-",2}}):apply()
     else
-      OneBuff(opponent, target, {atk={"-",1},def={"-",1},sta={"-",1}}):apply()
+      OneBuff(opponent, target, {atk={"-",1},def={"-",1}}):apply()
     end
   end
 end,
@@ -1336,7 +1339,7 @@ end,
   local do_steal = false
   for i=5,1,-1 do
     if player.field[i] and opponent.field[i] then
-      to_steal = true
+      do_steal = true
     end
   end
   slot = player:first_empty_field_slot()
@@ -1661,12 +1664,12 @@ end,
 end,
 
 -- True Bunny Lady 
-[110007] = function(player, opponent, mycard)
+[110007] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {sta={"+",1}})
 end,
 
 -- True Wind Shear
-[110008] = function(player, opponent, mycard)
+[110008] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {sta={"+",1}})
 end,
 
@@ -1693,7 +1696,7 @@ end,
 [110011] = wind_forestier({"sta"}),
 
 -- True Enchantress
-[110012] = function(player, opponent, mycard)
+[110012] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {atk={"+",1}})
 end,
 
@@ -1703,7 +1706,7 @@ end,
 end,
 
 -- True Myo Observer
-[110014] = function(player, opponent, mycard)
+[110014] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {atk={"+",1}})
 end,
 
@@ -2042,7 +2045,7 @@ end,
 
 -- Disaster Maid
 [110069] = function(player, opponent, my_card)
-  p = uniformly({player, opponent})
+  local p = uniformly({player, opponent})
   local idx = p:field_idxs_with_preds(pred.follower)[1]
   if idx then
     OneBuff(p, idx, {sta={"-",5}}):apply()
@@ -2056,7 +2059,7 @@ end,
 
 -- Master Cleaning Maid
 [110071] = function(player, opponent, my_card)
-  p = uniformly({player, opponent})
+  local p = uniformly({player, opponent})
   for i=1,2 do
     local slot = p:first_empty_field_slot()
     if #opponent.hand > 0 and slot then
@@ -2067,7 +2070,7 @@ end,
 
 -- Tea Maid
 [110072] = function(player, opponent, my_card)
-  p = uniformly({player, opponent})
+  local p = uniformly({player, opponent})
   local buff = {life={"-",1}}
   if p == opponent then
     buff = {life={"-",3}}
@@ -2077,7 +2080,7 @@ end,
 
 -- Head Maid Rise
 [110073] = function(player, opponent, my_card)
-  p = uniformly({player, opponent})
+  local p = uniformly({player, opponent})
   local idx = uniformly(p:field_idxs_with_preds())
   if idx then
     p:destroy(idx)
@@ -2095,7 +2098,7 @@ end,
 end,
 
 -- rio
-[110133] = function(player, opponent, mycard)
+[110133] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
   recycle_one(player)
 end,
@@ -2493,7 +2496,7 @@ end,
 -- jaina preventer
 [110176] = function(player, opponent, my_card)
   local func = function(card)
-    base = Card(card.id)
+    local base = Card(card.id)
     return card.atk > base.atk or card.def > base.def or card.sta > base.sta
   end
   local targets = opponent:field_idxs_with_preds(pred.follower, func)
@@ -2710,7 +2713,7 @@ end,
   end
 
   local func = function(card)
-    base = Card(card.id)
+    local base = Card(card.id)
     return card.atk > base.atk or card.def > base.def or card.sta > base.sta
   end
   local targets = opponent:field_idxs_with_preds(pred.follower, func)
