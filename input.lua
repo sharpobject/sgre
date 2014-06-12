@@ -1,10 +1,4 @@
 function love.mousepressed(x,y,which)
-  --print("mouse pressed!")
-  if which=="l" then
-    mouse_down = true
-    mouse_x = x
-    mouse_y = y
-  end
   loveframes.mousepressed(x, y, which)
 end
 
@@ -13,6 +7,9 @@ function love.mousereleased(x, y, which)
 end
 
 function love.keypressed(key, unicode)
+  if key == "f12" then
+    DISPLAY_FRAMERATE = not DISPLAY_FRAMERATE
+  end
   loveframes.keypressed(key, unicode)
 end
 

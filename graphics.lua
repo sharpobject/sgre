@@ -41,16 +41,7 @@ do
 end
 
 function load_img(s)
-  if not pcall(function() s = love.image.newImageData("swordgirlsimages/"..s) end) then
-    local file, err = io.open(ABSOLUTE_PATH.."swordgirlsimages"..PATH_SEP..s, "rb")
-    if not file then
-      error(err)
-    end
-    local contents = file:read("*a")
-    file:close()
-    local data = love.filesystem.newFileData(contents, "foo.jpg", "file")
-    s = love.image.newImageData(data)
-  end
+  s = love.image.newImageData("swordgirlsimages/"..s)
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -74,16 +65,7 @@ do
   function load_asset(s)
     local orig_s = s
     if asset_map[s] then return unpack(asset_map[s]) end
-    if not pcall(function() s = love.image.newImageData("sg_assets/"..s) end) then
-      local file, err = io.open(ABSOLUTE_PATH.."sg_assets"..PATH_SEP..s, "rb")
-      if not file then
-        error(err)
-      end
-      local contents = file:read("*a")
-      file:close()
-      local data = love.filesystem.newFileData(contents, "foo.png", "file")
-      s = love.image.newImageData(data)
-    end
+    s = love.image.newImageData("sg_assets/"..s)
     local w, h = s:getWidth(), s:getHeight()
     local ret = love.graphics.newImage(s)
     asset_map[orig_s] = {ret, w, h}
@@ -164,8 +146,9 @@ function draw_hover_card(text_obj)
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
   love.graphics.setColor(28 ,28 ,28)
-  local text = card.name.."\n".."Limit "..card.limit.." "..
-    card.points.."pt "..card.rarity.."\n\n"
+  local text = card.name.."\n".."Limit "..card.limit.."      "..
+    card.points.."pt      "..card.rarity.."      "..
+    card.episode.." ".."\n\n"
   text = text .. (skill_text[card.id] or "")
   if card.type == "follower" then
     local skills = card.skills or {}
@@ -190,17 +173,20 @@ function draw_hover_card(text_obj)
   text_obj:SetText(text:gsub("\n"," \n "))
 end
 
-local bkg_grad, bkg_quad = nil, nil
+local bkg_grad, bkg_batch = nil, nil
 function draw_background()
   bkg_grad = bkg_grad or gradient({direction="horizontal", {254, 248, 164, 0}, {254, 248, 164}})
   local bkg, bkg_width, bkg_height = load_asset("background.png")
   bkg:setWrap('repeat','repeat')
-  if not bkg_quad then
-    local window_width = love.graphics.getWidth()
-    local window_height = love.graphics.getHeight()
-    bkg_quad = love.graphics.newQuad(0, 0, window_width, window_height, bkg_width, bkg_height)
+  if not bkg_batch then
+    bkg_batch = love.graphics.newSpriteBatch(bkg, 4000, "static")
+    for x=0,800,20 do
+      for y=0,600,20 do
+        bkg_batch:add(x,y)
+      end
+    end
   end
-  (love.graphics.drawq or love.graphics.draw)(bkg, bkg_quad, 0, 0)
+  love.graphics.draw(bkg_batch)
   love.graphics.draw(bkg_grad, 0, -love.graphics.getHeight()/2, 0,
       love.graphics.getWidth()/bkg_grad:getWidth(),
       love.graphics.getHeight()*2/bkg_grad:getHeight())
@@ -673,7 +659,9 @@ function deck_card_list_button(id, upgrade, count, cb)
     love.graphics.setColor(0, 0, 0, 255)
     love.graphics.setFont(load_vera(10))
     love.graphics.print(id_to_canonical_card[id].name, x, y)
-    love.graphics.printf(count, x, y, w, "right")
+    if type(count) == "number" then
+      love.graphics.printf(count, x, y, w, "right")
+    end
   end
   button.Update = function(self)
     if self:GetHover() then
@@ -685,9 +673,10 @@ function deck_card_list_button(id, upgrade, count, cb)
   return button
 end
 
-function card_list_button(id, upgrade, count, cb)
+function card_list_button(id, gray, count, cb)
   id = tonumber(id)
   local card = Card(id, upgrade)
+  if gray then card.active = false end
   local button = loveframes.Create("imagebutton")
   button.card = card
   button:SetSize(80, 120)
@@ -707,10 +696,12 @@ function card_list_button(id, upgrade, count, cb)
 
     if self.card then
       draw_card(self.card, x, y, lighten_frame)
-      love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
-      love.graphics.setFont(load_vera(10))
-      love.graphics.setColor(0, 0, 0, 255)
-      love.graphics.printf(count, x, y+83, 66, "right")
+      if type(count) ~= "nil" and type(count) ~= "table" then
+        love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
+        love.graphics.setFont(load_vera(10))
+        love.graphics.setColor(0, 0, 0, 255)
+        love.graphics.printf(tostring(count), x, y+83, 66, "right")
+      end
     end
   end
   button.Update = function(self)
@@ -719,6 +710,15 @@ function card_list_button(id, upgrade, count, cb)
     end
   end
   button.OnClick = cb
+  assert(button.set_count == nil)
+  function button:set_count(n)
+    count = n
+  end
+  function button:set_gray(new_gray)
+    gray = new_gray
+    card.active = not gray
+  end
+  button.card_id = id
   return button
 end
 

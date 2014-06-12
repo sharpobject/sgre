@@ -17,6 +17,8 @@ bcrypt = require("bcrypt")
 print"required it"
 require("ssl")
 require("validate")
+require("giftable")
+require("xmutable")
 
 local byte = string.byte
 local char = string.char
@@ -51,6 +53,18 @@ local uid_waiting_for_fight = nil
 local file_q = Queue()
 local chat_q = Queue()
 
+local reward_multiplier = 3
+
+function no_string_keys(tab)
+  for k,v in pairs(tab) do
+    if (type(k) ~= "number") and (tonumber(k) ~= nil) then
+      print(k)
+      return false
+    end
+  end
+  return true
+end
+
 starter_decks = json.decode(file_contents("starter_decks.json"))
 starter_decks = fix_num_keys(starter_decks)
 
@@ -58,6 +72,12 @@ npc_decks = json.decode(file_contents("npc_decks.json"))
 npc_decks = fix_num_keys(npc_decks)
 for k,v in pairs(npc_decks) do
   v[k] = 1
+end
+npc_decks_manual = json.decode(file_contents("npc_decks_manual.json"))
+npc_decks_manual = fix_num_keys(npc_decks_manual)
+for k,v in pairs(npc_decks_manual) do
+  v[k] = 1
+  npc_decks[k] = v
 end
 
 dungeons = json.decode(file_contents("dungeons.json"))
@@ -172,6 +192,7 @@ function try_register(msg)
     collection = {},
     decks = {},
     friends = {},
+    cafe = {},
     }))
   users.uid_to_email[uid] = email
   users.uid_to_username[uid] = username
@@ -225,11 +246,17 @@ function Connection:send(stuff)
   end
 end
 
+local in_opponent_disconnected = false
 function Connection:opponent_disconnected()
+  if in_opponent_disconnected then
+    return
+  end
+  in_opponent_disconnected = true
   print("OP DIS")
   self.opponent = nil
   self.game:game_over(self.player_index)
   self:send({type="opponent_disconnected"})
+  in_opponent_disconnected = false
 end
 
 function Connection:close()
@@ -248,9 +275,17 @@ function Connection:close()
   self.socket:close()
 end
 
-function Connection:J(message)
+function Connection:J(jmsg)
   print("CONN J")
-  message = json.decode(message)
+  message = json.decode(jmsg)
+  local tmp_password = message.password
+  if tmp_password then
+    message.password = "ass"
+    print("got JSON message "..json.encode(message))
+    message.password = tmp_password
+  else
+    print("got JSON message "..jmsg)
+  end
   if message.type == "general_chat" and self.state ~= "connected" then
     self:try_chat(message)
     return
@@ -279,6 +314,17 @@ function Connection:J(message)
         self:crash_and_burn()
       end
     end
+    if message.type == "feed_card" then
+      if not self:feed_card(message) then
+        self:send({type="server_message",message="feeding failed D="})
+      end
+    end
+    if message.type == "craft" then
+      self:try_craft(message)
+    end
+    if message.type == "xmute" then
+      self:try_xmute(message)
+    end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
     self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
@@ -289,7 +335,7 @@ end
 function Connection:data_received(data)
   print("CONN DATA RECv")
   self.last_read = time()
-  print("got raw data "..data)
+  --print("got raw data "..data)
   data = self.leftovers .. data
   local idx = 1
   while data:len() > 0 do
@@ -305,7 +351,6 @@ function Connection:data_received(data)
         break
       end
       local jmsg = data:sub(5, msg_len+4)
-      print("got JSON message "..jmsg)
       print("Pcall results for json: ", pcall(function()
         self:J(jmsg)
       end))
@@ -323,7 +368,8 @@ function Connection:read()
   print("CONN READ")
   local junk, err, data = self.socket:receive("*a")
   if not err then
-    error("shitfuck")
+    print("something unusual happened",junk,err,data)
+    pcall(function() self:close() end)
   end
   if err == "closed" then
     self:close()
@@ -367,6 +413,10 @@ function Connection:try_login(msg)
     end
     modified_file(data)
   end
+  if not data.cafe then 
+    data.cafe = {} 
+    modified_file(data)
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -382,6 +432,7 @@ function Connection:try_login(msg)
     decks = data.decks,
     friends = data.friends,
     active_deck = data.active_deck,
+    cafe = data.cafe,
   }})
 end
 
@@ -414,6 +465,9 @@ function Connection:try_dungeon(msg)
   if (not which) or (not dungeons.npcs[which]) then
     return
   end
+  if uid_waiting_for_fight == self.uid then
+    uid_waiting_for_fight = nil
+  end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
   if not check_active_deck(data) then
@@ -431,6 +485,7 @@ function Connection:try_dungeon(msg)
   end
   data.dungeon_floors[which] = lose_floor
   modified_file(data)
+  self:send_update_dungeon()
   function self:on_game_over(win)
     if win then
       if my_floor == total_floors then
@@ -440,26 +495,18 @@ function Connection:try_dungeon(msg)
       local reward_floor = dungeons.rewards[which][my_floor] or dungeons.rewards[which][0]
       local reward_data = reward_floor[data.dungeon_clears[which]] or reward_floor[0]
       local num_ores=reward_data["ore"] or 0
-      local ores={"210008", "210009", "210011", "210012"}
+      local ores={210008, 210009, 210011, 210012}
       local rewards={}
       if num_ores > 0 then
-        for i=1,num_ores do
+        for i=1,num_ores*reward_multiplier do
           local ore_id=uniformly(ores)
-          if not rewards[ore_id] then
-            rewards[ore_id] = 1
-          else
-            rewards[ore_id] = rewards[ore_id] + 1
-          end
+          rewards[ore_id] = (rewards[ore_id] or 0) + 1
         end
       end
       local reward_cards=reward_data["cards"]
       if reward_cards then
         for i, v in pairs(reward_cards) do
-          if not rewards[i] then
-            rewards[i] = v
-          else
-            rewards[i] = rewards[i] + v
-          end
+          rewards[i] = (rewards[i] or 0) + v*reward_multiplier
         end
       end
       self:update_collection(rewards)
@@ -467,17 +514,51 @@ function Connection:try_dungeon(msg)
       -- end dungeon rewards section
       data.dungeon_floors[which] = win_floor
       modified_file(data)
+      self:send_update_dungeon()
     end
   end
   setup_pve(self, npc_id)
 end
 
+function Connection:send_update_dungeon()
+  local data = uid_to_data[self.uid]
+  self:send({type="update_dungeon",
+      dungeon_clears = data.dungeon_clears,
+      dungeon_floors = data.dungeon_floors})
+end
+
 function start_fight(aid, bid)
   local a,b = uid_to_connection[aid], uid_to_connection[bid]
+  local function on_fight_over(self, score)
+    local data = uid_to_data[self.uid]
+    local num_accessories = 0
+    if score < 0 then
+      num_accessories = 0
+    elseif score <= 20 then
+      num_accessories = 2
+    elseif score <= 30 then
+      num_accessories = 3
+    elseif score <= 50 then
+      num_accessories = 4
+    else
+      num_accessories = 5
+    end
+    local rewards = {}
+    local s1_accessories = {210001, 210002, 210003, 210004, 210005, 210006, 210007}
+    for i=1,num_accessories*reward_multiplier do
+      local acc_id = uniformly(s1_accessories)
+      rewards[acc_id] = (rewards[acc_id] or 0) + 1
+    end
+    self:update_collection(rewards)
+    self:send({type="dungeon_rewards",rewards=rewards})
+    modified_file(data)
+  end
+  a.on_fight_over = on_fight_over
+  b.on_fight_over = on_fight_over
   setup_game(a,b)
 end
 
-function Connection:update_collection(diff)
+function Connection:update_collection(diff, reason)
   local data = uid_to_data[self.uid]
   for k,v in pairs(diff) do
     if (data.collection[k] or 0) + v < 0 then
@@ -490,9 +571,14 @@ function Connection:update_collection(diff)
       data.collection[k] = nil
     end
   end
-  self:send({type="update_collection",diff=diff})
+  self:send({type="update_collection",diff=diff,reason=reason})
   modified_file(data)
   return true
+end
+
+function Connection:update_cafe(card_id, cafe_id, transform)
+  local data = uid_to_data[self.uid]
+  self:send({type="update_cafe",cafe=data.cafe,card_id=card_id, cafe_id=cafe_id, transform=transform})
 end
 
 function Connection:set_deck(idx, deck)
@@ -516,6 +602,9 @@ function Connection:set_deck(idx, deck)
 end
 
 function Connection:try_update_deck(msg)
+  if uid_waiting_for_fight == self.uid then
+    uid_waiting_for_fight = nil
+  end
   local idx = msg.idx
   local diff = fix_num_keys(msg.diff)
   local data = uid_to_data[self.uid]
@@ -524,13 +613,11 @@ function Connection:try_update_deck(msg)
       idx ~= floor(idx) or
       idx < 1 or
       idx > 100 then
-    print"A"
     return false
   end
   local deck = shallowcpy(data.decks[idx] or {})
   for k,v in pairs(diff) do
     if type(v) ~= "number" then
-      print"B"
       return false
     end
     deck[k] = (deck[k] or 0) + v
@@ -538,10 +625,7 @@ function Connection:try_update_deck(msg)
       deck[k] = nil
     end
   end
-  for k,v in pairs(deck) do print(type(k), type(v)) end
   if not check_deck(deck, data) then
-    print"C"
-    print(json.encode(deck))
     return false
   end
   for i=1,idx-1 do
@@ -586,8 +670,200 @@ function Connection:try_chat(msg)
       msg.text:len() > 200 then
     return false
   end
+  if data.email == "sharpobject@gmail.com" and msg.text == "stop_server_now" then
+    while file_q:len() > 0 do
+      print("writing a file!")
+      write_a_file()
+    end
+    os.exit()
+  end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
   return true
+end
+
+function Connection:feed_card(msg)
+  local data = uid_to_data[self.uid]
+  local eater_id = msg.msg[1]
+  local cafe_id = msg.msg[2]
+  local food_id = msg.msg[3]
+  if not (data.collection[food_id] and data.collection[eater_id]) then
+    return false  -- trying to feed cards that you don't have
+  end
+  for _,deck in pairs(data.decks) do
+    if deck[food_id] and deck[food_id] >= data.collection[food_id] then
+      return false
+    end
+  end
+  if not data.cafe[eater_id] then
+    data.cafe[eater_id] = {}
+  end
+  if not data.cafe[eater_id][cafe_id] then
+    local num_cafe_character = #data.cafe[eater_id]
+    if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 11 then
+      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0} 
+      cafe_id = num_cafe_character+1
+      -- the above 5 numbers are {WIS, SENS, PERS, GLAM, LIKE}
+    else
+      return false  -- trying to feed an ungiftable character or an cafe-ized character when all have been cafe-ized or too many cafe characters
+    end
+  end
+
+  local cafe_stats = data.cafe[eater_id][cafe_id]
+
+  -- figure out how much to modify cafe character stats by
+  local food_card = Card(food_id, 0)
+  local base_gift_modifiers = {0, 0, 0, 0}  --{WIS, SENS, PERS, GLAM}
+  local like_multiplier = 1.0
+  if cafe_stats[5] > 25 and cafe_stats[5] < 50 then
+    like_multiplier = 2.0
+  elseif cafe_stats[5] >= 50 then
+      like_multiplier = 3.0
+  end
+  local stat_multiplier = 1.0
+  local rarity_to_stat_multiplier = {
+    ["UC"]=1.5,
+    ["R"]=2.0,
+    ["DR"]=3.0,
+    ["TR"]=4.0}
+  if rarity_to_stat_multiplier[food_card.rarity] then
+    stat_multiplier = stat_multiplier * rarity_to_stat_multiplier[food_card.rarity]
+  end
+  if food_card.type == "spell" and food_id%2 == 0 then
+    base_gift_modifiers = {1, -1, 0, 0}
+  elseif food_card.type == "spell" and food_id%2 == 1 then
+    base_gift_modifiers = {0, 0, -1, 1}
+  elseif food_card.type == "follower" and food_id%2 == 0 then
+    base_gift_modifiers = {-1, 1, 0, 0}
+  elseif food_card.type == "follower" and food_id%2 == 1 then
+    base_gift_modifiers = {0, 0, 1, -1}
+  else
+    return false  -- invalid gift
+  end
+
+  local like_change = 2
+  if math.random() > 0.5 then
+    like_change = -1
+  end
+  if food_card.rarity == "EV" then
+    like_change = 0
+  end
+
+  -- modify cafe character stats
+  local diff = {0, 0, 0, 0, 0}
+  for i = 1,4 do
+    diff[i] = math.ceil(base_gift_modifiers[i] * like_multiplier * stat_multiplier)
+  end
+  diff[5] = like_change
+  for i = 1,5 do
+    cafe_stats[i] = cafe_stats[i] + diff[i]
+    if cafe_stats[i] < 0 then
+      cafe_stats[i] = 0
+    end
+  end
+
+  -- check for transformation
+  local transform = false
+  if cafe_stats[5] > 99 then
+    if giftable[eater_id][5] and cafe_stats[1] > 200 and cafe_stats[2] > 200 and cafe_stats[3] > 200 and cafe_stats[4] > 200 then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][5]]=1})
+    elseif giftable[eater_id][1] and cafe_stats[1] > cafe_stats[2] and cafe_stats[1] > cafe_stats[3] and cafe_stats[1] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][1]]=1})
+    elseif giftable[eater_id][2] and cafe_stats[2] > cafe_stats[1] and cafe_stats[2] > cafe_stats[3] and cafe_stats[2] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][2]]=1})
+    elseif giftable[eater_id][3] and cafe_stats[3] > cafe_stats[1] and cafe_stats[3] > cafe_stats[2] and cafe_stats[3] > cafe_stats[4] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][3]]=1})
+    elseif giftable[eater_id][4] and cafe_stats[4] > cafe_stats[1] and cafe_stats[4] > cafe_stats[2] and cafe_stats[4] > cafe_stats[3] then
+      cafe_stats = nil
+      self:update_collection({[eater_id]=-1, [giftable[eater_id][4]]=1})
+    end
+    transform = true
+    table.remove(data.cafe[eater_id], cafe_id)
+    eater_id = nil
+    cafe_id = nil
+  end
+
+  -- cleanup
+  self:update_cafe(eater_id, cafe_id, transform)
+  self:update_collection({[food_id]=-1}, "cafe")
+  modified_file(data)
+  return true
+end
+
+function Connection:try_craft(msg)
+  local ret_diff = {}
+  local id = msg.id
+  local data = uid_to_data[self.uid]
+  if type(id) == "number" then
+    local recipe = recipes[msg.id]
+    if recipe then
+      local used_amt = {}
+      for _,deck in pairs(data.decks) do
+        for input,_ in pairs(recipe) do
+          used_amt[input] = max(deck[input] or 0, used_amt[input] or 0)
+        end
+      end
+      local enough = true
+      for input,_ in pairs(recipe) do
+        if (data.collection[input] or 0) - used_amt[input] < recipe[input] then
+          enough = false
+          break
+        end
+      end
+      if enough then
+        for k,v in pairs(recipe) do
+          ret_diff[k] = -v
+        end
+        ret_diff[id] = (ret_diff[id] or 0) + 1
+      end
+    end
+  end
+  self:update_collection(ret_diff, "craft")
+end
+
+function Connection:try_xmute(msg)
+  local data = uid_to_data[self.uid]
+  local to_card_id = msg.to_card_id
+  local from_card_id = msg.from_card_id
+  local to_card_number = msg.to_card_number
+  local xmute_type = msg.xmute_type
+  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then 
+    return false 
+  end
+  if to_card_number < 1 or to_card_number > 100 then
+    return false
+  end
+  local multiplier = 4
+  if xmute_type == "DR" then
+    multiplier = 1
+  end
+  if data.collection[from_card_id] < to_card_number * multiplier then
+    return false  --we don't have enough stuff
+  end
+  for _,deck in pairs(data.decks) do
+    if deck[from_card_id] and
+        data.collection[from_card_id] - deck[from_card_id] <
+        to_card_number * multiplier then
+      return false --stuff is being used in decks
+    end
+  end
+  local bad_xmute = true
+  for k, v in pairs(xmutable[xmute_type]) do
+    if v[from_card_id] and v[to_card_id] then
+      bad_xmute = false  --invalid xmute (DRs not in same episode, etc.)
+    end
+  end
+  if bad_xmute then
+    return false
+  end
+
+  local ret_diff = {}
+  ret_diff[to_card_id] = to_card_number
+  ret_diff[from_card_id] = -multiplier * to_card_number
+  self:update_collection(ret_diff, "xmute")
 end
 
 function prep_deck(uid)
@@ -607,11 +883,46 @@ function prep_deck(uid)
   return ret
 end
 
+function score_game(game)
+  local scores = {0, 0}
+  local turn_bonus = 0
+  if game.turn < 3 then
+    turn_bonus = -100
+  elseif game.turn < 7 then
+    turn_bonus = 20
+  elseif game.turn < 10 then
+    turn_bonus = 30
+  else
+    turn_bonus = 40
+  end
+  for i,player in pairs({game.P1, game.P2}) do
+    local deck_bonus = 0
+    if #player.deck > 23 then
+      deck_bonus = -100
+    elseif #player.deck < 10 then
+      deck_bonus = 10
+    end
+    local life_bonus = 0
+    if player.lose then
+      life_bonus = -10
+    elseif player.character.life < 10 then
+      life_bonus = 10
+    end
+    scores[i] = deck_bonus + turn_bonus + life_bonus
+  end
+  return scores
+end
 function destroy_game(a, win)
+  local scores = score_game(a.game)
+  local score = scores[a.player_index]
   a.game = nil
   a.player_index = nil
   a.opponent = nil
   a.state = "lobby"
+  if a.on_fight_over then
+    a:on_fight_over(score)
+  end
+  a.on_fight_over = nil
   if a.on_game_over then
     a:on_game_over(win)
   end
@@ -656,7 +967,7 @@ function setup_pve(a,b)
 end
 
 function resume_game(game)
-  print("RESUME GAME")
+  --print("RESUME GAME")
   if coroutine.status(game.thread) == "suspended" then
     local status, err = coroutine.resume(game.thread)
     if not status then
@@ -673,7 +984,7 @@ function main()
 
   local prev_now = time()
   while true do
-    print("MAINLOOP")
+    --print("MAINLOOP")
     server_socket:settimeout(0)
     local new_conn = server_socket:accept()
     if new_conn then
@@ -718,6 +1029,10 @@ function main()
     end
 
     write_a_file()
+
+    for k,v in pairs(uid_to_data) do
+      assert(no_string_keys(v.collection))
+    end
 
     --[[local now = time()
     if now ~= prev_now then

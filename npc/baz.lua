@@ -1,3 +1,30 @@
+ep_order = {"EP0", "EP1", "EP2", "EP3", "EX1", "EP4", "EP5",
+    "EP6", "EX2", "EP7", "EP8",}
+eps_up_to_ep = {}
+for i=1,#ep_order do
+  eps_up_to_ep[ep_order[i]] = {}
+  for j=1,i do
+    eps_up_to_ep[ep_order[i]][ep_order[j]] = true
+  end
+end
+
+-- NPCs from each ep will be limited to cards of ep <= this ep
+ep_cap = {
+  EP0="EP1",
+  EP1="EP1",
+  EP2="EP2",
+  EP3="EP3",
+  EX1="EX1",
+  EP4="EP4",
+}
+-- Some NPCs can have more than 3 of a card. Most cannot....
+can_exceed_3 = {
+["120006"]=true,
+["120007"]=true,
+["120022"]=true,
+}
+
+
 function game_to_cards(game)
   if #game==0 then return {} end
   local ret = {}
@@ -45,24 +72,42 @@ function vsum(a)
   return ret
 end
 
-function try_wiggling_it(target_n, sum, acc)
-  local n_obs = vsum(sum)
-  if vsum(acc) > 30 then
+function try_wiggling_it(char_id, target_n, sum, acc)
+  if not can_exceed_3[char_id] then
     for k,v in pairs(acc) do
-      acc[k] = 1
+      if v > 3 then
+        acc[k] = 3
+      end
+    end
+  end
+  local npc_ep = id_to_card[char_id].episode
+  for k,v in pairs(acc) do
+    local card_ep = id_to_card[tostring(k)].episode
+    if not eps_up_to_ep[ep_cap[npc_ep]][card_ep] then
+      acc[k] = nil
+      sum[k] = nil
+    end
+  end
+  local n_obs = vsum(sum)
+  if vsum(acc) > target_n then
+    for k,v in pairs(acc) do
+      acc[k] = 0
     end
   end
   while(vsum(acc) < target_n) do
     local candidate, value = "000000", -1000000000
     for k,v in pairs(sum) do
-      local expected_obs = acc[k] * n_obs / target_n
-      local this_val = (v - expected_obs) / acc[k]
-    --  print(this_val)
-      if this_val > value then
-        candidate, value = k,this_val
+      if acc[k] < math.max(3,id_to_card[tostring(k)].limit)
+          or can_exceed_3[char_id] then
+        local expected_obs = acc[k] * n_obs / target_n
+        local this_val = (v - expected_obs) / (acc[k]+1)
+        --print(this_val)
+        if this_val > value then
+          candidate, value = k,this_val
+        end
       end
     end
-   -- print(value)
+    --print(value)
     acc[candidate] = acc[candidate] + 1
   end
 end
@@ -72,6 +117,7 @@ json=require"dkjson"
 
 out_games = {}
 games=json.decode(file_contents("butt"))
+id_to_card=json.decode(file_contents("../swogi.json")).id_to_card
 for k,v in pairs(games) do
   local acc = {}
   local sum = {}
@@ -80,7 +126,7 @@ for k,v in pairs(games) do
     max_into_counter(acc, counter)
     sum_into_counter(sum, counter)
   end
-  try_wiggling_it(30, sum, acc)
+  try_wiggling_it(k, 30, sum, acc)
   if vsum(acc) > 30 then
 --    print("oh no "..k.." "..vsum(acc))
   end

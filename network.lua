@@ -124,11 +124,34 @@ function handlers.update_collection(msg)
       user_data.collection[k] = nil
     end
   end
+  if msg.reason == "craft" and frames.craft.enable_buttons then
+    frames.craft.enable_buttons()
+  elseif msg.reason == "cafe" and frames.cafe.update_feeding_list then
+    frames.cafe.update_feeding_list()
+    frames.cafe.populate_cafe_card_list()
+  elseif msg.reason == "xmute" then
+    frames.xmute.enable_buttons()
+    frames.xmute.populate_xmutable_card_list()
+  end
+end
+
+function handlers.update_cafe(msg)
+  user_data.cafe = fix_num_keys(msg.cafe)
+  if frames.cafe then
+    frames.cafe.active_character_card_id = msg.card_id
+    frames.cafe.active_character_cafe_id = msg.cafe_id
+    frames.cafe.populate_cafe_card_list()
+    frames.cafe.refresh_stats_pane()
+    if msg.transform and loveframes.GetState() == "cafe" then
+      frames.cafe.stats_pane:Remove()
+      frames.cafe.popup_notification("Transformation!")
+    end
+  end
 end
 
 function handlers.set_deck(msg)
   local deck = fix_num_keys(msg.deck)
-  user_data.decks[msg.idx] = msg.deck
+  user_data.decks[msg.idx] = deck
 end
 
 function handlers.set_active_deck(msg)
@@ -148,4 +171,15 @@ end
 
 function handlers.nope_nope_nope(msg)
   crash_msg = msg.reason or "nope_nope_nope"
+end
+
+function handlers.server_message(msg)
+  if loveframes.GetState() == "cafe" then
+    frames.cafe.popup_notification(msg.message)
+  end
+end
+
+function handlers.update_dungeon(msg)
+  user_data.dungeon_clears = msg.dungeon_clears
+  user_data.dungeon_floors = msg.dungeon_floors
 end
