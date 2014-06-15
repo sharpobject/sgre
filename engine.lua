@@ -1328,6 +1328,7 @@ function Player:receive(msg)
     if self:can_play_card(msg.index) then
       self:play_card(msg.index)
     end
+    self.connection:send({type="can_act",can_act=true})
   elseif msg.type == "and_this_is_crazy" then
     self.and_this_is_crazy = true
     self.ready = false
