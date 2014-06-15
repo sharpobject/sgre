@@ -1325,7 +1325,7 @@ function Player:receive(msg)
     self.ready = true
   elseif msg.type == "play" then
     if self.ready then return end
-    if self:can_play_card(msg.index) then
+    if self:can_play_card(msg.index) and self.game.censor_field then
       self:play_card(msg.index)
     end
     self.connection:send({type="can_act",can_act=true})
