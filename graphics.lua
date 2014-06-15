@@ -413,8 +413,10 @@ function card_button(side,idx,x,y)
     button.OnClick = function(self)
       if not self.card then return end
       if self.client then
-        net_send({type="play",index=idx})
-        self.player.game.act_buttons = false
+        if game.game_type == "pve" or game.time_remaining > 0 then
+          net_send({type="play",index=idx})
+          self.player.game.act_buttons = false
+        end
       elseif self.player:can_play_card(idx) then
         self.player:play_card(idx)
       end
