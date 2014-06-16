@@ -1286,7 +1286,7 @@ function main_decks()
         idx = idx*10 + tonumber(chr)
       end
       user_data.active_deck = idx
-      net_send({type="update_deck", idx=idx})
+      net_send({type="set_active_deck", idx=idx})
       frames.decks.idx = idx
       frames.decks.populate_deck_card_list(user_data.decks[idx] or {})
       frames.decks.populate_card_list(collection_ex_deck(

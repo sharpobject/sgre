@@ -325,6 +325,11 @@ function Connection:J(jmsg)
     if message.type == "xmute" then
       self:try_xmute(message)
     end
+    if message.type == "set_active_deck" then
+      if not self:set_active_deck(message.idx) then
+        self:crash_and_burn()
+      end
+    end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
   end
