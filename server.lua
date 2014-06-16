@@ -416,6 +416,12 @@ function Connection:try_login(msg)
     data.cafe = {} 
     modified_file(data)
   end
+  if #data.decks < 10 then
+    for i=1,10 do
+      data.decks[i] = data.decks[i] or {}
+    end
+    modified_file(data)
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -640,24 +646,16 @@ function Connection:crash_and_burn()
   self:close()
 end
 
-function Connection:set_active_deck(idx)
+function Connection:set_active_deck(idx, silent)
   local char,other=0,0
   local data = uid_to_data[self.uid]
   if not idx then return false end
   local deck = data.decks[idx]
   if not deck then return false end
-  for k,v in pairs(deck) do
-    if k < 200000 then
-      char = char + v
-    else
-      other = other + v
-    end
-  end
-  if char ~= 1 or other ~= 30 then
-    return false
-  end
   data.active_deck = idx
-  self:send({type="set_active_deck",idx=idx})
+  if not silent then
+    self:send({type="set_active_deck",idx=idx})
+  end
   modified_file(data)
   return true
 end

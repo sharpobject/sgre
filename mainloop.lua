@@ -1270,10 +1270,9 @@ function main_decks()
       end
     end
 
-    local checkbox_width = 20
 
     local multichoice = loveframes.Create("multichoice", deck_pane)
-    multichoice:SetWidth(w - 18 - checkbox_width)
+    multichoice:SetWidth(w - 12)
     multichoice:SetPos(6, 6)
     local nums = arr_to_set(procat("0123456789"))
     function multichoice:OnChoiceSelected(choice)
@@ -1286,28 +1285,21 @@ function main_decks()
         if not nums[chr] then break end
         idx = idx*10 + tonumber(chr)
       end
+      user_data.active_deck = idx
+      net_send({type="update_deck", idx=idx})
       frames.decks.idx = idx
       frames.decks.populate_deck_card_list(user_data.decks[idx] or {})
       frames.decks.populate_card_list(collection_ex_deck(
           user_data.collection, frames.decks.deck))
     end
     frames.decks.multichoice = multichoice
-
-    local checkbox = loveframes.Create("checkbox", deck_pane)
-    checkbox:SetPos(12+multichoice:GetWidth(), 6+2)
   end
 
   local multichoice = frames.decks.multichoice
   multichoice:Clear()
   for i=1,#user_data.decks do
     local str = "Deck "..i
-    if i == user_data.active_deck then
-      str = str .. " (active)"
-    end
     multichoice:AddChoice(str)
-  end
-  if #user_data.decks < 0 then
-    multichoice:AddChoice("New Deck")
   end
   local current_str = "Deck "..user_data.active_deck.." (active)"
   multichoice:SelectChoice(current_str)
