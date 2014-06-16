@@ -1301,7 +1301,7 @@ function main_decks()
     local str = "Deck "..i
     multichoice:AddChoice(str)
   end
-  local current_str = "Deck "..user_data.active_deck.." (active)"
+  local current_str = "Deck "..user_data.active_deck
   multichoice:SelectChoice(current_str)
 
   loveframes.SetState("decks")
