@@ -715,21 +715,33 @@ function Connection:feed_card(msg)
   -- figure out how much to modify cafe character stats by
   local food_card = Card(food_id, 0)
   local base_gift_modifiers = {0, 0, 0, 0}  --{WIS, SENS, PERS, GLAM}
-  local like_multiplier = 1.0
-  if cafe_stats[5] > 25 and cafe_stats[5] < 50 then
-    like_multiplier = 2.0
-  elseif cafe_stats[5] >= 50 then
-      like_multiplier = 3.0
+  local like_up = 2
+  local base_stat_change = 1
+  local points_to_base_stat_change = {
+    [1]=1,
+    [3]=3,
+    [5]=3,
+    [7]=5,
+    [13]=7,
+    [33]=9, --guess
+    [50]=11, --guess
+  }
+  local points_to_like_up = {
+    [1]=2,
+    [3]=2,
+    [5]=3,
+    [7]=3,
+    [13]=5,
+    [33]=5, --guess
+    [50]=7, --guess
+  }
+  if points_to_base_stat_change[food_card.points] then
+    base_stat_change = points_to_base_stat_change[food_card.points]
   end
-  local stat_multiplier = 1.0
-  local rarity_to_stat_multiplier = {
-    ["UC"]=1.5,
-    ["R"]=2.0,
-    ["DR"]=3.0,
-    ["TR"]=4.0}
-  if rarity_to_stat_multiplier[food_card.rarity] then
-    stat_multiplier = stat_multiplier * rarity_to_stat_multiplier[food_card.rarity]
+  if points_to_like_up[food_card.points] then
+    like_up = points_to_like_up[food_card.points]
   end
+
   if food_card.type == "spell" and food_id%2 == 0 then
     base_gift_modifiers = {1, -1, 0, 0}
   elseif food_card.type == "spell" and food_id%2 == 1 then
@@ -741,19 +753,20 @@ function Connection:feed_card(msg)
   else
     return false  -- invalid gift
   end
+  -- event card exception
+  if food_card.rarity == "EV" then
+    base_gift_modifiers = {0, 0, 0, 0}
+  end
 
-  local like_change = 2
+  local like_change = like_up
   if math.random() > 0.5 then
     like_change = -1
-  end
-  if food_card.rarity == "EV" then
-    like_change = 0
   end
 
   -- modify cafe character stats
   local diff = {0, 0, 0, 0, 0}
   for i = 1,4 do
-    diff[i] = math.ceil(base_gift_modifiers[i] * like_multiplier * stat_multiplier)
+    diff[i] = (math.floor(cafe_stats[5]/20) + base_stat_change) * base_gift_modifiers[i]
   end
   diff[5] = like_change
   for i = 1,5 do

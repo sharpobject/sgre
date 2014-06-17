@@ -1405,7 +1405,7 @@ function main_cafe()
       stats_pane:ShowCloseButton(false)
       stats_pane:SetDraggable(false)
       local texts = {"Wisdom: ", "Sensitivity: ", "Personality: ", "Glamour: ", "Like: "}
-      local maximums = {400, 400, 400, 400, 100}
+      local maximums = {500, 500, 500, 500, 100}
       for i=1,5 do
         local text = loveframes.Create("text", stats_pane)
         text:SetText(texts[i])
