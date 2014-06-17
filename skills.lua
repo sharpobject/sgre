@@ -404,17 +404,18 @@ end,
   local size = other_card.size
   local mag = 0
   local check = true
-  local idx = player:grave_idxs_with_preds(function(card) return card.size == size end)[1]
+  local pred_size = function(card) return card.size == size end
+  local idx = player:grave_idxs_with_preds(pred_size)[1]
   while idx do
-    table.remove(player.grave, idx)
+    player:grave_to_exile(idx)
     mag = mag + 1
-    idx = player:grave_idxs_with_preds(function(card) return card.size == size end)[1]
+    idx = player:grave_idxs_with_preds(pred_size)[1]
   end
-  idx = player.opponent:grave_idxs_with_preds(function(card) return card.size == size end)[1]
+  idx = player.opponent:grave_idxs_with_preds(pred_size)[1]
   while idx do
-    table.remove(player.grave, idx)
+    player.opponent:grave_to_exile(idx)
     mag = mag + 1
-    idx = player.opponent:grave_idxs_with_preds(function(card) return card.size == size end)[1]
+    idx = player.opponent:grave_idxs_with_preds(pred_size)[1]
   end
   OneBuff(player.opponent, other_idx, {atk={"-",mag},sta={"-",mag}}):apply()
 end,
@@ -1890,7 +1891,7 @@ end,
 [1177] = function(player, my_idx, my_card, skill_idx)
   local mag = #player:hand_idxs_with_preds(pred.library_club) - 1
   OneBuff(player, my_idx, {atk={"+", mag},sta={"+", mag}}):apply()
-  my_card.skills[skill_idx] = 1076
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Overcome Adversities
@@ -1922,19 +1923,18 @@ end,
 -- Bleeding
 [1182] = function(player, my_idx)
   local stat = uniformly({[1] = "atk", [2] = "def", [3] = "sta"})
-  OneBuff(player, my_idx, {stat={"-",1}}):apply()
+  OneBuff(player, my_idx, {[stat]={"-",1}}):apply()
 end,
 
 -- Return
-[1183] = function(player, my_idx, my_card)
-  player:to_top_deck(my_card)
-  player.field[my_idx] = nil
+[1183] = function(player, my_idx)
+  player:field_to_top_deck(my_idx)
 end,
 
 -- Amnesia
 [1184] = function(player, my_idx, my_card)
   for i=1,3 do
-    my_card.skills[i] = nil
+    my_card:remove_skill(i)
   end
 end,
 
@@ -1945,8 +1945,8 @@ end,
 end,
 
 -- Dark Destruction
-[1186] = function(player, my_idx, my_card, skill_idx, other_idx)
-  if pred.D(player.character) and other_idx then
+[1186] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if pred.D(player.character) and other_card then
     OneBuff(player.opponent, other_idx, {def={"-", 1}}):apply()
   end
 end,
@@ -1961,6 +1961,9 @@ end,
 -- Sacrificial Defense
 [1188] = function(player, my_idx)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
+  if not idx then
+    return
+  end
   if idx == my_idx then
     OneBuff(player, my_idx, {atk={"+", 2}}):apply()
   else
@@ -1974,7 +1977,7 @@ end,
 -- Assistance
 [1189] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, 0, {life={"+", 1}}):apply()
-  my_card.skills[skill_idx] = 1076
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Self-Sacrifice
@@ -1994,7 +1997,7 @@ end,
   end
   buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
   buff:apply()
-  my_card.skills[skill_idx] = 1076
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- sword girls sita, position change!
@@ -2438,7 +2441,7 @@ end,
     return
   end
   player.field[my_idx], op.field[op:first_empty_field_slot()] = nil, my_card
-  my_card.skills[skill_idx] = nil
+  my_card:remove_skill(skill_idx)
 end,
 
 -- 4th witness kana. ddt, investigation!
@@ -2726,17 +2729,17 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card.skills[1] == 1258 or card.skills[2] == 1258
       or card.skills[3] == 1258 end))
-  my_card.skills[skill_idx] = nil
+  my_card:remove_skill(skill_idx)
   if idx then
-    player.field[idx] = 1258
+    player.field[idx]:gain_skill(1258)
   end
 end,
 
 -- Hemorrhage Curse
 [1259] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    OneBuff(player.opponent, other_idx, {sta={"-", 2}}):apply()
     other_card:gain_skill(1259)
+    OneBuff(player.opponent, other_idx, {sta={"-", 2}}):apply()
   end
   my_card:remove_skill(skill_idx)
 end,
@@ -2756,7 +2759,7 @@ end,
 
 -- Song of Vitality
 [1261] = function(player)
-  if player.field[3] then
+  if player.field[3] and pred.follower(player.field[3]) then
     OneBuff(player, 3, {atk={"+", 1}, sta={"+", 1}}):apply()
   end
 end,
@@ -2797,10 +2800,10 @@ end,
 
 -- Sanctuary Press!
 [1266] = function(player, my_idx, my_card, skill_idx)
-  local mag = min(#player:field_idxs_with_preds(pred.sanctuary), 2)
   if player.opponent.deck[1] then
+    local mag = min(#player:field_idxs_with_preds(pred.sanctuary), 2)
     local buff = GlobalBuff(player)
-    buff[player.opponent][deck][#player.opponent.deck] = {size={"+", mag}}
+    buff.deck[player.opponent][#player.opponent.deck] = {size={"+", mag}}
     buff:apply()
   end
   my_card:remove_skill_until_refresh(skill_idx)
@@ -2840,7 +2843,7 @@ end,
 
 -- HP Boost
 [1270] = function(player, my_idx)
-  OneBuff(player, my_idx, {sta={"+", 1}})apply()
+  OneBuff(player, my_idx, {sta={"+", 1}}):apply()
 end,
 
 -- Blood Rebellion
@@ -2849,12 +2852,12 @@ end,
     return
   end
   local buff = GlobalBuff(player)
-  buff[player][field][my_idx] = {sta={"=", 6}}
+  buff.field[player][my_idx] = {sta={"=", 6}}
   if other_card then
     local mag = my_card.sta - 6
-    buff[opponent][field][other_idx] = {atk={"-", mag}, def={"-", mag}}
+    buff.field[player.opponent][other_idx] = {atk={"-", mag}, def={"-", mag}}
   end
-  apply()
+  buff:apply()
 end,
 
 -- destruction!
@@ -2902,7 +2905,7 @@ end,
   local op = player.opponent
   local idx = op:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
   if idx then
-    op.field[other_idx], op.field[idx] = op.field[idx], op.field[other.dix]
+    op.field[other_idx], op.field[idx] = op.field[idx], op.field[other_idx]
   end
   local card = op.field[other_idx]
   if card and card.def + card.sta <= my_card.atk then
@@ -2916,7 +2919,7 @@ end,
     return
   end
   for i=1,3 do
-    if skill_numtype_to_type(skill_id_to_type(other_card.skills[i])) == "defend" then
+    if skill_id_to_type[other_card.skills[i]] == "defend" then
       return
     end
   end
@@ -2925,37 +2928,33 @@ end,
 
 -- Defense Spin
 [1279] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local op = player.opponent
-  local buff = OneBuff(op)
-  local orig = Card(op.field[idx].id, op.field[idx].upgrade_lvl)
-  local check = false
-  for _,attr in ipairs({"def", "sta"}) do
-    if op.field[idx][attr] > orig[attr] then
-      buff[attr] = {"=", orig[attr]}
-      check = true
-    end
-  end
-  if not check then
+  if not other_card then
     return
+  end
+  local op = player.opponent
+  local buff = OneBuff(op, other_idx)
+  local orig = Card(other_card.id, other_card.upgrade_lvl)
+  for _,attr in ipairs({"def", "sta"}) do
+    if other_card[attr] > orig[attr] then
+      buff[attr] = {"=", orig[attr]}
+    end
   end
   buff:apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Attack Spin
-[1279] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local op = player.opponent
-  local buff = OneBuff(op)
-  local orig = Card(op.field[idx].id, op.field[idx].upgrade_lvl)
-  local check = false
-  for _,attr in ipairs({"atk", "def"}) do
-    if op.field[idx][attr] > orig[attr] then
-      buff[attr] = {"=", orig[attr]}
-      check = true
-    end
-  end
-  if not check then
+[1280] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if not other_card then
     return
+  end
+  local op = player.opponent
+  local buff = OneBuff(op, other_idx)
+  local orig = Card(other_card.id, other_card.upgrade_lvl)
+  for _,attr in ipairs({"atk", "def"}) do
+    if other_card[attr] > orig[attr] then
+      buff[attr] = {"=", orig[attr]}
+    end
   end
   buff:apply()
   my_card:remove_skill_until_refresh(skill_idx)
