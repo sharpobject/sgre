@@ -702,10 +702,7 @@ function Player:follower_combat_round(idx, target_idx)
           if attack_player.field[attack_idx] == attacker and
               skill_id and skill_id_to_type[skill_id] == "attack" then
             print("About to run skill func for id "..skill_id)
-            local other_card = defender
-            if other_card ~= defend_player.field[defend_idx] then
-              other_card = nil
-            end
+            local other_card = defend_player.field[defend_idx]
             self:check_hand()
             self.opponent:check_hand()
             attacker.trigger = true
@@ -746,10 +743,7 @@ function Player:follower_combat_round(idx, target_idx)
           if defend_player.field[defend_idx] == defender and
               skill_id and skill_id_to_type[skill_id] == "defend" then
             print("About to run skill func for id "..skill_id)
-            local other_card = attacker
-            if other_card ~= attack_player.field[attack_idx] then
-              other_card = nil
-            end
+            local other_card = attack_player.field[attack_idx]
             self:check_hand()
             self.opponent:check_hand()
             defender.trigger = true
