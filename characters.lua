@@ -999,12 +999,13 @@ end,
 
 -- child vernika
 [100059] = function(player, opponent, my_card)
-  if player.hand[1] then
-    local amt = min(3,ceil(player.hand[1].size/2))
-    player:hand_to_bottom_deck(1)
+  local idx = player:hand_idxs_with_preds(pred.V)[1]
+  if idx then
+    local amt = min(3,ceil(player.hand[idx].size/2))
+    player:hand_to_bottom_deck(idx)
     local target = opponent:field_idxs_with_most_and_preds(pred.sta,pred.follower)[1]
     if target then
-      OneBuff(opponent, target, {def={"-",amt}}):apply()
+      OneBuff(opponent, target, {def={"-",amt},sta={"-",amt}}):apply()
     end
   end
 end,
@@ -1117,14 +1118,14 @@ end,
 [100074] = clarice({5,0,5}),
 
 -- lig nijes
-[100075] = function(player)
-  local life = player.opponent.character.life
+[100075] = function(player, opponent)
+  local life = opponent.character.life
   if 26 <= life then
-    OneBuff(player.opponent, 0, {life={"-",2}}):apply()
-  elseif 16 <= life and life <= 20 then
-    OneBuff(player, 0, {life={"+",1}}):apply()
+    OneBuff(opponent, 0, {life={"-",1}}):apply()
+  elseif 15 <= life and life <= 20 then
+    OneBuff(opponent, 0, {life={"-",2}}):apply()
   elseif life <= 9 then
-    OneBuff(player.opponent, 0, {life={"-",2}}):apply()
+    OneBuff(player, 0, {life={"+",1}}):apply()
   end
 end,
 
@@ -1226,7 +1227,7 @@ end,
       OneBuff(player.opponent, target, {atk={"-",1},sta={"-",2}}):apply()
     end
   elseif life <= 6 then
-    OneBuff(player.opponent, 0, {life={"=",0}}):apply()
+    OneBuff(player.opponent, 0, {life={"=",1}}):apply()
   end
 end,
 

@@ -774,10 +774,10 @@ end,
 -- crux knight fleta, hesistation of justice
 [1069] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
-    local target_idxs = player:field_idxs_with_preds({pred.follower, pred.faction.C})
+    local target_idxs = player:field_idxs_with_preds(pred.follower)
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(target_idxs) do
-      buff[idx] = {atk={"+",3}, sta={"+",3}}
+      buff[idx] = {atk={"+",3}, def={"+",1}, sta={"+",4}}
     end
     buff:apply()
     my_card:remove_skill(skill_idx)

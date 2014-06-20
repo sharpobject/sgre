@@ -1965,7 +1965,7 @@ end,
 
 -- dress up ride
 [200137] = function(player, opponent, my_idx, my_card)
-  if #player:field_idxs_with_preds(pred.dress_up) > 0 then
+  if #player:field_idxs_with_preds(pred.dress_up, pred.follower) > 0 then
     local target = player:deck_idxs_with_preds(pred.dress_up, pred.follower)[1]
     local slot = player:first_empty_field_slot()
     if slot and target then
