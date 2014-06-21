@@ -1884,7 +1884,9 @@ end,
 -- Student Council Support
 [1176] = function(player)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.student_council))
-  OneBuff(player, idx, {sta={"+", 2}}):apply()
+  if idx then
+    OneBuff(player, idx, {sta={"+", 2}}):apply()
+  end
 end,
 
 -- Search for a New Book
