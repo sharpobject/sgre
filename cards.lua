@@ -1,4 +1,5 @@
 local json = require "dkjson"
+require "stridx"
 
 id_to_canonical_card = {}
 name_to_ids = {}
@@ -86,8 +87,8 @@ function cards_init()
     skill_text[0+k] = v
     if 0+k < 10000 then
       local type = letter_to_skill_type[v[4]]
-      if v[4] == "B" then print(v) end
-      assert(type)
+      if v[4] == "B" and love then print(v) end
+      assert(type, k)
       skill_id_to_type[0+k] = type
     end
   end
