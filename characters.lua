@@ -1165,7 +1165,7 @@ end,
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     if player.game.turn % 2 == 0 then
-      OneBuff(player, target, {atk={"+",1},sta={"+",3}}):apply()
+      OneBuff(player, target, {atk={"+",2},sta={"+",3}}):apply()
     else
       OneBuff(player, target, {sta={"+",3}}):apply()
     end
@@ -1879,6 +1879,135 @@ end,
       opponent:hand_to_grave(i)
     end
   end
+end,
+
+--R. Cantabile
+[110033] = function(player, opponent, my_card)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {def={"-",2}}
+  end
+  buff:apply()
+end,
+
+--Shadow Trickster Shion
+[110034] = function(player, opponent, my_card)
+  local idx = uniformly(player:grave_idxs_with_preds(pred.spell))
+  if idx then
+    player:grave_to_bottom_deck(idx)
+  end
+  local slot = player:first_empty_field_slot()
+  if slot then
+    player.field[slot] = Card(300057)
+    OneBuff(player, slot, {size={"-",2}}):apply()
+  end
+end,
+
+--Shadow Trickster Rion
+[110035] = function(player, opponent, my_card)
+  local idx = uniformly(player:grave_idxs_with_preds(pred.spell))
+  if idx then
+    player:grave_to_bottom_deck(idx)
+  end
+  local slot = player:first_empty_field_slot()
+  if slot then
+    player.field[slot] = Card(300058)
+    OneBuff(player, slot, {size={"-",2}}):apply()
+  end
+end,
+
+--Doppelganger Vernika
+[110036] = function(player, opponent, my_card)
+  local idx = opponent:field_idxs_with_most_and_preds(pred.def, pred.follower)[1]
+  if idx then
+    OneBuff(opponent,idx,{def={"=",0}}):apply()
+  end
+end,
+
+--Doppelganger Rose
+[110037] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local buff_amt = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def)/2)
+    OneBuff(opponent,idx,{atk={"-",buff_amt},sta={"-",buff_amt}}):apply()
+  end
+end,
+
+--Shadow Nold
+[110038] = function(player, opponent, my_card)
+  local idx = uniformly(player:field_idxs_with_preds())
+  if idx then
+    OneBuff(player, idx, {size={"-",1}}):apply()
+  end
+end,
+
+--Shadow Cannelle
+[110039] = function(player, opponent, my_card)
+  if player.opponent:field_size() == 0 or #player:get_follower_idxs() == 0 then
+    return
+  end
+  local max_size = player.opponent.field[player.opponent:field_idxs_with_most_and_preds(pred.size)[1]].size
+  local min_size = player.field[player:field_idxs_with_least_and_preds(pred.size)[1]].size
+  local buff_size = abs(max_size - min_size)
+  local target_idxs = player:field_idxs_with_least_and_preds(pred.size, pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {atk={"+",buff_size}, sta={"+",buff_size}}
+  end
+  buff:apply()
+end,
+
+--Shadow Gart
+[110040] = function(player, opponent, my_card)
+  local faction_pred = function(card) return card.faction ~= my_card.faction end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, faction_pred))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-",2},def={"-",2},sta={"-",2}}):apply()
+  end
+end,
+
+--Shadow Ginger
+[110041] = function(player, opponent, my_card)
+  local ncards = #player:field_idxs_with_preds()
+  local target_idxs = player:field_idxs_with_preds(pred.follower, function(card) return card.size >= ncards end)
+  local buff = OnePlayerBuff(player)
+  for _,idx in ipairs(target_idxs) do
+    buff[idx] = {atk={"+",1}, sta={"+",1}}
+  end
+  buff:apply()
+end,
+
+--Shadow Laevateinn
+[110042] = function(player, opponent, my_card)
+  local size_to_n = {}
+  for i=1,#player.hand do
+    local sz = player.hand[i].size
+    size_to_n[sz] = (size_to_n[sz] or 0) + 1
+  end
+  local size = -1
+  for k,v in pairs(size_to_n) do
+    if v >= 2 and k > size then
+      size = k
+    end
+  end
+  if size > 0 then
+    OneBuff(player, 0, {life={"+",ceil(size/2)}}):apply()
+  end
+end,
+
+--True Wind Gambler
+[110043] = function(player, opponent, my_card)
+  if player.character.life % 2 == 1 then
+    OneBuff(player, 0, {life={"-",1}}):apply()
+  else
+    OneBuff(player, 0, {life={"+",3}}):apply()
+  end
+end,
+
+--True Wind Girl
+[110044] = function(player, opponent, my_card)
+  OneBuff(player, 0, {life={"+",2}}):apply()
 end,
 
 --New Paramedic Lina
@@ -2653,6 +2782,21 @@ end,
   end
 end,
 
+-- Tricksters Shion and Rion
+[120006] = function(player, opponent, my_card)
+  local slots = player:empty_field_slots()
+  local buff = OnePlayerBuff(player)
+  if slots[1] then
+    player.field[slots[1]] = Card(300057)
+    buff[slots[1]] = {size={"-",1}}
+  end
+  if slots[2] then
+    player.field[slots[2]] = Card(300058)
+    buff[slots[2]] = {size={"-",1}}
+  end
+  buff:apply()
+end,
+
 -- Pegasus Sigma
 [120007] = function(player, opponent, my_card)
   local hand_sz = #opponent.hand
@@ -2700,14 +2844,14 @@ end,
   end
 end,
 
+-- Tricksters Shion and Rion
+[120011] = function(player, opponent, my_card)
+  recycle_one(player)
+  buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
+end,
+
 -- ereshkigal
 [120015] = function(player, opponent, my_card)
-  --[[if player.character.life <= 7 or opponent.character.life <= 7 or
-      player.game.turn == 14 then
-    OneBuff(opponent, 0, {life={"=",0}}):apply()
-    return
-  end--]]
-
   if player.game.turn ~= 1 then
     local amt = 2*(5-#opponent.hand)
     OneBuff(opponent, 0, {life={"-",amt}}):apply()
