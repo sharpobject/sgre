@@ -1228,8 +1228,8 @@ end,
 -- battlefield sita, wind slash
 [1108] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    local debuff_size = math.ceil(my_card.atk / 2)
-    local buff_size = math.ceil(debuff_size / 2)
+    local debuff_size = ceil(my_card.atk / 2)
+    local buff_size = floor(debuff_size / 2)
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {sta={"-",debuff_size}}
     buff.field[player][my_idx] = {sta={"+",buff_size}}
@@ -1375,9 +1375,8 @@ end,
 [1118] = function(player, my_idx)
   local buff_size = #player:hand_idxs_with_preds({pred.follower})
   OneBuff(player, my_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
-  if buff_size > 0 then
-    local hand_target_idx = player:hand_idxs_with_preds({pred.follower})[1]
-    player:hand_to_top_deck(hand_target_idx)
+  if #player.hand > 0 then
+    player:hand_to_top_deck(1)
   end
 end,
 

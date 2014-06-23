@@ -1041,9 +1041,13 @@ end,
 
 -- child ginger
 [100062] = function(player, opponent, my_card)
-  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  local followers = player:field_idxs_with_preds(pred.follower)
+  local do_buff = #followers > 1
+  local target = uniformly(followers)
   if target then
-    OneBuff(player, target, {atk={"+",2}}):apply()
+    if do_buff then
+      OneBuff(player, target, {atk={"+",2}}):apply()
+    end
     player:field_to_top_deck(target)
   end
   target = uniformly(player:field_idxs_with_preds(pred.follower))
@@ -2227,6 +2231,233 @@ end,
   buff_random(player, opponent, my_card, {atk={"+",2},sta={"+",2}})
 end,
 
+-- Moonlight Vampire
+[110082] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local buff_amt = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def)/2)
+    OneBuff(opponent,idx,{atk={"-",buff_amt},sta={"-",buff_amt}}):apply()
+  end
+end,
+
+-- R. Scardel Merlot
+[110083] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {sta={"-",2}}):apply()
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {sta={"-",1}}):apply()
+  end
+end,
+
+-- R. Scardel Chardonnay
+[110084] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][0] = {life={"+",1}}
+  buff.field[opponent][0] = {life={"-",1}}
+  buff:apply()
+end,
+
+-- R. Scardel Sangiovese
+[110085] = function(player, opponent, my_card)
+  local idxs = shuffle(player:hand_idxs_with_preds())
+  local buff = GlobalBuff(player)
+  for i=1,min(2,#idxs) do
+    buff.hand[player][idxs[i]] = {size={"-",1}}
+  end
+  buff:apply()
+end,
+
+-- R. Scardel Viognier
+[110086] = function(player, opponent, my_card)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i=1,min(2,#idxs) do
+    buff[idxs[i]] = {size={"+",1},atk={"+",1}}
+  end
+  buff:apply()
+end,
+
+-- R. Scardel Shiraz
+[110087] = function(player, opponent, my_card)
+  local target = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if target then
+    local card = opponent:remove_from_hand(target)
+    player:to_bottom_deck(card)
+  end
+end,
+
+-- R. Scardel Pinot Noir
+[110088] = function(player, opponent, my_card)
+  local my_guy = player:field_idxs_with_preds(pred.follower)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_guy and target then
+    OneBuff(opponent, target, {sta={"-",player.field[my_guy].atk}}):apply()
+  end
+end,
+
+-- R. Moonlight Vampire
+[110089] = function(player, opponent, my_card)
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    local amt = floor(player.game.turn / 2)
+    OneBuff(opponent, target, {atk={"-",amt},sta={"-",amt}}):apply()
+  end
+end,
+
+-- Child Panica
+[110090] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    if player.game.turn % 2 == 0 then
+      OneBuff(player, target, {atk={"+",1},sta={"+",3}}):apply()
+    else
+      OneBuff(player, target, {sta={"+",3}}):apply()
+    end
+  end
+end,
+
+-- Child Ginger
+[110091] = function(player, opponent, my_card)
+  local followers = player:field_idxs_with_preds(pred.follower)
+  local target = uniformly(followers)
+  if target then
+    OneBuff(player, target, {atk={"+",2}}):apply()
+    player:field_to_top_deck(target)
+  end
+  target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2}}):apply()
+  end
+end,
+
+-- Child Nold
+[110092] = function(player, opponent, my_card)
+  if (player.game.turn + #player.hand) % 2 == 0 then
+    local target = uniformly(player:field_idxs_with_preds(pred.follower,
+        function(card) return card.size >= 2 end))
+    if target then
+      OneBuff(player, target, {size={"-",2}}):apply()
+    end
+  end
+end,
+
+-- Child Cannelle
+[110093] = function(player, opponent, my_card)
+  local target = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if target then
+    local buff = GlobalBuff(player)
+    buff.hand[opponent][target] = {size={"=",1},atk={"=",5},def={"=",0},sta={"=",5}}
+    buff:apply()
+  end
+end,
+
+-- Child Vernika
+[110094] = function(player, opponent, my_card)
+  local idx = player:hand_idxs_with_preds()[1]
+  if idx then
+    local amt = min(3,ceil(player.hand[idx].size/2))
+    player:hand_to_bottom_deck(idx)
+    local target = opponent:field_idxs_with_most_and_preds(pred.sta,pred.follower)[1]
+    if target then
+      OneBuff(opponent, target, {def={"-",amt}}):apply()
+    end
+  end
+end,
+
+-- Child Jaina
+[110095] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local my_guy = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_guy = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if my_guy then
+    buff.field[player][my_guy] = {atk={"+",2}}
+  end
+  if op_guy then
+    buff.field[opponent][op_guy] = {atk={"-",1}}
+  end
+  buff:apply()
+end,
+
+-- Child Rose
+[110096] = function(player, opponent, my_card)
+  local hand_idx = player:hand_idxs_with_preds(pred.spell, pred.A,
+      function(card) return card.size <= (9-player:field_size()) end)[1]
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local slot = player:first_empty_field_slot()
+  if hand_idx and slot then
+    local amt = player.hand[hand_idx].size
+    player:hand_to_field(hand_idx)
+    if target then
+      OneBuff(opponent, target, {atk={"-",amt},sta={"-",amt}}):apply()
+    end
+  end
+end,
+
+-- Defender
+[110097] = function(player, opponent, my_card)
+  OneBuff(player, 0, {life={"-",1}}):apply()
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2},def={"+",2},sta={"+",2}}):apply()
+  end
+end,
+
+-- Child Gart
+[110098] = function(player, opponent, my_card)
+  if #player:field_idxs_with_preds(pred.A) + #player:hand_idxs_with_preds(pred.A) == 0 then
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player, target, {atk={"+",2},sta={"+",1}}):apply()
+    end
+  end
+end,
+
+-- Child Laevateinn
+[110099] = function(player, opponent, my_card)
+  local size_to_n = {}
+  for i=1,#player.hand do
+    local sz = player.hand[i].size
+    size_to_n[sz] = (size_to_n[sz] or 0) + 1
+  end
+  local size = -1
+  for k,v in pairs(size_to_n) do
+    if v >= 2 and k > size then
+      size = k
+    end
+  end
+  if size > 0 then
+    for i=5,1,-1 do
+      if player.hand[i] and player.hand[i].size == size then
+        player:hand_to_bottom_deck(i)
+      end
+    end
+    OneBuff(player, 0, {life={"+",min(4,ceil(size/2))}}):apply()
+  end
+end,
+
+-- Child Sigma
+[110100] = function(player, opponent, my_card)
+  if player.hand[1] then
+    local amt = min(4,floor(player.hand[1].size/2))
+    player:hand_to_bottom_deck(1)
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
+    if target then
+      OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
+    end
+  end
+end,
+
+-- Embracing Shaman
+[110101] = function(player, opponent, my_card)
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  if target then
+    OneBuff(player, target, {atk={"+",2},def={"+",2},sta={"+",2}}):apply()
+  end
+end,
+
 -- rio
 [110133] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
@@ -2844,7 +3075,7 @@ end,
   end
 end,
 
--- Tricksters Shion and Rion
+-- Nexia Shining Form
 [120011] = function(player, opponent, my_card)
   recycle_one(player)
   buff_all(player, opponent, my_card, {atk={"+",3},sta={"+",3}})
