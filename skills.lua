@@ -577,20 +577,19 @@ end,
   if not other_card then
     return
   end
-  local player_grave_idxs = player:grave_idxs_with_preds({function(card)
-    return card.size == other_card.size end})
-  local opp_grave_idxs = player.opponent:grave_idxs_with_preds(
-      function(card) return card.size == other_card.size end)
   local buffsize = 0
-  for i=#player_grave_idxs,1,-1 do
-    player:grave_to_exile(i)
-    buffsize = buffsize + 1
+  for _,p in ipairs({player, player.opponent}) do
+    for i=#p.grave,1,-1 do
+      if p.grave[i].size == other_card.size then
+        p:grave_to_exile(i)
+        buffsize = buffsize + 1
+      end
+    end
   end
-  for i=#opp_grave_idxs,1,-1 do
-    local idx = opp_grave_idxs[i]
-    player.opponent:grave_to_exile(i)
-    buffsize = buffsize + 1
-  end
+  assert(#player:grave_idxs_with_preds({function(card)
+    return card.size == other_card.size end}) == 0)
+  assert(#player.opponent:grave_idxs_with_preds(
+      function(card) return card.size == other_card.size end) == 0)
   if buffsize > 0 then
     OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
   end
@@ -690,13 +689,15 @@ end,
 
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
-  local target = uniformly(player:grave_idxs_with_preds())
-  if target then
-    player:grave_to_exile(target)
-  end
-  target = uniformly(player:grave_idxs_with_preds())
-  if target then
-    player:grave_to_bottom_deck(target)
+  if #player.grave > 2 then
+    local target = uniformly(player:grave_idxs_with_preds())
+    if target then
+      player:grave_to_exile(target)
+    end
+    target = uniformly(player:grave_idxs_with_preds())
+    if target then
+      player:grave_to_bottom_deck(target)
+    end
   end
 end,
 
