@@ -2275,7 +2275,7 @@ end,
   local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {size={"+",1},atk={"+",1}}
+    buff[idxs[i]] = {size={"+",1},atk={"-",1}}
   end
   buff:apply()
 end,
