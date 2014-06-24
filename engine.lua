@@ -173,7 +173,7 @@ function Player:upkeep_phase()
           else
             skill_func[skill_id](self, idx, card, skill_idx)
           end
-          if BUFF_COUNTER and BUFF_COUNTER > 1 then
+          if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
             error("oh no")
           end
           self.game:snapshot()
@@ -719,7 +719,7 @@ function Player:follower_combat_round(idx, target_idx)
             end
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
-            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+            if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
               error("oh no")
             end
             if flicker_follower then
@@ -763,7 +763,7 @@ function Player:follower_combat_round(idx, target_idx)
             end
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
-            if BUFF_COUNTER and BUFF_COUNTER > 1 then
+            if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
               error("oh no")
             end
             if flicker_follower then
@@ -839,7 +839,7 @@ function Player:combat_round()
     card.trigger = nil
     self.game:send_trigger(self.player_index, idx, "spell")
     spell_func[card.id](self, self.opponent, idx, card)
-    if BUFF_COUNTER and BUFF_COUNTER > 1 then
+    if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
       error("oh no")
     end
     self.game:snapshot()

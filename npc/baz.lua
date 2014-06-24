@@ -16,12 +16,28 @@ ep_cap = {
   EP3="EP3",
   EX1="EX1",
   EP4="EP4",
+  EP5="EP5",
 }
 -- Some NPCs can have more than 3 of a card. Most cannot....
 can_exceed_3 = {
 ["120006"]=true,
 ["120007"]=true,
 ["120022"]=true,
+["110034"]=true,
+["110035"]=true,
+}
+
+custom_ep_cap = {
+["120006"]="EP5",
+["110034"]="EP5",
+["110035"]="EP5",
+["110036"]="EP5",
+["110037"]="EP5",
+["110038"]="EP5",
+["110039"]="EP5",
+["110040"]="EP5",
+["110041"]="EP5",
+["110042"]="EP5",
 }
 
 
@@ -80,7 +96,7 @@ function try_wiggling_it(char_id, target_n, sum, acc)
       end
     end
   end
-  local npc_ep = id_to_card[char_id].episode
+  local npc_ep = custom_ep_cap[char_id] or id_to_card[char_id].episode
   for k,v in pairs(acc) do
     local card_ep = id_to_card[tostring(k)].episode
     if not eps_up_to_ep[ep_cap[npc_ep]][card_ep] then

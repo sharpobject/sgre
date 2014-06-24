@@ -577,20 +577,19 @@ end,
   if not other_card then
     return
   end
-  local player_grave_idxs = player:grave_idxs_with_preds({function(card)
-    return card.size == other_card.size end})
-  local opp_grave_idxs = player.opponent:grave_idxs_with_preds(
-      function(card) return card.size == other_card.size end)
   local buffsize = 0
-  for i=#player_grave_idxs,1,-1 do
-    player:grave_to_exile(i)
-    buffsize = buffsize + 1
+  for _,p in ipairs({player, player.opponent}) do
+    for i=#p.grave,1,-1 do
+      if p.grave[i].size == other_card.size then
+        p:grave_to_exile(i)
+        buffsize = buffsize + 1
+      end
+    end
   end
-  for i=#opp_grave_idxs,1,-1 do
-    local idx = opp_grave_idxs[i]
-    player.opponent:grave_to_exile(i)
-    buffsize = buffsize + 1
-  end
+  assert(#player:grave_idxs_with_preds({function(card)
+    return card.size == other_card.size end}) == 0)
+  assert(#player.opponent:grave_idxs_with_preds(
+      function(card) return card.size == other_card.size end) == 0)
   if buffsize > 0 then
     OneBuff(player.opponent, other_idx, {atk={"-",buffsize}, sta={"-",buffsize}}):apply()
   end
@@ -690,13 +689,15 @@ end,
 
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
-  local target = uniformly(player:grave_idxs_with_preds())
-  if target then
-    player:grave_to_exile(target)
-  end
-  target = uniformly(player:grave_idxs_with_preds())
-  if target then
-    player:grave_to_bottom_deck(target)
+  if #player.grave > 2 then
+    local target = uniformly(player:grave_idxs_with_preds())
+    if target then
+      player:grave_to_exile(target)
+    end
+    target = uniformly(player:grave_idxs_with_preds())
+    if target then
+      player:grave_to_bottom_deck(target)
+    end
   end
 end,
 
@@ -774,10 +775,10 @@ end,
 -- crux knight fleta, hesistation of justice
 [1069] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
-    local target_idxs = player:field_idxs_with_preds({pred.follower, pred.faction.C})
+    local target_idxs = player:field_idxs_with_preds(pred.follower)
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(target_idxs) do
-      buff[idx] = {atk={"+",3}, sta={"+",3}}
+      buff[idx] = {atk={"+",3}, def={"+",1}, sta={"+",4}}
     end
     buff:apply()
     my_card:remove_skill(skill_idx)
@@ -1227,8 +1228,8 @@ end,
 -- battlefield sita, wind slash
 [1108] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    local debuff_size = math.ceil(my_card.atk / 2)
-    local buff_size = math.ceil(debuff_size / 2)
+    local debuff_size = ceil(my_card.atk / 2)
+    local buff_size = floor(debuff_size / 2)
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {sta={"-",debuff_size}}
     buff.field[player][my_idx] = {sta={"+",buff_size}}
@@ -1374,9 +1375,8 @@ end,
 [1118] = function(player, my_idx)
   local buff_size = #player:hand_idxs_with_preds({pred.follower})
   OneBuff(player, my_idx, {atk={"+",buff_size}, sta={"+",buff_size}}):apply()
-  if buff_size > 0 then
-    local hand_target_idx = player:hand_idxs_with_preds({pred.follower})[1]
-    player:hand_to_top_deck(hand_target_idx)
+  if #player.hand > 0 then
+    player:hand_to_top_deck(1)
   end
 end,
 

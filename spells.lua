@@ -279,9 +279,7 @@ end,
     for _,idx in ipairs({tar1,tar2}) do
       debuff.field[opponent][idx] = {atk={"-",2},sta={"-",2}}
     end
-    if tar1 then
-      debuff:apply()
-    end
+    debuff:apply()
   end
 end,
 
@@ -1965,7 +1963,7 @@ end,
 
 -- dress up ride
 [200137] = function(player, opponent, my_idx, my_card)
-  if #player:field_idxs_with_preds(pred.dress_up) > 0 then
+  if #player:field_idxs_with_preds(pred.dress_up, pred.follower) > 0 then
     local target = player:deck_idxs_with_preds(pred.dress_up, pred.follower)[1]
     local slot = player:first_empty_field_slot()
     if slot and target then
@@ -2096,16 +2094,21 @@ end,
 
 -- secret art: wind slash
 [200146] = function(player, opponent, my_idx, my_card)
-  local cards = opponent:field_idxs_with_preds()
+  local cards = shuffle(opponent:field_idxs_with_preds())
   local followers = opponent:field_idxs_with_preds(pred.follower)
-  local teh_buff = {sta={"-",floor(#cards/2)}}
+  local teh_buff = {}
   if pred.sita(player.character) then
     teh_buff.def = {"-", #cards}
+    for _,idx in ipairs(cards) do
+      opponent.field[idx].active = false
+    end
+  else
+    teh_buff.sta = {"-", min(2, #cards)}
+    for i=1,min(2, #cards) do
+      opponent.field[cards[i]].active = false
+    end
   end
   local buff = OnePlayerBuff(opponent)
-  for _,idx in ipairs(cards) do
-    opponent.field[idx].active = false
-  end
   for _,idx in ipairs(followers) do
     buff[idx]=teh_buff
   end
@@ -2204,7 +2207,7 @@ end,
   if pred.A(player.character) then
     local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if target then
-      -- opponent.field[target].active = false
+      opponent.field[target].active = false
       OneBuff(opponent, target, {sta={"-",8-my_card.size}}):apply()
     end
     if my_card.size < 3 and #player.hand < 5 then
@@ -2397,8 +2400,8 @@ end,
   end
   buff:apply()
   if pred.iri(player.character) then
+    local buff = OnePlayerBuff(opponent)
     for _,idx in ipairs(targets) do
-      local card = opponent.field[idx]
       buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
     end
     buff:apply()

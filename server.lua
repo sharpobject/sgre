@@ -332,6 +332,7 @@ function Connection:J(jmsg)
     end
   elseif self.state == "playing" then
     self.game["P"..self.player_index]:receive(message)
+    self:send({type="can_act", can_act=(not self.game["P"..self.player_index].ready)})
   end
 end
 
