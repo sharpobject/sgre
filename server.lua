@@ -754,14 +754,16 @@ function Connection:feed_card(msg)
   else
     return false  -- invalid gift
   end
-  -- event card exception
-  if food_card.rarity == "EV" then
-    base_gift_modifiers = {0, 0, 0, 0}
-  end
 
   local like_change = like_up
   if math.random() > 0.5 then
     like_change = -1
+  end
+
+  -- event card exception
+  if food_card.rarity == "EV" then
+    base_stat_change = 0
+    like_change =0
   end
 
   -- modify cafe character stats
