@@ -1155,18 +1155,21 @@ end,
 
 -- 1st witness kana.dkd, just give up
 [1101] = function(player, my_idx, my_card)
-  if my_card.def >= 1 then
-    OneBuff(player, my_idx, {def={"-",1}}):apply()
-    if #player.deck > 0 and player.deck[#player.deck].faction == player.character.faction and
-      player:first_empty_field_slot() then
-      player:deck_to_field(#player.deck)
-    end
+  local faction_pred = function(card)
+        return card.faction == player.character.faction
+      end
+  local deck_idx = player:deck_idxs_with_preds(faction_pred)[1]
+  local slot = player:first_empty_field_slot()
+  if deck_idx and slot then
+    player:deck_to_field(deck_idx, slot)
   end
 end,
 
 -- 1st witness kana.dkd, just give up
-[1102] = function(player, my_idx)
-  OneBuff(player, my_idx, {def={"=",2}}):apply()
+[1102] = function(player, my_idx, my_card)
+  if my_card.def <= 1 then
+    OneBuff(player, my_idx, {def={"=",2}}):apply()
+  end
 end,
 
 -- lib. evenne, 2s agent thirteen, blue cross ferris, crescent aligote, no negligence
@@ -1360,14 +1363,22 @@ end,
 -- sommelier sigma, holy beast's blessing
 [1117] = function(player)
   if player.character.faction == "C" then
+    local followers = {}
+    for _,idx in ipairs(player:hand_idxs_with_preds(pred.follower)) do
+      followers[#followers+1] = {"hand", idx}
+    end
+    for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+      followers[#followers+1] = {"field", idx}
+    end
+    local buff = GlobalBuff(player)
     for i=1,2 do
-      local target_idx = uniformly(player:hand_idxs_with_preds({pred.follower}))
-      if target_idx then
-        local buff = GlobalBuff(player)
-        buff.hand[player][target_idx] = {atk={"+",1}, sta={"+",1}}
-        buff:apply()
+      local fol = uniformly(followers)
+      if fol then
+        local zone, target_idx = fol[1], fol[2]
+        buff[zone][player][target_idx] = {atk={"+",1}, sta={"+",1}}
       end
     end
+    buff:apply()
   end
 end,
 

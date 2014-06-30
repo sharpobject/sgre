@@ -1935,6 +1935,7 @@ end,
       buff.sta[2] = 3
     end
     OneBuff(player, target, buff):apply()
+    player.field[target].active = false
   end
 end,
 
@@ -2380,13 +2381,19 @@ end,
   if pred.D(player.character) then
     amt = floor(amt/2)
   end
-  local targets = opponent:field_idxs_with_preds(pred.follower,
-      function(card) return card.atk + card.sta >= 22 end)
-  local buff = OnePlayerBuff(opponent)
-  for _,idx in ipairs(targets) do
-    buff[idx] = {atk={"=",amt},sta={"=",amt}}
+  local target = opponent:field_idxs_with_preds(pred.follower,
+      function(card)
+        local sz = Card(card.id).size
+        if sz >= 6 then
+          return card.atk + card.sta >= 32
+        end
+        return card.atk + card.sta >= 22
+      end)[1]
+  if target then
+    local buff = OnePlayerBuff(opponent)
+    buff[target] = {atk={"=",amt},sta={"=",amt}}
+    buff:apply()
   end
-  buff:apply()
 end,
 
 -- lago de cisnes
