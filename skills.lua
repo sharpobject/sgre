@@ -434,8 +434,8 @@ end,
 -- traumatized hilde, sad memory
 [1034] = function(player, my_idx, my_card)
   local target_idxs = shuffle(player:get_follower_idxs())
-  local buff = OnePlayerBuff(player)
   if my_card.atk > 0 then
+    local buff = OnePlayerBuff(player)
     buff[my_idx] = {atk={"-",1}}
     for i=1,math.min(2, #target_idxs) do
       if buff[target_idxs[i]] then
