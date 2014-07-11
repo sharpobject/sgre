@@ -2624,12 +2624,12 @@ end,
 
 -- Anyte Annus
 [110110] = function(player)
-  for i=1,2 do
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-    if idx then
-      OneBuff(player, idx, {size={"+", 1}, atk={"+", 1}, def={"+", 1}, sta={"+", 2}}):apply()
-    end
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i=1,min(2,#targets) do
+    buff[targets[i]] = {size={"+", 1}, atk={"+", 1}, def={"+", 1}, sta={"+", 2}}
   end
+  buff:apply()
 end,
 
 -- Dispatched Teacher Riano
@@ -2658,9 +2658,9 @@ end,
     return
   end
   local idx2 = nil
-  for i=1,5 do
-    if not opponent.field[(idx1 - 1 + i) % 5 + 1] then
-      idx2 = (idx1 - 1 + i) % 5 + 1
+  for i=idx1+1,5 do
+    if not opponent.field[i] then
+      idx2 = i
       break
     end
   end
@@ -3545,9 +3545,7 @@ end,
     if card.skills[1] or card.skills[2] or card.skills[3] then
       mag = mag + 1
     end
-    card:remove_skill(1)
-    card:remove_skill(2)
-    card:remove_skill(3)
+    card.skills = {}
   end
   OneBuff(player, 0, {life={"+", mag}}):apply()
 end,

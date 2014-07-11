@@ -1932,7 +1932,7 @@ function main_fight(msg)
 end
 
 local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2}, {"Advanced Dungeon", 3}, {"Bamboo Garden", 8}}
-local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10}}
+local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10}, {"Vita Public School", 12}}
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11}}
 
 function main_dungeon()
