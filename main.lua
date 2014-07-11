@@ -19,6 +19,7 @@ require("validate")
 require("giftable")
 require("filters")
 require("xmutable")
+require("animation")
 --require("imagedata-ffi")
 
 local N_FRAMES = 0

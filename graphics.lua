@@ -393,6 +393,13 @@ function card_button(side,idx,x,y)
       end
       draw_card(self.card, x, y, hover_frame, text)
     end
+
+    if self.animation then
+      local img = load_asset(self.animation.filename)
+      local dx = self.animation.dx - math.floor((img:getWidth() - 80)/2)
+      local dy = self.animation.dy - math.floor((img:getHeight() - 120)/2)
+      love.graphics.draw(img, x+dx, y+dy)
+    end
   end
   button.Update = function(self)
     local hand = side == "hand"
@@ -401,7 +408,26 @@ function card_button(side,idx,x,y)
     if side == "right" then player = player.opponent end
 
     local member = "field"
-    if hand then member = "hand" end
+    if hand then
+      member = "hand"
+    else
+      local animation = player.animation[idx]
+      if animation then
+        local frame = math.floor(animation.frame)..""
+        while frame:len() < 3 do frame = "0"..frame end
+        self.animation = {
+            filename = "animations/"..animation.kind.."/"..frame..".png",
+            dx = animation.dx,
+            dy = animation.dy,
+          }
+        animation.frame = animation.frame + .5
+        if animation.frame == animation.framecount then
+          player.animation[idx] = nil
+        end
+      else
+        self.animation = nil
+      end
+    end
 
     self.player = player
     self.card = player[member][idx]

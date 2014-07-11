@@ -99,6 +99,7 @@ Player = class(function(self, side, deck)
     self.exile = {}
     self.shuffles = 2
     self.name = self.character.name
+    self.animation = {}
   end)
 
 function Player:check_hand()
@@ -1502,16 +1503,13 @@ function Game:client_run()
         --TODO
       end
     elseif msg.type == "trigger" then
-      local card = self["P"..msg.trigger.player].field[msg.trigger.slot]
-      card.trigger = true
-      wait(50)
-      card.trigger = nil
+      self:set_animation("trigger_"..msg.trigger.what, msg.trigger.player, msg.trigger.slot)
+      self:await_animations()
     elseif msg.type == "attack" then
-      self.attacker = {self["P"..msg.trigger.player], msg.trigger.atk_slot}
-      self.defender = {self.attacker[1].opponent, msg.trigger.def_slot}
-      self.print_attack_info = true
-      wait(50)
-      self.print_attack_info = nil
+      self:set_animation("attack", msg.trigger.player, msg.trigger.atk_slot)
+      self:await_animations()
+      self:set_animation("defend", msg.trigger.player == 1 and 2 or 1, msg.trigger.def_slot)
+      self:await_animations()
     elseif msg.type == "shuffle" then
       --TODO PLAY A SHUFFLING SOUND?????
     elseif msg.type == "coin" then
