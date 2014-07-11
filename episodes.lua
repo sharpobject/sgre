@@ -6,4 +6,5 @@ return {
   "EX1",
   "EP4",
   "EP5",
+  "EP6",
 }
