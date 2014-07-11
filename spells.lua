@@ -2298,7 +2298,7 @@ end,
     local nlife = 0
     for i=1,5 do
       local card = opponent.field[i]
-      if card and pred.follower(card) and (card.size + player.game.turn + i) % 2 == 1 then
+      if card and (card.size + player.game.turn + i) % 2 == 1 then
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
