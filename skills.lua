@@ -689,7 +689,7 @@ end,
 
 -- sleep club president, fortune lady, lancer knight, magic circle witch, recycle
 [1060] = function(player)
-  if #player.grave > 2 then
+  if #player.grave >= 2 then
     local target = uniformly(player:grave_idxs_with_preds())
     if target then
       player:grave_to_exile(target)
