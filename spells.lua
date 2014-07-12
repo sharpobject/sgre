@@ -2496,12 +2496,12 @@ end,
 
 -- encounter
 [200178] = function(player, opponent, my_idx, my_card)
-  local amt = 1
-  for _,p in ipairs({player, opponent}) do
-    local idxs = p:field_idxs_with_preds(pred.spell)
-    for _,idx in ipairs(idxs) do
-      amt = amt + 1
-      p:field_to_grave(idx)
+  local amt = 2
+  local idxs = opponent:field_idxs_with_preds(pred.spell)
+  for _,idx in ipairs(idxs) do
+    amt = amt + 1
+    if pred.V(player.character) then
+      opponent:field_to_exile(idx)
     end
   end
   local targets = player:field_idxs_with_preds(pred.follower)
@@ -2689,7 +2689,7 @@ end,
 [200192] = function(player, opponent, my_idx, my_card)
   local my_buff = {sta={"+",5}}
   if pred.C(player.character) then
-    my_buff.atk = {"+",1}
+    my_buff.atk = {"+",2}
   end
   local buff = GlobalBuff(player)
   local my_idxs = player:field_idxs_with_preds(pred.follower)
@@ -2791,7 +2791,8 @@ end,
 
 -- showdown
 [200199] = function(player, opponent, my_idx, my_card)
-  if pred.D(player.character) then
+  if pred.D(player.character) and
+      #player:field_idxs_with_preds(pred.follower, pred.D) > 0 then
     local buff = GlobalBuff(player)
     for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
       buff.field[player][idx] = {size={"=",1},atk={"=",6},sta={"=",6}}

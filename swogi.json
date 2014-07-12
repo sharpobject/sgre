@@ -73437,7 +73437,7 @@
     "200183": "The first card in your Deck is sent to the Grave, and the second card is sent to the bottom of your Deck. If this happens, a random card on the enemy Field is sent to the bottom of the enemy Deck.",
     "200184": "2 random Academy Followers on your Field get ATK increased by the number of cards in your Hand and get STA increased by 1 plus the number of cards in the enemy Hand.",
     "200185": "2 random Followers on the enemy Field get ATK -4/STA -4. If this card's SIZE is 1, it is removed from the game. Otherwise, this card gets SIZE=1 and is deactivated.",
-    "200186": "An Follower on your Field with the highest SIZE gets SIZE decreased by the difference between its SIZE and the SIZE of the first card in your Hand.",
+    "200186": "A Follower on your Field with the highest SIZE gets SIZE decreased by the difference between its SIZE and the SIZE of the first card in your Hand.",
     "200187": "If your Hand contains 3 or fewer cards, Followers are sent from the top of your Deck to your Hand until there are 4 cards in your Hand.",
     "200188": "If there are at least 3 cards in your Field with the same SIZE, Followers in your Field with that SIZE get ATK +3/STA +3.",
     "200189": "The first Crux Follower on your Field with the highest STA gets STA halved (rounding up) and gets DEF increased by half of the STA reduction (rounding up).",
