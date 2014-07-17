@@ -30,3 +30,17 @@ end
 function Game:await_animations()
   wait(30)
 end
+
+function Game:set_buff_animation(buff, player_idx, slot)
+  local players = {self.P1, self.P2}
+  local t = {}
+  for k,v in pairs(buff) do
+    t[k] = v
+  end
+  t.frame = 0
+  players[player_idx].buff_animation[slot] = t
+end
+
+function Game:await_buff_animations()
+  wait(30)
+end

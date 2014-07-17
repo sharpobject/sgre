@@ -30,6 +30,10 @@ function love.load(arg)
   arg = arg or {}
   GLOBAL_EMAIL, GLOBAL_PASSWORD = arg[2], arg[3]
 
+  if GLOBAL_EMAIL == "--server" then
+    require("server")
+  end
+
   math.randomseed(os.time())
   for i=1,4 do math.random() end
   graphics_init() -- load images and set up stuff

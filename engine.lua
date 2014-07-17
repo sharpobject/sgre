@@ -1,6 +1,5 @@
 local min,max = math.min,math.max
 local floor = math.floor
-local love = love
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
@@ -100,6 +99,7 @@ Player = class(function(self, side, deck)
     self.shuffles = 2
     self.name = self.character.name
     self.animation = {}
+    self.buff_animation = {}
   end)
 
 function Player:check_hand()
@@ -1494,7 +1494,30 @@ function Game:client_run()
       view_diff_apply(self.view, msg.diff)
       self:from_view(self.view)
       if msg.buff then
-        --TODO
+        local do_wait = false
+        for i=1,2 do
+          if msg.buff[i] and msg.buff[i].character then
+            local char = msg.buff[i].character
+            self:set_buff_animation(char, i, 0)
+            do_wait = true
+          end
+        end
+        if do_wait then
+          self:await_buff_animations()
+        end
+        do_wait = false
+        for i=1,2 do
+          if msg.buff[i] and msg.buff[i].field then
+            local field = msg.buff[i].field
+            for k,v in pairs(field) do
+              self:set_buff_animation(v, i, k)
+              do_wait = true
+            end
+          end
+        end
+        if do_wait then
+          self:await_buff_animations()
+        end
       end
     elseif msg.type == "trigger" then
       self:set_animation("trigger_"..msg.trigger.what, msg.trigger.player, msg.trigger.slot)

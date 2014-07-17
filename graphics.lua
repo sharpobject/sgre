@@ -339,7 +339,7 @@ function draw_card(card, x, y, lighten_frame, text)
         love.graphics.printf(card.life, gray_shit_x + 2, y+100, gray_shit_width, "center")
       else
         love.graphics.setFont(load_font("sg_assets/fonts/lifewan_rs.png"))
-        love.graphics.printf(card.life, gray_shit_x + 2, y+98, gray_shit_width, "center")
+        love.graphics.printf(math.max(card.life, 0), gray_shit_x + 2, y+98, gray_shit_width, "center")
       end
     end
     if card.faction then
@@ -353,6 +353,16 @@ function draw_card(card, x, y, lighten_frame, text)
     love.graphics.setColor(255,255,255)
     love.graphics.setFont(load_vera(12))
     love.graphics.printf(text, x, middle+3, card_width, "center")
+  end
+end
+
+function set_buff_font(kind)
+  if kind == "+" then
+    love.graphics.setFont(load_font("sg_assets/fonts/pluswan_s.png"))
+  elseif kind == "-" then
+    love.graphics.setFont(load_font("sg_assets/fonts/minuswan_s.png"))
+  else
+    love.graphics.setFont(load_font("sg_assets/fonts/equalwan_s.png"))
   end
 end
 
@@ -400,6 +410,22 @@ function card_button(side,idx,x,y)
       local dy = self.animation.dy - math.floor((img:getHeight() - 120)/2)
       love.graphics.draw(img, x+dx, y+dy)
     end
+
+    if self.buff_animation then
+      local frame = self.buff_animation.frame
+      local stat_to_dxdy = {size = {card_width*2/3 + 3, 2},
+                            atk = {0, 102},
+                            def = {card_width/3, 102},
+                            sta = {card_width*2/3, 102},
+                            life = {card_width*2/3 + 2, 99}}
+      for k,v in pairs(stat_to_dxdy) do
+        local this_buff = self.buff_animation[k]
+        if this_buff then
+          set_buff_font(this_buff[1])
+          love.graphics.printf(this_buff[1]..this_buff[2], x+v[1], y+v[2]-frame, card_width/3, "center")
+        end
+      end
+    end
   end
   button.Update = function(self)
     local hand = side == "hand"
@@ -426,6 +452,17 @@ function card_button(side,idx,x,y)
         end
       else
         self.animation = nil
+      end
+
+      local buff_animation = player.buff_animation[idx]
+      if buff_animation then
+        self.buff_animation = buff_animation
+        buff_animation.frame = buff_animation.frame + .5
+        if buff_animation.frame == 20 then
+          player.buff_animation[idx] = nil
+        end
+      else
+        self.buff_animation = nil
       end
     end
 

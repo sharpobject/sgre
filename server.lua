@@ -13,7 +13,12 @@ require("characters")
 require("dumbprint")
 hash = require("lib.hash")
 print"requiring the thing"
-bcrypt = require("bcrypt")
+if love then
+  love = nil
+else
+  bcrypt = require("bcrypt")
+  assert(bcrypt)
+end
 print"required it"
 require("ssl")
 require("validate")
@@ -180,10 +185,14 @@ function try_register(msg)
     return false
   end
   local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
+  local password_to_save = "ass"
+  if bcrypt then
+    password_to_save = bcrypt.digest(password, bcrypt.salt(10))
+  end
   set_file(path, json.encode({
     username = username,
     email = email,
-    password = bcrypt.digest(password, bcrypt.salt(10)),
+    password = password_to_save,
     tokens = 0,
     wins = 0,
     losses = 0,
@@ -403,7 +412,10 @@ function Connection:try_login(msg)
   end
   load_user_data(uid)
   local data = uid_to_data[uid]
-  local correct_password = bcrypt.verify(password, data.password)
+  local correct_password = true
+  if bcrypt then
+    correct_password = bcrypt.verify(password, data.password)
+  end
   if not correct_password then
     return failure("incorrect password")
   end
