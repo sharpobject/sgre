@@ -720,7 +720,7 @@ end,
 -- outcast rose
 [100033] = function(player)
   if #player:field_idxs_with_preds(pred.follower) >= 2 then
-    local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
+    local target = uniformly(player:field_idxs_with_preds(pred.follower))
     local buff = OnePlayerBuff(player)
     buff[0] = {life={"-",1}}
     if target then
@@ -1415,7 +1415,7 @@ end,
   end
   idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
-    buff.field[player][idx] = {atk={"-", 1}, sta={"-", 1}}
+    buff.field[player][idx] = {atk={"+", 1}, sta={"+", 1}}
   end
   buff:apply()
 end,

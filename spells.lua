@@ -351,6 +351,7 @@ end,
   end
   if my_idx and other_idx then
     opponent.field[other_idx].active = false
+    OneImpact(opponent, other_idx):apply()
   end
 end,
 

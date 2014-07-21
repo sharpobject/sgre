@@ -782,10 +782,11 @@ function Player:follower_combat_round(idx, target_idx)
       self.game:attack_animation()
       self.game:defend_animation()
       local damage = math.max(0,attacker.atk-defender.def)
-      self.game:send_attack(attack_player.player_index, attack_idx, defend_idx, damage)
       defender.sta = defender.sta - damage
       self.game:clean_dead_followers()
-      self.game:snapshot()
+      local atk_msg = {player=attack_player.player_index,
+          atk_slot=attack_idx, def_slot=defend_idx, damage=damage}
+      self.game:snapshot(nil, atk_msg)
       if self.game.combat_round_interrupted then --print("bail on combat damage")
         return
       end
@@ -794,9 +795,10 @@ function Player:follower_combat_round(idx, target_idx)
     local attack_player, attack_idx = unpack(self.game.attacker)
     self.game:attack_animation()
     self.game:defend_animation()
-    self.game:send_attack(attack_player.player_index, attack_idx, 0, card.size)
     target_card.life = target_card.life - card.size
-    self.game:snapshot()
+    local atk_msg = {player=attack_player.player_index,
+        atk_slot=attack_idx, def_slot=0, damage=card.size}
+    self.game:snapshot(nil, atk_msg)
   end
 end
 
@@ -964,16 +966,14 @@ function Game:apply_buff(buff)
     tmp.field[0] = nil
     buff_msg[i] = tmp
   end
+  if anything_happened then
+    self:clean_dead_followers()
+  end
   self:snapshot(buff_msg)
   for i=1,2 do
     -- put it back!
     buff_msg[i].field[0] = buff_msg[i].character
   end
-  if anything_happened then
-    -- TODO: animation
-    self:clean_dead_followers()
-  end
-  self:snapshot()
 end
 
 function card_summary(card)
@@ -1124,7 +1124,7 @@ do
   end
 end
 
-function Game:snapshot(buff_msg)
+function Game:snapshot(buff_msg, atk_msg)
   if self.client or self.winner then
     return
   end
@@ -1156,7 +1156,7 @@ function Game:snapshot(buff_msg)
   if self.state_view then
     local diff = view_diff(self.state_view,new_view)
     --print("state" .. json.encode(new_view))
-    local msg = {type="diff",buff=buff_msg,diff=diff}
+    local msg = {type="diff",buff=buff_msg,attack=atk_msg,diff=diff}
     self:send(msg)
     if love then
       print("diff" .. json.encode(msg))
@@ -1192,15 +1192,6 @@ function Game:send_trigger(player, slot, what)
   self:send(msg)
   if love then
     print("trigger"..json.encode(msg))
-  end
-end
-
-function Game:send_attack(player, atk_slot, def_slot, damage)
-  local msg = {type="attack", trigger={
-      player=player, atk_slot=atk_slot, def_slot=def_slot, damage=damage}}
-  self:send(msg)
-  if love then
-    print("attack"..json.encode(msg))
   end
 end
 
@@ -1491,32 +1482,75 @@ function Game:client_run()
       self.view = msg.snapshot
       self:from_view(self.view)
     elseif msg.type == "diff" then
-      view_diff_apply(self.view, msg.diff)
-      self:from_view(self.view)
+      local def_size = 1
+      local dmg = 0
+      local opp = 1
+      if msg.attack then
+        opp = msg.attack.player == 1 and 2 or 1
+        def_size = self["P"..opp].field[msg.attack.def_slot].size
+        self:set_animation("attack", msg.attack.player, msg.attack.atk_slot)
+        self:await_animations()
+        self:set_animation("defend", opp, msg.attack.def_slot)
+        self:await_animations()
+      end
+      if not msg.buff then
+        view_diff_apply(self.view, msg.diff)
+        self:from_view(self.view)
+      end
+      if msg.attack then
+        self:set_buff_animation({sta={"-",msg.attack.damage}}, opp, msg.attack.def_slot)
+        if not self["P"..(opp)].field[msg.attack.def_slot] then
+          self:set_animation("death", opp, msg.attack.def_slot)
+          self:set_buff_animation({life={"-", def_size}}, opp, 0)
+        end
+        self:await_animations()
+      end
       if msg.buff then
         local do_wait = false
         for i=1,2 do
           if msg.buff[i] and msg.buff[i].character then
             local char = msg.buff[i].character
-            self:set_buff_animation(char, i, 0)
+            self:set_animation("life_buff", i, 0)
             do_wait = true
           end
-        end
-        if do_wait then
-          self:await_buff_animations()
-        end
-        do_wait = false
-        for i=1,2 do
           if msg.buff[i] and msg.buff[i].field then
             local field = msg.buff[i].field
             for k,v in pairs(field) do
-              self:set_buff_animation(v, i, k)
+              self:set_animation("buff", i, k)
               do_wait = true
             end
           end
         end
         if do_wait then
+          self:await_target_animations()
+          local prev_life = {self.P1.character.life, self.P2.character.life}
+          view_diff_apply(self.view, msg.diff)
+          self:from_view(self.view)
+          local dlife = {self.P1.character.life - prev_life[1],
+                        self.P2.character.life - prev_life[2]}
+          for i=1,2 do
+            if msg.buff[i] and msg.buff[i].character then
+              local char = msg.buff[i].character
+              self:set_buff_animation(char, i, 0)
+            elseif dlife[i] > 0 then
+                self:set_buff_animation({life={"+", dlife[i]}}, i, 0)
+            elseif dlife[i] < 0 then
+                self:set_buff_animation({life={"-", -dlife[i]}}, i, 0)
+            end
+            if msg.buff[i] and msg.buff[i].field then
+              local field = msg.buff[i].field
+              for k,v in pairs(field) do
+                if v.sta and not self["P"..i].field[k] then
+                  self:set_animation("death", i, k)
+                end
+                self:set_buff_animation(v, i, k)
+              end
+            end
+          end
           self:await_buff_animations()
+        else
+          view_diff_apply(self.view, msg.diff)
+          self:from_view(self.view)
         end
       end
     elseif msg.type == "trigger" then

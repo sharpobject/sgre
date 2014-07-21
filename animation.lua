@@ -28,7 +28,7 @@ function Game:set_animation(kind, player_idx, slot)
 end
 
 function Game:await_animations()
-  wait(30)
+  self:await_target_animations()
 end
 
 function Game:set_buff_animation(buff, player_idx, slot)
@@ -42,5 +42,26 @@ function Game:set_buff_animation(buff, player_idx, slot)
 end
 
 function Game:await_buff_animations()
-  wait(30)
+  wait(22)
+end
+
+function Game:await_target_animations()
+  local keep_waiting = true
+  local players = {self.P1, self.P2}
+  while keep_waiting do
+    local any_animations = false
+    for _,p in pairs(players) do
+      for i=0,5 do
+        if p.animation[i] then
+          any_animations = true
+        end
+      end
+    end
+    if any_animations then
+      wait(1)
+    else
+      keep_waiting = false
+    end
+  end
+  wait(2)
 end
