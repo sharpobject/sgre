@@ -1560,25 +1560,8 @@ end,
   end
 end,
 
--- Apostle L Red Sun
-[100118] = function(player)
-	local mag = player.deck[1] and pred.follower(player.deck[#player.deck]) and 3 or 1
-	local idx = player:field_idxs_with_preds(pred.follower)
-	if idx then
-		OneBuff(player, idx, {atk={"+", 1}, sta={"+", mag}}):apply()
-	end
-end,
-
---[[
 -- apostle l red sun
 [100118] = function(player, opponent, my_card)
-  --print("OMGGGGG")
-  player:to_bottom_deck(Card(300193))
-  if player.character.life < opponent.character.life then
-    OneBuff(player, 0, {life={"+",1}}):apply()
-  end
-end,
---[[[100118] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     if #player.deck > 0 and pred.follower(player.deck[#player.deck]) then
@@ -1587,8 +1570,7 @@ end,
       OneBuff(player, target, {atk={"+",1},sta={"+",1}}):apply()
     end
   end
-end,--]]
-]]
+end,
 
 -- crux knight rosa
 [100119] = function(player, opponent, my_card)
