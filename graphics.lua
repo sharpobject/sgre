@@ -31,6 +31,7 @@ do
   end
 
   function load_font(name)
+    if RIP_IMAGEFONTS then return load_vera(12) end
     if font_map[name] then return font_map[name] end
     assert(font_to_str[name])
     local ret = love.graphics.newImageFont(name, font_to_str[name])
