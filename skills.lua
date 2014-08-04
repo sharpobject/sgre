@@ -847,7 +847,7 @@ end,
 
 -- sweet lady isfeldt, sweet spell
 [1073] = function(player, my_idx, my_card, skill_idx)
-  my_card.skills[skill_idx] = 1076
+  my_card.skills[skill_idx] = 1074
 end,
 
 -- sweet lady isfeldt, sweet count
@@ -857,7 +857,7 @@ end,
   end
   if other_card.size <= my_card.size then
     player.opponent:field_to_top_deck(other_idx)
-    my_card.skills[skill_idx] = 1073
+    my_card:remove_skill_until_refresh(skill_idx)
   end
 end,
 
@@ -2021,23 +2021,14 @@ end,
 
 -- sword girls sita, position change!
 [1192] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local card_to_skill = {[300320]=1193,[300322]=1194,[300324]=1195,[300326]=1196,
-                         [300875]=1822,[300877]=1824,[300879]=1826,[300881]=1828}
   local target_idx = player:deck_idxs_with_preds(pred.follower, pred.sword_girls)[1]
   local slot = player:first_empty_field_slot()
   if target_idx and slot then
     local target_card = player.deck[target_idx]
     if slot < my_idx then
-      assert(card_to_skill[target_card.id])
-      -- TODO: this probably still isn't quite right...
-      target_card:gain_skill(card_to_skill[target_card.id])
+      target_card:refresh()
     else
-      for i=1,3 do
-        if target_card.skills[i] == 1192 then
-          target_card.skills[i] = nil
-        end
-      end
-      target_card:gain_skill(1076)
+      target_card.skills = {1076}
     end
     player:deck_to_field(target_idx)
     OneBuff(player, slot, {sta={"+",3}}):apply()
@@ -2087,6 +2078,7 @@ end,
     buff[idx] = {size={"-",1}}
   end
   buff[my_idx].sta = {"+",2}
+  buff[my_idx].size = {"-",2}
   buff:apply()
   my_card:remove_skill(skill_idx)
 end,
