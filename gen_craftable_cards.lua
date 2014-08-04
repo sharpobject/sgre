@@ -4,6 +4,7 @@ local recipes = fix_num_keys(json.decode(file_contents("recipes.json")))
 local id_to_card = fix_num_keys(json.decode(file_contents("swogi.json")).id_to_card)
 
 local eps = arr_to_set(require("episodes"))
+require("giftable")
 
 for k,v in pairs(recipes) do
   if not eps[(id_to_card[k] or {episode="ASS"}).episode] then
@@ -35,6 +36,7 @@ local dungeon_mats = {
   210017, -- lily
   210018, -- blood pack
   210019, -- good job stamp
+  210020, -- spiral fragment
 }
 local materials = {s1_fight, ore, dungeon_mats}
 local reachable_cards = {}
@@ -56,6 +58,11 @@ while found do
       found = true
       reachable_cards[out_card] = true
       recipes[out_card] = nil
+      if giftable[out_card] then
+        for _,transformation in ipairs(giftable[out_card]) do
+          reachable_cards[transformation] = true
+        end
+      end
     end
   end
 end
