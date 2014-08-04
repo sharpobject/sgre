@@ -1402,8 +1402,8 @@ end,
         local zone, target_idx = fol[1], fol[2]
         local this_buff = buff[zone][player][target_idx]
         if this_buff then
-          this_buff.atk = this_buff.atk + 1
-          this_buff.sta = this_buff.sta + 1
+          this_buff.atk[2] = this_buff.atk[2] + 1
+          this_buff.sta[2] = this_buff.sta[2] + 1
         else
           buff[zone][player][target_idx] = {atk={"+",1}, sta={"+",1}}
         end
