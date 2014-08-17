@@ -1798,10 +1798,12 @@ end,
 -- shock lady elberto, shock!
 [1160] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
+  local n = 0
   for _,idx in ipairs(player.opponent:field_idxs_with_preds(pred.follower)) do
     buff.field[player.opponent][idx] = {sta={"-",1}}
+    n = n + 1
   end
-  buff.field[player][my_idx] = {atk={"+",1}}
+  buff.field[player][my_idx] = {sta={"+",ceil(n/2)}}
   buff:apply()
 end,
 

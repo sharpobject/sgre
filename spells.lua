@@ -3022,6 +3022,7 @@ end,
           buff = buff + other_card.size
         end
       end
+      buff = min(buff, 8)
       OneBuff(player, i, {atk={"+",buff},sta={"+",buff}}):apply()
       break
     end
