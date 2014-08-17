@@ -1938,7 +1938,7 @@ end,
 end,
 
 -- Master Servant Pact
-[1181] = function(player, my_idx)
+[1181] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, my_idx, {sta={"=", min(player.character.life, 15)}}):apply()
   my_card.skills[skill_idx] = nil
 end,
