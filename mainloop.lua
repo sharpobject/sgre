@@ -689,7 +689,23 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_craft}
     end
-    
+
+    local button = loveframes.Create("button")
+    button:SetPos(750,100)
+    button:SetSize(50, 50)
+    button:SetText("MUSIC")
+    button:SetState("lobby")
+    bgm_playing=false
+    music = love.audio.newSource("sg_assets/bgm/SwordGirls_Waiting_Room.mp3")
+    button.OnClick = function()
+      print("isStopped"..tostring(music:isStopped()))
+      print("isPlaying"..tostring(music:isPlaying()))
+      if not bgm_playing then
+        music:play()
+        bgm_playing = true
+      end
+    end
+
     local button = loveframes.Create("button")
     button:SetPos(50,0)
     button:SetSize(70, 50)
