@@ -3,14 +3,23 @@ GlobalBuff = class(function(self, player)
     self.field = {[player] = {}, [player.opponent]={}}
     self.hand = {[player] = {}, [player.opponent]={}}
     self.deck = {[player] = {}, [player.opponent]={}}
+    if GO_HARD then
+      BUFF_COUNTER = (BUFF_COUNTER or 0) + 1
+    end
   end)
 
 function GlobalBuff:apply()
   self.game:apply_buff(self)
+  if GO_HARD then
+    BUFF_COUNTER = BUFF_COUNTER - 1
+  end
 end
 
 OnePlayerBuff = class(function(self, player)
     self.player = player
+    if GO_HARD then
+      BUFF_COUNTER = (BUFF_COUNTER or 0) + 1
+    end
   end)
 
 function OnePlayerBuff:apply()
@@ -21,17 +30,56 @@ function OnePlayerBuff:apply()
     end
   end
   gb:apply()
+  if GO_HARD then
+    BUFF_COUNTER = BUFF_COUNTER - 1
+  end
 end
 
 OneBuff = class(function(self, player, idx, buff)
     self.player = player
     self.idx = idx
     self.buff = buff
+    if GO_HARD then
+      BUFF_COUNTER = (BUFF_COUNTER or 0) + 1
+    end
   end)
 
 function OneBuff:apply()
   local gb = GlobalBuff(self.player)
   gb.field[self.player][self.idx] = self.buff
+  gb:apply()
+  if GO_HARD then
+    BUFF_COUNTER = BUFF_COUNTER - 1
+  end
+end
+
+Impact = class(function(self, player)
+    self.player = player
+    self[player] = {}
+    self[player.opponent] = {}
+  end)
+
+function Impact:apply()
+  local gb = GlobalBuff(self.player)
+  for p,slots in pairs(self) do
+    if p ~= "player" then
+      gb.field[k] = {}
+      for slot,_ in pairs(slots) do
+        gb.field[k][slot] = {}
+      end
+    end
+  end
+  gb:apply()
+end
+
+OneImpact = class(function(self, player, idx)
+    self.player = player
+    self.idx = idx
+  end)
+
+function OneImpact:apply()
+  local gb = GlobalBuff(self.player)
+  gb.field[self.player][self.idx] = {}
   gb:apply()
 end
 

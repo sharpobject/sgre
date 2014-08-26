@@ -1,26 +1,32 @@
 local json = require "dkjson"
+require "stridx"
 
 id_to_canonical_card = {}
 name_to_ids = {}
 group_to_ids = {}
 skill_text = {}
 recipes = {}
+skill_id_to_type = {}
+setmetatable(skill_id_to_type, {__index = function() return "start" end})
+
+local letter_to_skill_type = {T="start",A="attack",D="defend",B="defend"}
 
 function cards_init()
   local teh_json = file_contents("swogi.json")
-  decoded = json.decode(teh_json)
+  local decoded = json.decode(teh_json)
   decoded.id_to_card.ID = nil
   decoded.name_to_ids.NAME = nil
   decoded.name_to_ids["KR NAME"] = nil
-  cards = decoded.id_to_card
+  local cards = decoded.id_to_card
   for id,in_card in pairs(cards) do
     id = id + 0
     --print("LOADING "..id)
-    card = {}
+    local card = {}
     id_to_canonical_card[id] = card
     card.type = in_card.type:lower()
     card.faction = in_card.faction[1]
     card.name = in_card.name
+    card.episode = in_card.episode
     card.limit = in_card.limit + 0
     card.kr_name = in_card.kr_name
     card.id = in_card.id + 0
@@ -79,6 +85,12 @@ function cards_init()
 
   for k,v in pairs(decoded.skill_text) do
     skill_text[0+k] = v
+    if 0+k < 10000 then
+      local type = letter_to_skill_type[v[4]]
+      if v[4] == "B" and love then print(v) end
+      assert(type, k)
+      skill_id_to_type[0+k] = type
+    end
   end
 
   -- recipes

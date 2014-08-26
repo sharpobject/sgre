@@ -31,6 +31,7 @@ def display_info(card):
 characters = []
 spells = []
 followers = []
+materials = []
 skills = set()
 id2card = swogi['id_to_card']
 
@@ -43,6 +44,10 @@ for key in id2card.keys():
 		elif id2card[key]['type'] == 'Follower':
 			followers.append(id2card[key])
 			skills |= set(id2card[key]["skills"])
+		elif id2card[key]['type'] == 'Material':
+			materials.append(id2card[key])
+		else:
+			print id2card[key]['type']
 
 characters.sort(key=lambda card: card['id'])
 spells.sort(key=lambda card: card['id'])
@@ -65,5 +70,6 @@ if skill_only:
     print skill
 
 if id_only:
-  for card in characters+spells+(followers if not skill_only else []):
+  for card in characters+spells+(materials if not skill_only else [])+(followers if not skill_only else []):
+  #for card in materials:
     print card["id"]

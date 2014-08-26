@@ -249,12 +249,12 @@ end,
 
 -- tighten security
 [200015] = function(player)
-  local buff = GlobalBuff(player)
   local target_idx = player:field_idxs_with_preds({pred.faction.A, pred.follower})[1]
   if target_idx then
+    local buff = GlobalBuff(player)
     local def_amt = #(player:hand_idxs_with_preds({pred.faction.A}))
     local other_amt = ceil(abs(def_amt - player.field[target_idx].def)/2)
-    buff.field[player][target_idx] = {def={"=", other_amt},atk={"+", other_amt},
+    buff.field[player][target_idx] = {def={"=", def_amt},atk={"+", other_amt},
       sta={"+", other_amt}}
     buff:apply()
   end
@@ -279,9 +279,7 @@ end,
     for _,idx in ipairs({tar1,tar2}) do
       debuff.field[opponent][idx] = {atk={"-",2},sta={"-",2}}
     end
-    if tar1 then
-      debuff:apply()
-    end
+    debuff:apply()
   end
 end,
 
@@ -336,9 +334,7 @@ end,
       buff[idx].atk = {"+",3}
     end
   end
-  if #target_idxs > 0 then
-    buff:apply()
-  end
+  buff:apply()
 end,
 
 -- close encounter
@@ -355,6 +351,7 @@ end,
   end
   if my_idx and other_idx then
     opponent.field[other_idx].active = false
+    OneImpact(opponent, other_idx):apply()
   end
 end,
 
@@ -430,7 +427,7 @@ end,
         buff[i]={size={"-",1},atk={"+",2},sta={"+",2}}
       end
     end
-    if opponent.field[i] and pred.follower(opponent.field[i]) then
+    if opponent.field[i] then
       opponent.field[i].active = false
     end
   end
@@ -463,7 +460,7 @@ end,
 -- vampiric rites
 [200033] = function(player)
   local idxs = player:get_follower_idxs()
-  local debuff, buff = GlobalBuff(player), GlobalBuff(player)
+  local debuff= GlobalBuff(player)
   local buff_stats = {sta={"+",0}, atk={"+",0}, size={"+",0}}
   for _,idx in ipairs(idxs) do
     local card = player.field[idx]
@@ -480,6 +477,7 @@ end,
     pred.size, {pred.follower, pred.faction.D})[1]
   debuff:apply()
   if target_idx then
+    local buff = GlobalBuff(player)
     buff.field[player][target_idx] = buff_stats
     buff:apply()
   end
@@ -564,10 +562,10 @@ end,
     end
   end
   buff:apply()
+  -- this card is actually supposed to be able to kill something
+  -- with the first clause, then check the 2nd clause against the new
+  -- number of followers!
   local idxs = opponent:field_idxs_with_preds(pred.follower)
-  if #idxs == 0 then
-    return
-  end
   if #idxs <= 2 then
     local buff = OnePlayerBuff(opponent)
     for _,idx in ipairs(idxs) do
@@ -593,6 +591,7 @@ end,
         buff[targets[i]] = {atk={"-",2},def={"-",1},sta={"-",2}}
       end
     end
+    buff:apply()
   end
 end,
 
@@ -703,6 +702,7 @@ end,
       buff[i] = {atk={"+",3},sta={"+",3}}
     end
   end
+  buff:apply()
 end,
 
 -- magic stone found
@@ -758,7 +758,11 @@ end,
       end
     end
     if smaller ~= fake then
-      opponent:field_to_bottom_deck(sidx)
+      if pred.faction.A(player.character) then
+        opponent:field_to_grave(sidx)
+      else
+        opponent:field_to_bottom_deck(sidx)
+      end
     end
   end
 end,
@@ -786,6 +790,7 @@ end,
   if old_idx and new_idx then
     player.field[new_idx] = opponent.field[old_idx]
     opponent.field[old_idx] = nil
+    player.field[new_idx].active = false
   end
 end,
 
@@ -818,9 +823,8 @@ end,
     player:field_to_grave(idx)
   end
   -- TODO: does this pick first or at random?
-  -- should that be + 2 instead of + 3?
   local target = player:hand_idxs_with_preds({pred.follower, pred.faction.C,
-    function(card) return card.size <= #followers + 3 end })[1]
+    function(card) return card.size <= #followers + 2 end })[1]
   if target and player.field[4] == nil then
     local card = player:remove_from_hand(target)
     player.field[4] = card
@@ -841,19 +845,22 @@ end,
 
 -- luthica's ward
 [200061] = function(player, opponent)
-  local amt = 2
-  -- This 3 will later be buffed to 4...
-  for i=1,3 do
-    local idx = uniformly(player:grave_idxs_with_preds(pred.faction.C))
+  local amt = 0
+  for i=1,4 do
+    local idx = uniformly(player:grave_idxs_with_preds())
     if idx then
       player:grave_to_exile(idx)
       amt = amt + 1
     end
   end
-  local targets = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.C}))
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(#targets,2) do
-    buff[targets[i]] = {atk={"+",amt},sta={"+",amt}}
+    if pred.C(player.field[targets[i]]) then
+      buff[targets[i]] = {atk={"+",2*amt},sta={"+",2*amt}}
+    else
+      buff[targets[i]] = {atk={"+",2+amt},sta={"+",2+amt}}
+    end
   end
   buff:apply()
 end,
@@ -902,11 +909,11 @@ end,
       reduced_amount = reduced_amount + player.field[witch].atk-1
       buff.field[player][witch].atk = {"=",1}
     end
-    local target = opponent:field_idxs_with_preds(pred.follower)
+    local target = opponent:field_idxs_with_preds(pred.follower)[1]
     if target then
       buff.field[opponent][target] = {sta={"-",reduced_amount}}
     end
-	--buff:apply()
+    buff:apply()
   end
 end,
 
@@ -937,6 +944,7 @@ end,
   for i=1,min(#targets,2) do
     buff[targets[i]] = {sta={"+",ceil(total_size/2)}}
   end
+  buff:apply()
 end,
 
 -- fatal blow
@@ -1141,12 +1149,12 @@ end,
   if my_follower and target then
     opponent:field_to_grave(target)
     if my_card.size > 1 then
-      local slot = opponent:first_empty_field_slot()
-      opponent.field[slot] = deepcpy(my_card)
-      opponent.field[slot].size = opponent.field[slot].size - 1
-      opponent.field[slot].active = false
+      my_card.size = 1
+      player.field[my_idx] = nil
+      opponent:to_top_deck(my_card)
+    else
+      player:field_to_exile(my_idx)
     end
-    player:field_to_exile(my_idx)
   end
 end,
 
@@ -1154,14 +1162,18 @@ end,
 [200085] = function(player, opponent)
   local acad = player:hand_idxs_with_preds(pred.faction.A)[1]
   if acad then
+    local sent = 0
     while acad do
       player.hand[acad].size = max(player.hand[acad].size-1, 1)
       player:hand_to_bottom_deck(acad)
+      sent = sent + 1
       acad = player:hand_idxs_with_preds(pred.faction.A)[1]
     end
-    for i=1,5 do
-      if opponent.field[i] then
-        opponent.field[i].active = false
+    if sent >= 2 then
+      for i=1,5 do
+        if opponent.field[i] then
+          opponent.field[i].active = false
+        end
       end
     end
     local target = opponent:hand_idxs_with_preds(pred.spell)[1]
@@ -1246,13 +1258,19 @@ end,
 -- crux command
 [200092] = function(player, opponent)
   local targets = shuffle(player:field_idxs_with_preds(pred.follower))
-  local teh_buff = {def={"+",2},sta={"+",1}}
+  local normal_buff = {def={"+",2},sta={"+",2}}
+  local c_buff = {atk={"+",2},def={"+",2},sta={"+",2}}
   if #player.deck < 10 then
-    teh_buff = {size={"+",1},atk={"+",6},sta={"+",6}}
+    normal_buff = {size={"+",1},atk={"+",6},sta={"+",6}}
+    c_buff = normal_buff
   end
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#targets) do
-    buff[targets[i]] = teh_buff
+    if pred.C(player.field[targets[i]]) then
+      buff[targets[i]] = c_buff
+    else
+      buff[targets[i]] = normal_buff
+    end
   end
   buff:apply()
 end,
@@ -1320,6 +1338,7 @@ end,
 -- impulse
 [200098] = function(player, opponent)
   if pred.faction.D(player.character) then
+    OneBuff(player, 0, {life={"-",1}}):apply()
     local target_idxs = shuffle(opponent:field_idxs_with_preds({pred.follower}))
     if target_idxs[1] then
       OneBuff(opponent, target_idxs[1], {sta={"-",5}}):apply()
@@ -1353,15 +1372,17 @@ end,
     end
   end
   buff:apply()
-  if myspells[1] then
-    player:hand_to_grave(myspells[1])
-  end
-  if opspells[1] then
-    opponent:hand_to_grave(opspells[1])
-  end
-  local target = opponent:field_idxs_with_preds(pred.spell)[1]
-  if target then
-    opponent:field_to_grave(target)
+  if pred.D(player.character) then
+    if myspells[1] then
+      player:hand_to_grave(myspells[1])
+    end
+    if opspells[1] then
+      opponent:hand_to_grave(opspells[1])
+    end
+    local targets = opponent:field_idxs_with_preds(pred.spell)
+    for i=1,#targets do
+      opponent:field_to_grave(targets[i])
+    end
   end
 end,
 
@@ -1405,6 +1426,7 @@ end,
     local buff_amt = 0
     if player.field[2] then buff_amt = buff_amt + player.field[2].size end
     if player.field[4] then buff_amt = buff_amt + player.field[4].size end
+    buff_amt = min(buff_amt, 8)
     OneBuff(player, 5, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
   end
 end,
@@ -1522,8 +1544,8 @@ end,
     local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
     -- For the rest of the spell to happen, we need a vampire and an empty slot.
     local slot = player:first_empty_field_slot()
-    local vampires = player:field_idxs_with_preds(pred.union(
-      pred.scardel, pred.crescent, pred.flina))
+    local vampires = player:field_idxs_with_preds(pred.follower,
+      pred.union(pred.scardel, pred.crescent, pred.flina))
     if slot and #vampires > 0 then
       player.field[slot] = card
       local buff_amt = 0
@@ -1540,6 +1562,9 @@ end,
 
 -- final answer
 [200111] = function(player, opponent)
+  if not pred.D(player.character) then
+    return
+  end
   local target = opponent:field_idxs_with_most_and_preds(
       function(card) return card.atk + card.sta end, pred.follower)[1]
   local amt = #player.hand + #opponent.hand
@@ -1778,7 +1803,7 @@ end,
   end
 end,
 
--- fast forward
+-- extreme acceleration
 [200126] = function(player, opponent, my_idx, my_card)
   local buff_amt = 0
   for i=1,5 do
@@ -1788,8 +1813,9 @@ end,
     end
   end
   local targets = player:field_idxs_with_preds(pred.follower)
+  local target = targets[#targets]
   if target then
-    OneBuff(player, targets[#targets], {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
+    OneBuff(player, target, {atk={"+",buff_amt},sta={"+",buff_amt}}):apply()
   end
 end,
 
@@ -1800,14 +1826,18 @@ end,
     player:hand_to_bottom_deck(hand_idxs[#hand_idxs-1])
     player:hand_to_bottom_deck(hand_idxs[#hand_idxs]-1)
     local targets = opponent:field_idxs_with_preds(pred.follower)
-    local buff = OnePlayerBuff(opponent)
     for i=1,2 do
       if targets[i] then
-        buff[targets[i]] = {sta={"-",2}}
         opponent.field[targets[i]].active = false
       end
     end
     if #player:field_idxs_with_preds(pred.union(pred.knight, pred.blue_cross)) > 0 then
+      local buff = OnePlayerBuff(opponent)
+      for i=1,2 do
+        if targets[i] then
+          buff[targets[i]] = {sta={"-",2}}
+        end
+      end
       buff:apply()
     end
   end
@@ -1862,9 +1892,9 @@ end,
 
 -- false delivery
 [200131] = function(player, opponent, my_idx, my_card)
-  for _,p in ipairs(player, opponent) do
+  for _,p in ipairs({player, opponent}) do
     for i=1,5 do
-      while p.hand[i].faction ~= p.character.faction do
+      while p.hand[i] and p.hand[i].faction ~= p.character.faction do
         p:hand_to_grave(i)
       end
     end
@@ -1878,6 +1908,9 @@ end,
       local slot = player:first_empty_field_slot()
       player:hand_to_field(1)
       player.field[slot].size = random(2,3)
+      if pred.spell(player.field[slot]) then
+        player.field[slot].active = false
+      end
     end
   end
 end,
@@ -1903,6 +1936,7 @@ end,
       buff.sta[2] = 3
     end
     OneBuff(player, target, buff):apply()
+    player.field[target].active = false
   end
 end,
 
@@ -1931,7 +1965,7 @@ end,
 
 -- dress up ride
 [200137] = function(player, opponent, my_idx, my_card)
-  if #player:field_idxs_with_preds(pred.dress_up) > 0 then
+  if #player:field_idxs_with_preds(pred.dress_up, pred.follower) > 0 then
     local target = player:deck_idxs_with_preds(pred.dress_up, pred.follower)[1]
     local slot = player:first_empty_field_slot()
     if slot and target then
@@ -1949,13 +1983,15 @@ end,
       #opp_spell > 0 then
     local nlife = #opp_spell
     for _,idx in ipairs(opp_spell) do
-      opponent:field_to_grave(idx)
+      opponent:field_to_bottom_deck(idx)
     end
-    OneBuff(opponent, 0, {life={"-",nlife}}):apply()
+    OneBuff(player, 0, {life={"-",nlife}}):apply()
   elseif #opp_spell == 0 then
     local nlife = #my_spell
     for _,idx in ipairs(my_spell) do
-      player:field_to_grave(idx)
+      if idx ~= my_idx then
+        player:field_to_bottom_deck(idx)
+      end
     end
     OneBuff(player, 0, {life={"-",nlife}}):apply()
   end
@@ -1968,6 +2004,10 @@ end,
         function(card) return card.size >= 3 and card.size <= 5 end)
     for _,idx in ipairs(targets) do
       opponent:field_to_grave(idx)
+    end
+    targets = player:field_idxs_with_preds(pred.neg(pred.D), pred.follower)
+    for _,idx in ipairs(targets) do
+      player:field_to_grave(idx)
     end
   end
 end,
@@ -2056,16 +2096,21 @@ end,
 
 -- secret art: wind slash
 [200146] = function(player, opponent, my_idx, my_card)
-  local cards = opponent:field_idxs_with_preds()
+  local cards = shuffle(opponent:field_idxs_with_preds())
   local followers = opponent:field_idxs_with_preds(pred.follower)
-  local teh_buff = {sta={"-",floor(#cards/2)}}
+  local teh_buff = {}
   if pred.sita(player.character) then
     teh_buff.def = {"-", #cards}
+    for _,idx in ipairs(cards) do
+      opponent.field[idx].active = false
+    end
+  else
+    teh_buff.sta = {"-", min(2, #cards)}
+    for i=1,min(2, #cards) do
+      opponent.field[cards[i]].active = false
+    end
   end
   local buff = OnePlayerBuff(opponent)
-  for _,idx in ipairs(cards) do
-    opponent.field[idx].active = false
-  end
   for _,idx in ipairs(followers) do
     buff[idx]=teh_buff
   end
@@ -2164,7 +2209,7 @@ end,
   if pred.A(player.character) then
     local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if target then
-      -- opponent.field[target].active = false
+      opponent.field[target].active = false
       OneBuff(opponent, target, {sta={"-",8-my_card.size}}):apply()
     end
     if my_card.size < 3 and #player.hand < 5 then
@@ -2254,7 +2299,7 @@ end,
     local nlife = 0
     for i=1,5 do
       local card = opponent.field[i]
-      if card and pred.follower(card) and (card.size + player.game.turn + i) % 2 == 1 then
+      if card and (card.size + player.game.turn + i) % 2 == 1 then
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
@@ -2337,13 +2382,19 @@ end,
   if pred.D(player.character) then
     amt = floor(amt/2)
   end
-  local targets = opponent:field_idxs_with_preds(pred.follower,
-      function(card) return card.atk + card.sta >= 22 end)
-  local buff = OnePlayerBuff(opponent)
-  for _,idx in ipairs(targets) do
-    buff[idx] = {atk={"=",amt},sta={"=",amt}}
+  local target = opponent:field_idxs_with_preds(pred.follower,
+      function(card)
+        local sz = Card(card.id).size
+        if sz >= 6 then
+          return card.atk + card.sta >= 32
+        end
+        return card.atk + card.sta >= 22
+      end)[1]
+  if target then
+    local buff = OnePlayerBuff(opponent)
+    buff[target] = {atk={"=",amt},sta={"=",amt}}
+    buff:apply()
   end
-  buff:apply()
 end,
 
 -- lago de cisnes
@@ -2357,8 +2408,8 @@ end,
   end
   buff:apply()
   if pred.iri(player.character) then
+    local buff = OnePlayerBuff(opponent)
     for _,idx in ipairs(targets) do
-      local card = opponent.field[idx]
       buff[idx] = {atk={"-",2},def={"-",2},sta={"-",2}}
     end
     buff:apply()
@@ -2446,12 +2497,12 @@ end,
 
 -- encounter
 [200178] = function(player, opponent, my_idx, my_card)
-  local amt = 1
-  for _,p in ipairs({player, opponent}) do
-    local idxs = p:field_idxs_with_preds(pred.spell)
-    for _,idx in ipairs(idxs) do
-      amt = amt + 1
-      p:field_to_grave(idx)
+  local amt = 2
+  local idxs = opponent:field_idxs_with_preds(pred.spell)
+  for _,idx in ipairs(idxs) do
+    amt = amt + 1
+    if pred.V(player.character) then
+      opponent:field_to_exile(idx)
     end
   end
   local targets = player:field_idxs_with_preds(pred.follower)
@@ -2466,17 +2517,17 @@ end,
 
 -- pursuit of perfection
 [200179] = function(player, opponent, my_idx, my_card)
-  local idxs = player:field_idxs_with_preds(pred.follower, pred.A,
-      function(card) return card.size <= 2 end)
-  local buff = GlobalBuff(player)
-  local atk,sta = 0,0
-  for _,idx in ipairs(idxs) do
-    buff.field[player][idx] = {atk={"=",1},sta={"=",1}}
-    atk = atk + (player.field[idx].atk - 1)
-    sta = sta + (player.field[idx].sta - 1)
-  end
   local target = player:hand_idxs_with_preds(pred.follower, pred.A)[1]
   if target then
+    local idxs = player:field_idxs_with_preds(pred.follower, pred.A,
+        function(card) return card.size <= 2 end)
+    local buff = GlobalBuff(player)
+    local atk,sta = 0,0
+    for _,idx in ipairs(idxs) do
+      buff.field[player][idx] = {atk={"=",1},sta={"=",1}}
+      atk = atk + (player.field[idx].atk - 1)
+      sta = sta + (player.field[idx].sta - 1)
+    end
     buff.hand[player][target] = {atk={"+",ceil(atk/2)},sta={"+",ceil(sta/2)}}
     buff:apply()
   end
@@ -2639,7 +2690,7 @@ end,
 [200192] = function(player, opponent, my_idx, my_card)
   local my_buff = {sta={"+",5}}
   if pred.C(player.character) then
-    my_buff.atk = {"+",1}
+    my_buff.atk = {"+",2}
   end
   local buff = GlobalBuff(player)
   local my_idxs = player:field_idxs_with_preds(pred.follower)
@@ -2741,7 +2792,8 @@ end,
 
 -- showdown
 [200199] = function(player, opponent, my_idx, my_card)
-  if pred.D(player.character) then
+  if pred.D(player.character) and
+      #player:field_idxs_with_preds(pred.follower, pred.D) > 0 then
     local buff = GlobalBuff(player)
     for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
       buff.field[player][idx] = {size={"=",1},atk={"=",6},sta={"=",6}}
@@ -2811,7 +2863,6 @@ end,
 -- broken land
 [200204] = function(player, opponent, my_idx, my_card)
   local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.V}))
-  local buff = OnePlayerBuff(player)
   for i=1,2 do
     if target_idxs[i] then
       player.field[target_idxs[i]]:gain_skill(1149)
@@ -2971,6 +3022,7 @@ end,
           buff = buff + other_card.size
         end
       end
+      buff = min(buff, 8)
       OneBuff(player, i, {atk={"+",buff},sta={"+",buff}}):apply()
       break
     end
@@ -3182,7 +3234,7 @@ end,
   local target = player:field_idxs_with_preds(pred.follower, pred.A)[1]
   if target then
     local buff = {}
-    local orig = Card(player.field[target].id, player.field[target].upgrade_lvl)
+    local orig = Card(player.field[target].id)
     for _,stat in ipairs({"atk","def","sta"}) do
       if player.field[target][stat] < orig[stat] then
         buff[stat] = {"=",orig[stat]}
@@ -3233,7 +3285,7 @@ their Size and 4
 ]]
 [200230] = function(player)
   local buff = OnePlayerBuff(player)
-  local idxs = player:field_idxs_with_preds(pred.follower)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   for i=1,min(3,#idxs) do
     buff[idxs[i]] = {atk={"+",abs(4-player.field[idxs[i]].size)},
         sta={"+",abs(4-player.field[idxs[i]].size)}}
@@ -3269,11 +3321,11 @@ If the card's SIZE <= 3 a Follower named Zombie with the skill Death is created 
 Otherwise, a Follower named Devil Lady is created in your first empty slot
 ]]
 [200233] = function(player, opponent)
-  if not opponent.grave[1] then
+  if #opponent.grave == 0 then
     return
   end
-  local mag = opponent.grave[1].size
-  opponent:grave_to_exile(1)
+  local mag = opponent.grave[#opponent.grave].size
+  opponent:grave_to_exile(#opponent.grave)
   local idx = player:first_empty_field_slot()
   if not idx then
     return
@@ -3773,8 +3825,8 @@ end,
 
 -- artificer
 [200270] = function(player, opponent, my_idx, my_card)
-  targets = shuffle(player:field_idxs_with_preds(pred.follower, pred.seeker))
-  buff = OnePlayerBuff(player)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower, pred.seeker))
+  local buff = OnePlayerBuff(player)
   for i=1,2 do
     if targets[i] then
       local amt = #player.field[targets[i]]:squished_skills() + 1
@@ -6035,14 +6087,15 @@ Shaman's Message
   local a_mag = mag % 10
   local s_mag = floor(mag / 10)
   local buff = GlobalBuff(player)
-  local idx = player:hand_idxs_with_preds(pred.follower)
+  local idx = player:hand_idxs_with_preds(pred.follower)[1]
   if idx then
     buff.hand[player][idx] = {atk={"+",a_mag},sta={"+",s_mag}}
   end
-  idx = player:deck_idxs_with_preds(pred.follower)
+  idx = player:deck_idxs_with_preds(pred.follower)[1]
   if idx then
     buff.deck[player][idx] = {atk={"+",a_mag},sta={"+",s_mag}}
   end
+  buff:apply()
   player:field_to_exile(my_idx)
 end,
 
@@ -6623,8 +6676,9 @@ Witchification Plans
 [200430] = function(player, opponent)
   local pred_faction = function(card) return card.faction ~= opponent.character.faction end
   local mag = 0
-  for i=1,min(3,#opponent:grave_idxs_with_preds(pred_faction)) do
-    opponent:grave_to_exile()
+  local idxs = reverse(opponent:grave_idxs_with_preds(pred_faction))
+  for i=1,min(3,#idxs) do
+    opponent:grave_to_exile(idxs[i])
     mag = mag + 1
   end
   OneBuff(player, 0, {life={"+",mag}}):apply()
@@ -6640,6 +6694,7 @@ Down with the Queen
   for i=1,min(2,#idxs) do
     buff[idxs[i]] = {atk={"+",mag},sta={"+",mag}}
   end
+  buff:apply()
   if my_card.size == 1 then
     player:field_to_exile(my_idx)
     return
@@ -6648,6 +6703,7 @@ Down with the Queen
   if not idx then
     return
   end
+  my_card.active = false
   player.field[my_idx], opponent.field[idx] = nil, my_card
   OneBuff(opponent, idx, {size={"-",2}}):apply()
 end,

@@ -1,4 +1,7 @@
+require "cards"
+local recipes = recipes
 local ceil = math.ceil
+local xmutable = require "xmutable"
 
 function wait(n)
   n = n or 1
@@ -10,12 +13,16 @@ end
 local main_select_boss, main_play, main_go_hard, main_login
 local main_mxm, main_register, main_forgot_password
 local main_modal_notice, main_select_faction, main_lobby
-local main_fight, main_decks
+local main_fight, main_decks, main_xmute
+local main_cafe, main_craft, main_dungeon
 
 frames = {}
 local frames = frames
 
+local gobacktodungeon
+
 function fmainloop()
+  --local func, arg = main_craft, nil
   local func, arg = main_login, nil
   --local func, arg = main_go_hard, nil
   while true do
@@ -37,15 +44,10 @@ function str_to_deck(s)
 end
 
 local file_to_deck = function(s)
-  local file, err = io.open(ABSOLUTE_PATH.."decks"..PATH_SEP..s..".txt", "r")
-  if file then
-    s = file:read("*a")
-    file:close()
-  else
-    file = love.filesystem.newFile("decks/"..s..".txt")
-    file:open("r")
-    s = file:read(file:getSize())
-  end
+  file = love.filesystem.newFile("decks/"..s..".txt")
+  file:open("r")
+  s = file:read(file:getSize())
+  file:close()
   return str_to_deck(s)
 end
 
@@ -72,14 +74,22 @@ end
 local function go_hard()
   Player.user_act = Player.ai_act
   GO_HARD = true
+  BUFF_COUNTER = 0
   wait = function() end
   game = Game(get_deck(), get_deck())
 end
 
 function main_go_hard()
+  local strictness = require 'strictness'
+  for _,t in ipairs({skill_func, spell_func, characters_func}) do
+    for k,v in pairs(t) do
+      t[k] = strictness.strictf(v)
+    end
+  end
   while true do
     go_hard()
     game:run()
+    coroutine.yield()
   end
 end
 
@@ -383,7 +393,6 @@ function main_forgot_password(email, password)
         from_forgot_password = {main_login, {textinput1:GetText(),
           frames.forgot_password.password}}
       end
-      -- TODO from_login = {main_forgot_password, {textinput1:GetText()}}
     end
   end
 
@@ -452,6 +461,7 @@ function rewards(data)
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState("playing")
   frame:Center()
   
   -- make text in frame
@@ -472,7 +482,7 @@ function rewards(data)
 
   -- spit out rewards received from msg.  if there are too many rewards, let it scroll
   local rewards_list = loveframes.Create("list", frame)
-  local test_button = card_list_button(300001, 0, 1, function() end)
+  local test_button = card_list_button(300001, false, 1, function() end)
   local card_width = test_button:GetWidth()
   local spacing = 5
   local ncards = 0
@@ -481,14 +491,17 @@ function rewards(data)
   rewards_list:SetSpacing(spacing)
   for i, v in pairs(data) do 
     ncards = ncards + 1
-    rewards_list:AddItem(card_list_button(i, 0, v, function() end))
   end
+  if ncards < 1 then
+    rewards_list:Remove()
+  end
+
   local width = math.min(ncards * card_width + (ncards - 1) * spacing, spacing * 4 + card_width * 5 + 15) -- 15 is scrollbar width
   rewards_list:SetWidth(width)
   rewards_list:CenterX()
   rewards_list:CenterY()
-  if ncards < 1 then
-    rewards_list:Remove()
+  for i, v in pairs(data) do 
+    rewards_list:AddItem(card_list_button(i, false, v, function() end))
   end
 
   -- sit around and wait until 'close' is true, then remove this frame
@@ -571,7 +584,7 @@ function main_lobby()
       net_send({type="join_fight"})
     end
     table.insert(frames.lobby.game_buttons, button)
-
+--[[
     local button = loveframes.Create("button")
     button:SetPos(50,0)
     button:SetSize(50, 50)
@@ -623,12 +636,40 @@ function main_lobby()
     table.insert(frames.lobby.game_buttons, button)
 
     local button = loveframes.Create("button")
+    button:SetPos(300,0)
+    button:SetSize(50, 50)
+    button:SetText("SIGMA")
+    button:SetState("lobby")
+    button.OnClick = function()
+      net_send({type="dungeon", idx=7})
+    end
+    table.insert(frames.lobby.game_buttons, button)
+]]
+    local button = loveframes.Create("button")
     button:SetPos(700,0)
     button:SetSize(50, 50)
     button:SetText("CAFE")
     button:SetState("lobby")
     button.OnClick = function()
+      if frames.cafe then
+        frames.cafe.populate_cafe_card_list()
+        frames.cafe.update_feeding_list()
+        frames.cafe.refresh_stats_pane()
+      end
       from_lobby = {main_cafe}
+    end
+
+    local button = loveframes.Create("button")
+    button:SetPos(750, 100)
+    button:SetSize(50, 50)
+    button:SetText("XMUTE")
+    button:SetState("lobby")
+    button.OnClick = function()
+      if frames.xmute then
+        frames.xmute.xmute_type = nil
+        frames.xmute.populate_xmutable_card_list()
+      end
+      from_lobby = {main_xmute}
     end
 
     local button = loveframes.Create("button")
@@ -648,6 +689,16 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_craft}
     end
+    
+    local button = loveframes.Create("button")
+    button:SetPos(50,0)
+    button:SetSize(70, 50)
+    button:SetText("DUNGEON")
+    button:SetState("lobby")
+    button.OnClick = function()
+      from_lobby = {main_dungeon}
+    end
+    table.insert(frames.lobby.game_buttons, button)
   end
 
   local enable_buttons = check_active_deck()
@@ -656,12 +707,24 @@ function main_lobby()
   end
 
   loveframes.SetState("lobby")
+  
+  -- goes back to dungeon select screen after a dungeon battle
+  if gobacktodungeon then
+    gobacktodungeon = false
+    from_lobby = {main_dungeon}
+  end
 
   while true do
     wait()
     if net_q:len() ~= 0 then
       local msg = net_q:pop()
       if msg.type=="game_start" then
+        -- check if dungeon, prepare to return to dungeon select screen if so
+        if from_dungeon then
+          gobacktodungeon = true
+          frames.dungeon = from_dungeon
+          from_dungeon = false
+        end
         from_lobby = {main_fight, {msg}}
       end
     end
@@ -705,11 +768,17 @@ local function deck_cmp(a, b)
   return false
 end
 
+local function name_cmp(a, b)
+  return id_to_canonical_card[a].name:lower() <
+      id_to_canonical_card[b].name:lower()
+end
+
 local from_craft = nil
 function main_craft()
   if not frames.craft then
     frames.craft = {}
     frames.craft.page_num = 1
+    frames.craft.stack = {}
 
     local list, text = get_hover_list_text("craft")
     frames.craft.card_text_list = list
@@ -736,17 +805,186 @@ function main_craft()
     craft_pane.Draw = function(self)
       draw_hover_frame(self.x, self.y, self.width, self.height)
     end
+  
 
-    local craft_card_list = loveframes.Create("list", craft_pane)
-    craft_card_list:SetWidth(w-12)
-    craft_card_list:Center()
-    craft_card_list:SetY(60)
-    craft_card_list:SetHeight(480)
-    craft_card_list:SetPadding(0)
-    craft_card_list:SetSpacing(0)
-    function craft_card_list:Draw() end
+    local text_card_list = loveframes.Create("list", craft_pane)
+    text_card_list:SetWidth(w-12)
+    text_card_list:Center()
+    text_card_list:SetY(60)
+    text_card_list:SetHeight(480)
+    text_card_list:SetPadding(0)
+    text_card_list:SetSpacing(0)
+    function text_card_list:Draw() end
 
     function frames.craft.update_list()
+      local substr = ""
+      if craft_search_bar then substr = craft_search_bar:GetText() end
+      if substr ~= "" then
+        frames.craft.populate_text_card_list(recipes, substr, true)
+        frames.craft.populate_card_list(recipes, substr)
+      else
+        frames.craft.populate_text_card_list(recipes)
+        frames.craft.populate_card_list(recipes)
+      end
+    end
+
+    function frames.craft.spawn_craft_frame(id)
+      if frames.craft.craft_frame then
+        return
+      end
+      local frame = loveframes.Create("frame")
+      frames.craft.craft_frame = frame
+      frame:SetName("Let's craft the "..id_to_canonical_card[id].name)
+      frame:SetSize(400, 400)
+      frame:ShowCloseButton(false)
+      frame:SetDraggable(false)
+      frame:SetState("craft")
+      frame:SetModal(true)
+      loveframes.modalobject.modalbackground:SetState("craft")
+      frame:Center()
+
+      local in_list = loveframes.Create("list", frame)
+      local test_button = card_list_button(300001, false, 1, function() end)
+      local card_width = test_button:GetWidth()
+      local card_height = test_button:GetHeight()
+      local spacing = 5
+      local ncards = 0
+      in_list:EnableHorizontalStacking(true)
+      in_list:SetSpacing(spacing)
+      local width = spacing * 3 + card_width * 4
+      local height = spacing + card_height * 2
+      in_list:SetWidth(width)
+      in_list:SetHeight(height)
+      frame:SetWidth(width+2*spacing+2)
+      frame:SetHeight(30 + height + spacing+card_height+spacing+1)
+      frame:Center()
+      for i, v in pairs(recipes[id]) do 
+        local coll_amt = frames.craft.collection[i] or 0
+        local gray = coll_amt < v
+        in_list:AddItem(card_list_button(i, gray, coll_amt.."/"..v,
+          function()
+            if recipes[i] then
+              local stack = frames.craft.stack
+              stack[#stack+1] = id
+              frame:SetModal(false)
+              frame:Remove()
+              frames.craft.craft_frame = nil
+              frames.craft.spawn_craft_frame(i)
+            end
+          end))
+        ncards = ncards + 1
+      end
+      in_list:CenterX()
+      in_list:SetY(30)
+      function in_list.Draw() end
+
+      local out_card = card_list_button(id, false, nil, function() end)
+      out_card:SetParent(frame)
+      out_card:SetY(30+2*spacing+2*card_height)
+      out_card:SetX(math.floor(spacing+1+(card_width+spacing)/2))
+
+      local back_button
+      local craft_button = loveframes.Create("button", frame)
+      craft_button:SetText("Craft!")
+      craft_button:SetWidth(card_width)
+      craft_button:SetHeight(card_height/2)
+      craft_button:SetX(out_card:GetStaticX()+spacing+card_width)
+      craft_button:SetY(out_card:GetStaticY()+card_height/4)
+      craft_button.OnClick = function()
+        net_send({type="craft", id=id})
+        function frames.craft.enable_buttons()
+          craft_button:SetEnabled(true)
+          back_button:SetEnabled(true)
+          frames.craft.collection = collection_ex_deck(
+              user_data.collection, union_counters(user_data.decks))
+          for _,button in pairs(in_list.children) do
+            button:SetEnabled(true)
+            local have_amt = frames.craft.collection[button.card_id] or 0
+            local req_amt = recipes[id][button.card_id]
+            button:set_count(have_amt.."/"..req_amt)
+            button:set_gray(have_amt < req_amt)
+          end
+          for k,v in pairs(recipes[id]) do
+            if (frames.craft.collection[k] or 0) < v then
+              craft_button:SetEnabled(false)
+              break
+            end
+          end
+          frames.craft.enable_buttons = nil
+        end
+        craft_button:SetEnabled(false)
+        back_button:SetEnabled(false)
+        for _,button in pairs(in_list.children) do
+          button:SetEnabled(false)
+        end
+      end
+
+      for k,v in pairs(recipes[id]) do
+        if (frames.craft.collection[k] or 0) < v then
+          craft_button:SetEnabled(false)
+          break
+        end
+      end
+
+      back_button = loveframes.Create("button", frame)
+      back_button:SetText("Close")
+      back_button:SetWidth(card_width)
+      back_button:SetHeight(card_height/2)
+      back_button:SetX(out_card:GetStaticX()+2*spacing+2*card_width)
+      back_button:SetY(out_card:GetStaticY()+card_height/4)
+      back_button.OnClick = function()
+        frame:SetModal(false)
+        frame:Remove()
+        frames.craft.craft_frame = nil
+        local stack = frames.craft.stack
+        if #stack > 0 then
+          frames.craft.spawn_craft_frame(stack[#stack])
+          stack[#stack] = nil
+        end
+      end
+
+    end
+
+    function frames.craft.populate_text_card_list(recipes)
+      for k,v in spairs(recipes, name_cmp) do
+        text_card_list:AddItem(deck_card_list_button(k, 0, v, function()
+          frames.craft.spawn_craft_frame(k)
+        end))
+      end
+    
+    complete_card_list = deepcpy(text_card_list)
+      frames.craft.populate_text_card_list = function(recipes, substr, search_changed) 
+      if substr and search_changed then
+        text_card_list:Clear()
+        for k,v in spairs(recipes, name_cmp) do
+          local comparing_card = Card(k, 0)
+          local card_name = string.lower(comparing_card.name)
+          local card_skill_text = ""
+          if skill_text[k] then card_skill_text = string.lower(skill_text[k]) end
+          if comparing_card.type == "follower" then
+            local skills = comparing_card.skills or {}
+            for i=1,3 do
+              if skills[i] then
+                if skill_text[skills[i]] then
+                  card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
+                end
+              end
+              if i < 3 then
+                card_skill_text = card_skill_text .. "\n\n"
+              end
+            end
+          end
+          if string.find(card_name, substr) or string.find(card_skill_text, substr) then
+            text_card_list:AddItem(deck_card_list_button(k, 0, v, function()
+            frames.craft.spawn_craft_frame(k)
+            end))
+          end
+        end
+      elseif search_changed and not substr then
+        text_card_list = deepcpy(complete_card_list)
+      end
+    end
+    
     end
 
     local card_list = loveframes.Create("list")
@@ -763,7 +1001,7 @@ function main_craft()
     local lbutton = loveframes.Create("button")
     lbutton:SetState("craft")
     lbutton:SetX((800 - (craft_pane:GetX()*2+craft_pane:GetWidth())) - 2*button_width - 5)
-    lbutton:SetY(570)
+    lbutton:SetY(530)
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
@@ -774,17 +1012,50 @@ function main_craft()
     local rbutton = loveframes.Create("button")
     rbutton:SetState("craft")
     rbutton:SetX((800 - (craft_pane:GetX()*2+craft_pane:GetWidth())) - button_width)
-    rbutton:SetY(570)
+    rbutton:SetY(530)
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
       frames.craft.page_num = frames.craft.page_num + 1
       frames.craft.update_list()
     end
-
-    function frames.craft.populate_card_list(collection)
+    add_search_bar(craft_pane)
+    add_craft_filters()
+  
+    function frames.craft.populate_card_list(collection, substr)
       card_list:Clear()
-      local coll = tspairs(collection)
+      local coll2 = tspairs(collection, deck_cmp)
+      local coll = {}
+      local collindex = 1
+      for i=1,#coll2 do
+        filtering = Card(coll2[i][1], 0)
+        local card_skill_text = ""
+        if skill_text[filtering.id] then card_skill_text = string.lower(skill_text[filtering.id]) end
+        if filtering.type == "follower" then
+          local skills = filtering.skills or {}
+          for i=1,3 do
+            if skills[i] then
+              if skill_text[skills[i]] then
+                card_skill_text = card_skill_text .. string.lower(skill_text[skills[i]])
+              end
+            end
+            if i < 3 then
+              card_skill_text = card_skill_text .. "\n\n"
+            end
+          end
+        end
+        if ((not craft_filter_values[1]) or craft_filter_values[1] == filtering.type)
+            and ((not craft_filter_values[2]) or craft_filter_values[2] == filtering.episode)
+            and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
+            and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
+            and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size)
+            and ((not substr) or string.find(string.lower(filtering.name), substr) 
+            or string.find(card_skill_text, substr)) then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
+      end
+      
       frames.craft.npages = ceil(#coll/16)
       if frames.craft.npages > 0 then
         frames.craft.page_num = bound(1,frames.craft.page_num,frames.craft.npages)
@@ -795,14 +1066,23 @@ function main_craft()
       for i=lbound,lbound+15 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
-          -- TODO: open a popup that lets you craft this card
+        card_list:AddItem(card_list_button(k, false, v, function()
+          frames.craft.spawn_craft_frame(k)
         end))
       end
     end
   end
 
+  frames.craft.collection = collection_ex_deck(
+      user_data.collection, union_counters(user_data.decks))
+    
+    
+  list_init = true
+  frames.craft.update_list(recipes)
+  
+
   loveframes.SetState("craft")
+  reset_filters("craft")
   while true do
     wait()
     if from_craft then
@@ -877,17 +1157,6 @@ function main_decks()
     deck_card_list:SetSpacing(0)
     function deck_card_list:Draw() end
 
-    local function deck_cmp(a, b)
-      -- a<b
-      a, b = tostring(a), tostring(b)
-      if a[1]==b[1] then
-        return tonumber(a)<tonumber(b)
-      end
-      if a[1] == "1" then return true end
-      if b[1] == "1" then return false end
-      if a[1] == "3" then return true end
-      return false
-    end
 
     function frames.decks.update_list()
       frames.decks.populate_deck_card_list(frames.decks.deck)
@@ -921,7 +1190,7 @@ function main_decks()
     local lbutton = loveframes.Create("button")
     lbutton:SetState("decks")
     lbutton:SetX((800 - (deck_pane:GetX()*2+deck_pane:GetWidth())) - 2*button_width - 5)
-    lbutton:SetY(570)
+    lbutton:SetY(530)
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
@@ -932,7 +1201,7 @@ function main_decks()
     local rbutton = loveframes.Create("button")
     rbutton:SetState("decks")
     rbutton:SetX((800 - (deck_pane:GetX()*2+deck_pane:GetWidth())) - button_width)
-    rbutton:SetY(570)
+    rbutton:SetY(530)
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
@@ -949,10 +1218,25 @@ function main_decks()
       end
       return n < 30 and ((deck[id] or 0) < Card(id).limit)
     end
+  
+    add_decks_filters()
 
     function frames.decks.populate_card_list(collection)
       card_list:Clear()
-      local coll = tspairs(collection)
+      local coll2 = tspairs(collection, deck_cmp)
+      local coll = {}
+      local collindex = 1
+      for i=1,#coll2 do
+        filtering = Card(coll2[i][1], 0)
+        if ((not decks_filter_values[1]) or decks_filter_values[1] == filtering.type)
+            and ((not decks_filter_values[2]) or decks_filter_values[2] == filtering.episode)
+            and ((not decks_filter_values[3]) or decks_filter_values[3] == filtering.rarity)
+            and ((not decks_filter_values[4]) or decks_filter_values[4] == filtering.faction)
+            and ((not decks_filter_values[5]) or decks_filter_values[5] == filtering.size) then
+          coll[collindex] = coll2[i]
+          collindex = collindex + 1
+        end
+      end
       frames.decks.npages = ceil(#coll/16)
       if frames.decks.npages > 0 then
         frames.decks.page_num = bound(1,frames.decks.page_num,frames.decks.npages)
@@ -963,7 +1247,7 @@ function main_decks()
       for i=lbound,lbound+15 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
+        card_list:AddItem(card_list_button(k, false, v, function()
           if Card(k).limit == 0 then return end
           if k < 200000 then
             local current_char = get_char(frames.decks.deck)
@@ -986,10 +1270,9 @@ function main_decks()
       end
     end
 
-    local checkbox_width = 20
 
     local multichoice = loveframes.Create("multichoice", deck_pane)
-    multichoice:SetWidth(w - 18 - checkbox_width)
+    multichoice:SetWidth(w - 12)
     multichoice:SetPos(6, 6)
     local nums = arr_to_set(procat("0123456789"))
     function multichoice:OnChoiceSelected(choice)
@@ -1002,33 +1285,27 @@ function main_decks()
         if not nums[chr] then break end
         idx = idx*10 + tonumber(chr)
       end
+      user_data.active_deck = idx
+      net_send({type="set_active_deck", idx=idx})
       frames.decks.idx = idx
       frames.decks.populate_deck_card_list(user_data.decks[idx] or {})
       frames.decks.populate_card_list(collection_ex_deck(
           user_data.collection, frames.decks.deck))
     end
     frames.decks.multichoice = multichoice
-
-    local checkbox = loveframes.Create("checkbox", deck_pane)
-    checkbox:SetPos(12+multichoice:GetWidth(), 6+2)
   end
 
   local multichoice = frames.decks.multichoice
   multichoice:Clear()
   for i=1,#user_data.decks do
     local str = "Deck "..i
-    if i == user_data.active_deck then
-      str = str .. " (active)"
-    end
     multichoice:AddChoice(str)
   end
-  if #user_data.decks < 0 then
-    multichoice:AddChoice("New Deck")
-  end
-  local current_str = "Deck "..user_data.active_deck.." (active)"
+  local current_str = "Deck "..user_data.active_deck
   multichoice:SelectChoice(current_str)
 
   loveframes.SetState("decks")
+  reset_filters("decks")
   while true do
     wait()
     if from_decks then
@@ -1046,8 +1323,8 @@ function main_cafe()
   if not frames.cafe then
     frames.cafe = {}
     frames.cafe.page_num = 1
-    frames.cafe.active_character_card_id = nil
-    frames.cafe.active_character_cafe_id = nil
+    frames.cafe.active_character_card_id = false
+    frames.cafe.active_character_cafe_id = false
     frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
 
     -- list of cafe cards on the left
@@ -1092,8 +1369,7 @@ function main_cafe()
           cafe_card_list:AddItem(deck_card_list_button(card_id, 0, 1, function()
               frames.cafe.active_character_card_id = card_id
               frames.cafe.active_character_cafe_id = cafe_id
-              frames.cafe.active_character_stats = stats
-              frames.cafe.redraw_stats_pane(card_id, stats)
+              frames.cafe.refresh_stats_pane()
             end))
         end
       end
@@ -1109,9 +1385,8 @@ function main_cafe()
           if uncafe_number > 0 then
             cafe_card_list:AddItem(deck_card_list_button(card_id, 0, uncafe_number, function()
                 frames.cafe.active_character_card_id = card_id
-                frames.cafe.active_character_cafe_id = nil
-                frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
-                frames.cafe.redraw_stats_pane(card_id, {0, 0, 0, 0, 0})
+                frames.cafe.active_character_cafe_id = false
+                frames.cafe.refresh_stats_pane()
               end))
           end
         end
@@ -1120,10 +1395,7 @@ function main_cafe()
     frames.cafe.populate_cafe_card_list()
 
     -- stats pane in upper-middle
-    function frames.cafe.redraw_stats_pane(card_id, stats)
-      if frames.cafe.stats_pane then
-        frames.cafe.stats_pane:Remove()
-      end
+    function frames.cafe.draw_stats_pane(card_id, stats)
       local stats_pane = loveframes.Create("frame")
       frames.cafe.stats_pane = stats_pane
       stats_pane:SetName("Stats")
@@ -1132,9 +1404,8 @@ function main_cafe()
       stats_pane:SetSize(380, 200)
       stats_pane:ShowCloseButton(false)
       stats_pane:SetDraggable(false)
-      local texts = {"Wisdom: ", "Sensitivity: ", "Glamour: ", "Personality: ", "Like: "}
-      local values = frames.cafe.active_character_stats
-      local maximums = {400, 400, 400, 400, 100}
+      local texts = {"Wisdom: ", "Sensitivity: ", "Personality: ", "Glamour: ", "Like: "}
+      local maximums = {500, 500, 500, 500, 100}
       for i=1,5 do
         local text = loveframes.Create("text", stats_pane)
         text:SetText(texts[i])
@@ -1146,10 +1417,10 @@ function main_cafe()
         progressbar:SetWidth(stats_pane:GetWidth()/2-10)
         progressbar:SetHeight(10)
         progressbar:SetMax(maximums[i])
-        progressbar:SetValue(values[i])
+        progressbar:SetValue(stats[i])
       end
-      if frames.cafe.active_character_card_id then
-        local card = Card(frames.cafe.active_character_card_id, 0)
+      if card_id then
+        local card = Card(card_id, 0)
         local image = loveframes.Create("image", stats_pane)
         image.card = card
         image:SetSize(80, 120)
@@ -1163,18 +1434,33 @@ function main_cafe()
         image:CenterY()
       end
     end
-    frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
+
+    function frames.cafe.refresh_stats_pane()
+      if frames.cafe.stats_pane then
+        frames.cafe.stats_pane:Remove()
+      end
+      local card_id = frames.cafe.active_character_card_id
+      local cafe_id = frames.cafe.active_character_cafe_id
+      local stats = frames.cafe.active_character_stats
+      if card_id and cafe_id then
+        stats = user_data.cafe[card_id][cafe_id]
+      else
+        stats = {0, 0, 0, 0, 0}
+      end
+      frames.cafe.draw_stats_pane(card_id, stats)
+    end
+    frames.cafe.refresh_stats_pane()
 
     --feeding area
-    local card_list = loveframes.Create("list")
-    card_list:SetState("cafe")
-    card_list:SetX(cafe_pane:GetX()*2+cafe_pane:GetWidth())
-    card_list:SetY(300)
-    card_list:SetHeight(300)
-    card_list:SetWidth(800-2*card_list:GetX())
-    card_list:EnableHorizontalStacking(true)
-    function card_list:Draw() end
-    card_list:SetSpacing(5)
+    local feeding_card_list = loveframes.Create("list")
+    feeding_card_list:SetState("cafe")
+    feeding_card_list:SetX(cafe_pane:GetX()*2+cafe_pane:GetWidth())
+    feeding_card_list:SetY(300)
+    feeding_card_list:SetHeight(300)
+    feeding_card_list:SetWidth(800-2*feeding_card_list:GetX())
+    feeding_card_list:EnableHorizontalStacking(true)
+    function feeding_card_list:Draw() end
+    feeding_card_list:SetSpacing(5)
 
     local button_width = 20
     local lbutton = loveframes.Create("button")
@@ -1204,7 +1490,7 @@ function main_cafe()
     end
 
     function frames.cafe.populate_feeding_card_list(collection)
-      card_list:Clear()
+      feeding_card_list:Clear()
       local coll = tspairs(collection)
       frames.cafe.npages = ceil(#coll/8)
       if frames.cafe.npages > 0 then
@@ -1216,8 +1502,7 @@ function main_cafe()
       for i=lbound,lbound+7 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, 0, v, function()
-            -- TODO add a check for confirm_box
+        feeding_card_list:AddItem(card_list_button(k, false, v, function()
             if not frames.cafe.active_character_card_id then
               return false
             end 
@@ -1258,41 +1543,299 @@ function main_cafe()
             yes_button:SetX(25)
             yes_button:SetText("Yes")
             yes_button.OnClick = function()  
-              if user_data.fed then
-                user_data.fed = nil
-              end
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
-              user_data.fed = "feeding"
-              --needs to wait for server to respond back with update_cafe json
+              confirm_box:Remove()
             end
           end))
       end
     end
     frames.cafe.update_feeding_list()
+
+    function frames.cafe.popup_notification(message)
+      local notification = loveframes.Create("frame", cafe)
+      frames.cafe.notification = notification
+      notification:SetState("cafe")
+      notification:SetName("Attention!")
+      notification:SetWidth(250)
+      notification:SetHeight(180)
+      notification:CenterX()
+      notification:CenterY()
+      notification:SetModal(true)
+      loveframes.modalobject.modalbackground:SetState("cafe")
+      notification:ShowCloseButton(false)
+
+      local text = loveframes.Create("text", notification)
+      text:SetText(message)
+      text:Center()
+
+      local ok_button = loveframes.Create("button", notification)
+      ok_button:SetWidth(40)
+      ok_button:SetHeight(20)
+      ok_button:SetY(120)
+      ok_button:CenterX()
+      ok_button:SetText("Okay")
+      ok_button.OnClick = function() notification:Remove() end
+    end
   end
 
   loveframes.SetState("cafe")
   while true do
     wait()
-    if user_data.fed == "feeding" then
-      wait()
-    end
-    if user_data.fed == "fed" then
-      user_data.fed = nil
-      frames.cafe.confirm_box:Remove()
-      frames.cafe.populate_cafe_card_list()
-      frames.cafe.update_feeding_list()
-      if frames.cafe.active_character_card_id and frames.cafe.active_character_cafe_id then
-        frames.cafe.active_character_stats = user_data.cafe[frames.cafe.active_character_card_id][frames.cafe.active_character_cafe_id]
-        frames.cafe.redraw_stats_pane(frames.cafe.active_character_card_id, frames.cafe.active_character_stats)
-      elseif frames.cafe.stats_pane then
-        frames.cafe.stats_pane:Remove()
-      end
-    end
-    if from_cafe and (not user_data.fed) then
+    if from_cafe then
       local ret = from_cafe
       from_cafe = nil
+      return unpack(ret)
+    end
+  end
+end
+
+
+local from_xmute = nil
+function main_xmute()
+  if not frames.xmute then
+    frames.xmute = {}
+    frames.xmute.page_num = 1
+    frames.xmute.xmute_type = nil
+
+    -- set up buttons and hover area
+    local list, text = get_hover_list_text("xmute")
+    frames.xmute.card_text_list = list
+    frames.xmute.card_text = text
+
+    local lobby_button = loveframes.Create("button")
+    frames.xmute.lobby_button = lobby_button
+    lobby_button:SetState("xmute")
+    lobby_button:SetY(list:GetY()+list:GetHeight()+5)
+    lobby_button:SetX(list:GetX())
+    lobby_button:SetWidth(list:GetWidth())
+    lobby_button:SetText("Lobby")
+    lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
+    function lobby_button:OnClick()
+      from_xmute = {main_lobby}
+    end
+
+    local xmute_pane = loveframes.Create("frame")
+    xmute_pane:SetState("xmute")
+    local x,y,w,h = left_hover_frame_pos()
+    xmute_pane:SetPos(x,y)
+    xmute_pane:SetSize(w,h)
+    xmute_pane:ShowCloseButton(false)
+    xmute_pane:SetDraggable(false)
+    xmute_pane.Draw = function(self)
+      draw_hover_frame(self.x, self.y, self.width, self.height)
+    end
+
+    local dr_button = loveframes.Create("button", xmute_pane)
+    dr_button:SetState("xmute")
+    dr_button:SetWidth(120)
+    dr_button:SetHeight(60)
+    dr_button:CenterX()
+    dr_button:SetY(math.ceil(h*0.15))
+    dr_button:SetText("Double Rares")
+    function dr_button:OnClick()
+      frames.xmute.xmute_type = "DR"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    local accessories_button = loveframes.Create("button", xmute_pane)
+    accessories_button:SetState("xmute")
+    accessories_button:SetWidth(120)
+    accessories_button:SetHeight(60)
+    accessories_button:CenterX()
+    accessories_button:SetY(math.ceil(h*0.45))
+    accessories_button:SetText("Accessories")
+    function accessories_button:OnClick()
+      frames.xmute.xmute_type = "accessory"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    local ore_button = loveframes.Create("button", xmute_pane)
+    ore_button:SetState("xmute")
+    ore_button:SetWidth(120)
+    ore_button:SetHeight(60)
+    ore_button:CenterX()
+    ore_button:SetY(math.ceil(h*0.75))
+    ore_button:SetText("Ores")
+    function ore_button:OnClick()
+      frames.xmute.xmute_type = "ore"
+      frames.xmute.populate_xmutable_card_list()
+    end
+
+    --List of transmutable cards of xmute_type
+    local xmutable_card_list = loveframes.Create("list")
+    xmutable_card_list:SetState("xmute")
+    xmutable_card_list:SetX(xmute_pane:GetX()*2+xmute_pane:GetWidth())
+    xmutable_card_list:SetY(250)
+    xmutable_card_list:SetHeight(140)
+    xmutable_card_list:SetWidth(800-2*xmutable_card_list:GetX())
+    xmutable_card_list:SetDisplayType("horizontal")
+    function xmutable_card_list:Draw() end
+    xmutable_card_list:SetSpacing(5)
+
+    function frames.xmute.populate_xmutable_card_list() 
+      local xmute_type = frames.xmute.xmute_type
+      xmutable_card_list:Clear()
+      frames.xmute.populate_xmute_to_card_list()
+      frames.xmute.draw_preview_pane()
+      frames.xmute.collection = collection_ex_deck(user_data.collection, union_counters(user_data.decks))
+      local coll = tspairs(frames.xmute.collection)
+      local card_list = {}
+      for i=1,#coll do
+        local k, v = coll[i][1],coll[i][2]
+        if xmute_type=="DR" then
+          if Card(k).rarity == "DR" and Card(k).faction ~= "N" then
+            table.insert(card_list,{k,v})
+          end
+        elseif xmute_type=="accessory" then
+          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) then
+            table.insert(card_list,{k,v})
+          end
+        elseif xmute_type=="ore" then
+          if (k >= 210008 and k <= 210012) then
+            table.insert(card_list,{k,v})
+          end
+        end
+      end
+      for i =1,#card_list do
+        local k, v = card_list[i][1],card_list[i][2]
+        xmutable_card_list:AddItem(card_list_button(k, false, v, function() 
+          frames.xmute.populate_xmute_to_card_list(xmute_type, k)
+          frames.xmute.draw_preview_pane(nil, k, xmute_type)
+          end))
+      end
+    end
+
+    --List of cards we can transmute to
+    local xmute_to_card_list = loveframes.Create("list")
+    xmute_to_card_list:SetState("xmute")
+    xmute_to_card_list:SetX(xmute_pane:GetX()*2+xmute_pane:GetWidth())
+    xmute_to_card_list:SetY(400)
+    xmute_to_card_list:SetHeight(140)
+    xmute_to_card_list:SetWidth(800-2*xmute_to_card_list:GetX())
+    xmute_to_card_list:SetDisplayType("horizontal")
+    function xmute_to_card_list:Draw() end
+    xmute_to_card_list:SetSpacing(5)
+
+    function frames.xmute.populate_xmute_to_card_list(xmute_type, from_card_id)
+      xmute_to_card_list:Clear()
+      if not xmute_type then return end
+      for k, v in pairs(xmutable[xmute_type]) do
+        if v[from_card_id] then
+          for to_card_id, _ in spairs(v) do
+            if to_card_id ~= from_card_id then
+              xmute_to_card_list:AddItem(card_list_button(to_card_id, false, nil, function() 
+                frames.xmute.draw_preview_pane(to_card_id, from_card_id, xmute_type)
+                end))
+            end
+          end
+        end
+      end
+    end
+
+    --Top area where we preview our desired xmute and quantity
+    function frames.xmute.draw_preview_pane(to_card_id, from_card_id, xmute_type)
+      if frames.xmute.preview_pane then
+        frames.xmute.preview_pane:Remove()
+      end
+
+      local multiplier = 4
+      if xmute_type == "DR" then
+        multiplier = 1
+      end
+
+      local preview_pane = loveframes.Create("frame")
+      frames.xmute.preview_pane = preview_pane
+      preview_pane:SetName("Transmute...")
+      preview_pane:SetState("xmute")
+      preview_pane:SetPos(x + w + 10, y)
+      preview_pane:SetSize(380, 200)
+      preview_pane:ShowCloseButton(false)
+      preview_pane:SetDraggable(false)
+
+      local arrow = loveframes.Create("text", preview_pane)
+      arrow:SetText("->")
+      arrow:SetPos(130, 80)
+
+      local xmute_numberbox = loveframes.Create("numberbox", preview_pane)
+      xmute_numberbox:SetPos(280, 50)
+      xmute_numberbox:SetValue(1)
+      xmute_numberbox:SetMin(0)
+      xmute_numberbox:SetMax(100)
+      local value = xmute_numberbox:GetValue()
+      frames.xmute.draw_preview_cards(to_card_id, from_card_id, value, multiplier*value)
+      xmute_numberbox.OnValueChanged = function(object, value)
+        frames.xmute.draw_preview_cards(to_card_id, from_card_id, value, multiplier*value)
+        end
+
+      local xmute_button = loveframes.Create("button", preview_pane)
+      frames.xmute.xmute_button = xmute_button
+      xmute_button:SetPos(280, 90)
+      xmute_button:SetSize(80, 40)
+      xmute_button:SetText("Transmute!")
+      xmute_button.OnClick = function() 
+        local value = xmute_numberbox:GetValue()
+        if not (frames.xmute.collection and from_card_id and to_card_id) then
+          return
+        end
+        if value * multiplier > (frames.xmute.collection[from_card_id] or 0)
+            or value < 1 then
+          return
+        end
+        net_send({type="xmute", to_card_id=to_card_id, from_card_id=from_card_id, to_card_number=value, xmute_type=xmute_type})
+        xmute_button:SetEnabled(false)
+        frames.xmute.lobby_button:SetEnabled(false)
+        end
+    end
+
+    function frames.xmute.draw_preview_cards(to_card_id, from_card_id, to_card_number, from_card_number)
+      if not frames.xmute.preview_pane then return end
+      if from_card_id then
+        local button = card_list_button(from_card_id, false, nil, function() end)
+        button:SetParent(frames.xmute.preview_pane)
+        button:SetPos(30, 30)
+        if frames.xmute.from_card_button then frames.xmute.from_card_button:Remove() end
+        frames.xmute.from_card_button = button
+      end
+      if to_card_id then
+        local button = card_list_button(to_card_id, false, nil, function() end)
+        button:SetParent(frames.xmute.preview_pane)
+        button:SetPos(160, 30)
+        if frames.xmute.to_card_id then frames.xmute.to_card_id:Remove() end
+        frames.xmute.to_card_id = button
+      end
+
+      if from_card_id and to_card_id then
+        if from_card_number then
+          local number = loveframes.Create("text", frames.xmute.preview_pane)
+          number:SetPos(60, 155)
+          number:SetText("x"..tostring(from_card_number))
+          if frames.xmute.from_card_number then frames.xmute.from_card_number:Remove() end
+          frames.xmute.from_card_number = number
+        end
+        if to_card_number then
+          local number = loveframes.Create("text", frames.xmute.preview_pane)
+          number:SetPos(190, 155)
+          number:SetText("x"..tostring(to_card_number))
+          if frames.xmute.to_card_number then frames.xmute.to_card_number:Remove() end
+          frames.xmute.to_card_number = number
+        end
+      end
+    end
+    frames.xmute.draw_preview_pane()
+
+    function frames.xmute.enable_buttons()
+      frames.xmute.lobby_button:SetEnabled(true)
+      frames.xmute.xmute_button:SetEnabled(true)
+    end
+  end
+
+  loveframes.SetState("xmute")
+  while true do
+    wait()
+    if from_xmute then
+      local ret = from_xmute
+      from_xmute = nil
       return unpack(ret)
     end
   end
@@ -1387,3 +1930,199 @@ function main_fight(msg)
   game = nil
   return main_lobby
 end
+
+local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2}, {"Advanced Dungeon", 3}, {"Bamboo Garden", 8}, {"Dream Island", 14},}
+local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10}, {"Vita Public School", 12}, {"Vivid World", 13},}
+local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11}}
+
+function main_dungeon()
+  
+  if not frames.dungeon then
+    frames.dungeon = {}
+  end
+  if not frames.dungeon.page_num then
+    frames.dungeon.page_num = 1
+  end
+  if not frames.dungeon.difficulty then
+    frames.dungeon.difficulty = easy_dungeons
+  end
+  if not frames.dungeon.showing then
+    frames.dungeon.showing = {}
+  end
+  if not frames.dungeon.showingfloor then
+    frames.dungeon.showingfloor = {}
+  end
+  if not frames.dungeon.showingclear then
+    frames.dungeon.showingclear = {}
+  end
+    
+  local frame = loveframes.Create("frame")
+  frame:SetName("Dungeons")
+  frame:SetState("lobby")
+  frame:SetSize(600, 450)
+  frame:ShowCloseButton(false)
+  frame:SetDraggable(false)
+  frame:Center()
+  frame:SetModal(true)
+  loveframes.modalobject.modalbackground:SetState("lobby")
+  
+
+  local prevbutton = loveframes.Create("button", frame)
+  prevbutton:SetPos(10, 400)
+  prevbutton:SetSize(30, 30)
+  prevbutton:SetText("<")
+  function prevbutton:OnClick()
+    if frames.dungeon.page_num > 1 then
+      frames.dungeon.page_num = frames.dungeon.page_num - 1
+    end
+    update_dungeon_list(frame)
+  end
+    
+  local nextbutton = loveframes.Create("button", frame)
+  nextbutton:SetPos(70, 400)
+  nextbutton:SetSize(30, 30)
+  nextbutton:SetText(">")
+  function nextbutton:OnClick()
+    if frames.dungeon.page_num < ceil(#frames.dungeon.difficulty / 4) then
+      frames.dungeon.page_num = frames.dungeon.page_num + 1
+    end
+    update_dungeon_list(frame)
+  end
+    
+  local easybutton, normalbutton, hardbutton
+  easybutton = loveframes.Create("button", frame)
+  easybutton:SetPos(135, 400)
+  easybutton:SetSize(80, 30)
+  easybutton:SetText("EASY")
+  easybutton:SetEnabled(false)
+  function easybutton:OnClick()
+    frames.dungeon.difficulty = easy_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
+  end
+    
+  normalbutton = loveframes.Create("button", frame)
+  normalbutton:SetPos(245, 400)
+  normalbutton:SetSize(80, 30)
+  normalbutton:SetText("NORMAL")
+  function normalbutton:OnClick()
+    frames.dungeon.difficulty = normal_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
+  end
+    
+  hardbutton = loveframes.Create("button", frame)
+  hardbutton:SetPos(355, 400)
+  hardbutton:SetSize(80, 30)
+  hardbutton:SetText("HARD")
+  function hardbutton:OnClick()
+    frames.dungeon.difficulty = hard_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
+  end
+    
+  local closebutton = loveframes.Create("button", frame)
+  closebutton:SetPos(520, 400)
+  closebutton:SetSize(60, 30)
+  closebutton:SetText("CLOSE")
+  function closebutton:OnClick() 
+    from_dungeon = {main_lobby}
+    close = true
+  end 
+    
+  function update_dungeon_list(frame)
+
+    local index = 1   
+    while frames.dungeon.showing[index] do
+      frames.dungeon.showing[index]:Remove()
+      frames.dungeon.showing[index] = nil
+      index = index + 1
+    end
+    
+    index = 1
+    if frames.dungeon.difficulty == easy_dungeons then
+      normalbutton:SetEnabled(true)
+      hardbutton:SetEnabled(true)
+      easybutton:SetEnabled(false)
+    elseif frames.dungeon.difficulty == normal_dungeons then
+      normalbutton:SetEnabled(false)
+      hardbutton:SetEnabled(true)
+      easybutton:SetEnabled(true)
+    else
+      normalbutton:SetEnabled(true)
+      hardbutton:SetEnabled(false)
+      easybutton:SetEnabled(true)
+    end
+    while index < 5 do
+      local currentdungeon = frames.dungeon.difficulty[(frames.dungeon.page_num - 1) * 4 + index]
+      if currentdungeon then
+        local dungeon_id = currentdungeon[2]
+        local img_filename = tostring(dungeon_id)
+        while(img_filename:len() < 3) do
+          img_filename = "0"..img_filename
+        end
+        img_filename = "en_dungeon_icon_"..img_filename..".png"
+        local image = loveframes.Create("button", frame)
+        image:SetSize(121, 255)
+        image:SetX(28 + 136 * (index - 1))
+        image:CenterY()
+        image.OnClick = function()
+          from_dungeon = "start game"
+          net_send({type="dungeon", idx=dungeon_id})
+        end
+        image.Draw = function(self)
+          local x = self:GetX()
+          local y = self:GetY()
+          love.graphics.setColor(255, 255, 255, 255)
+          love.graphics.draw(load_asset(img_filename), x, y)
+        end
+      
+        local text = loveframes.Create("text", frame)
+        local text2 = loveframes.Create("text", frame)
+        
+        text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
+        text:SetX(63 + 136 * (index - 1))
+        text:SetY(355)
+      
+        text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
+        text2:SetX(62 + 136 * (index - 1))
+        text2:SetY(370)
+        
+        frames.dungeon.showing[#frames.dungeon.showing+1] = image
+        frames.dungeon.showing[#frames.dungeon.showing+1] = text
+        frames.dungeon.showing[#frames.dungeon.showing+1] = text2
+        
+        index = index + 1
+      else
+        break
+      end
+    end
+    local pagetext = loveframes.Create("text", frame)
+    pagetext:SetPos(45, 410)
+    pagetext:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
+    frames.dungeon.showing[#frames.dungeon.showing+1] = pagetext
+  end 
+    
+  update_dungeon_list(frame)
+    
+  while true do
+    wait()
+    
+    if from_dungeon == "start game" then
+      --a dungeon was entered, prepare for battle
+      local ret = {main_lobby}
+      from_dungeon = frames.dungeon
+      frame:Remove()
+      return unpack(ret)
+    elseif from_dungeon then
+      --close button was clicked, so return to lobby
+      local ret = from_dungeon
+      from_dungeon = nil
+      frame:Remove()
+      
+      return unpack(ret)
+    end
+  end
+end
+
+
