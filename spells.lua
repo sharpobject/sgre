@@ -3022,6 +3022,7 @@ end,
           buff = buff + other_card.size
         end
       end
+      buff = min(buff, 8)
       OneBuff(player, i, {atk={"+",buff},sta={"+",buff}}):apply()
       break
     end
@@ -3233,7 +3234,7 @@ end,
   local target = player:field_idxs_with_preds(pred.follower, pred.A)[1]
   if target then
     local buff = {}
-    local orig = Card(player.field[target].id, player.field[target].upgrade_lvl)
+    local orig = Card(player.field[target].id)
     for _,stat in ipairs({"atk","def","sta"}) do
       if player.field[target][stat] < orig[stat] then
         buff[stat] = {"=",orig[stat]}
@@ -3284,7 +3285,7 @@ their Size and 4
 ]]
 [200230] = function(player)
   local buff = OnePlayerBuff(player)
-  local idxs = player:field_idxs_with_preds(pred.follower)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   for i=1,min(3,#idxs) do
     buff[idxs[i]] = {atk={"+",abs(4-player.field[idxs[i]].size)},
         sta={"+",abs(4-player.field[idxs[i]].size)}}
@@ -3320,11 +3321,11 @@ If the card's SIZE <= 3 a Follower named Zombie with the skill Death is created 
 Otherwise, a Follower named Devil Lady is created in your first empty slot
 ]]
 [200233] = function(player, opponent)
-  if not opponent.grave[1] then
+  if #opponent.grave == 0 then
     return
   end
-  local mag = opponent.grave[1].size
-  opponent:grave_to_exile(1)
+  local mag = opponent.grave[#opponent.grave].size
+  opponent:grave_to_exile(#opponent.grave)
   local idx = player:first_empty_field_slot()
   if not idx then
     return

@@ -1798,10 +1798,12 @@ end,
 -- shock lady elberto, shock!
 [1160] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
+  local n = 0
   for _,idx in ipairs(player.opponent:field_idxs_with_preds(pred.follower)) do
     buff.field[player.opponent][idx] = {sta={"-",1}}
+    n = n + 1
   end
-  buff.field[player][my_idx] = {atk={"+",1}}
+  buff.field[player][my_idx] = {sta={"+",ceil(n/2)}}
   buff:apply()
 end,
 
@@ -1909,6 +1911,7 @@ end,
 -- Search for a New Book
 [1177] = function(player, my_idx, my_card, skill_idx)
   local mag = #player:hand_idxs_with_preds(pred.library_club) - 1
+  mag = max(0, mag)
   OneBuff(player, my_idx, {atk={"+", mag},sta={"+", mag}}):apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
@@ -1935,8 +1938,9 @@ end,
 end,
 
 -- Master Servant Pact
-[1181] = function(player, my_idx)
+[1181] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, my_idx, {sta={"=", min(player.character.life, 15)}}):apply()
+  my_card.skills[skill_idx] = nil
 end,
 
 -- Bleeding
@@ -1952,15 +1956,13 @@ end,
 
 -- Amnesia
 [1184] = function(player, my_idx, my_card)
-  for i=1,3 do
-    my_card:remove_skill(i)
-  end
+  my_card.skills = {}
 end,
 
 -- Cycle of Defense
 [1185] = function(player, my_idx, my_card)
   local mag = my_card.def <= 1 and 2 or my_card.def == 2 and 3 or 1
-  OneBuff(player, my_idx, {sta={"=", mag}}):apply()
+  OneBuff(player, my_idx, {def={"=", mag}}):apply()
 end,
 
 -- Dark Destruction

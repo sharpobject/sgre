@@ -2812,7 +2812,7 @@ end,
 [110125] = function(player, opponent)
   local buff = GlobalBuff(player)
   buff.field[opponent][0] = {life={"-", 2}}
-  buff.field[player][0] = {life={"+", 1}}
+  buff.field[player][0] = {life={"-", 1}}
   buff:apply()
 end,
 
