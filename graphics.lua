@@ -207,6 +207,23 @@ function draw_border(x,y,w,h)
   love.graphics.draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
 end
 
+function draw_border_hover(x,y,w,h)
+--secondary border layout for menus and hovers
+--commit test. not yet used
+  love.graphics.setColor(255, 255, 255)
+  local cx, cy = 3+4,2+4
+  local c, cw, ch = load_asset("border-1.png")
+  love.graphics.draw(load_asset("border-left.png"), x-4, y, 0, 1, h)
+  love.graphics.draw(load_asset("border-right.png"), x+w, y, 0, 1, h)
+  love.graphics.draw(load_asset("border-top.png"), x, y-4, 0, w, 1)
+  love.graphics.draw(load_asset("border-bottom.png"), x, y+h, 0, w, 1)
+  love.graphics.draw(load_asset("ornament-a-1.png"), x-cx-3, y-cy-7)
+  love.graphics.draw(load_asset("ornament-a-2.png"), x+w+cx-cw+2, y-cy-7)
+  love.graphics.draw(load_asset("border-3.png"), x-cx, y+h+cy-ch)
+  love.graphics.draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
+end
+
+
 field_x, field_y = 16, 10
 local field_x, field_y = field_x, field_y
 function Game:draw_field()
