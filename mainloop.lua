@@ -575,7 +575,8 @@ function main_lobby()
 
     frames.lobby.game_buttons = {}
 
-    local button = loveframes.Create("button")
+
+	local button = loveframes.Create("button")
     button:SetPos(0,0)
     button:SetSize(50, 50)
     button:SetText("Fite")
@@ -583,6 +584,8 @@ function main_lobby()
     button.OnClick = function()
       net_send({type="join_fight"})
     end
+
+	--local button = menu_fight_button(725,175)	
     table.insert(frames.lobby.game_buttons, button)
 --[[
     local button = loveframes.Create("button")
@@ -672,7 +675,7 @@ function main_lobby()
       from_lobby = {main_xmute}
     end
 
-    local button = loveframes.Create("button")
+   local button = loveframes.Create("button")
     button:SetPos(750,0)
     button:SetSize(50, 50)
     button:SetText("DECKS")
@@ -680,6 +683,7 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_decks}
     end
+	--local button = menu_deck_button(725,250)	
 
     local button = loveframes.Create("button")
     button:SetPos(750,50)
@@ -698,6 +702,7 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_dungeon}
     end
+	--local button = menu_dungeon_button(725,100)	
     table.insert(frames.lobby.game_buttons, button)
   end
 

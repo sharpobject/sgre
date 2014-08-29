@@ -209,7 +209,8 @@ end
 
 function draw_border_hover(x,y,w,h)
 --secondary border layout for menus and hovers
---commit test. not yet used
+--called by: draw_hover_frame()
+--TODO: work out the numbers so that they seem less arbitary 
   love.graphics.setColor(255, 255, 255)
   local cx, cy = 3+4,2+4
   local c, cw, ch = load_asset("border-1.png")
@@ -255,7 +256,7 @@ function draw_hover_frame(x,y,w,h)
   end
   love.graphics.setColor(254, 226, 106)
   love.graphics.rectangle("fill", x, y, w, h)
-  draw_border(x, y, w, h)
+  draw_border_hover(x, y, w, h)
 end
 
 function left_hover_frame_pos()
@@ -534,6 +535,55 @@ function faction_button(faction, x, y)
   end
   return button
 end
+
+--[[ replace text buttons with image buttons; underdevelopment 
+function menu_fight_button(x, y)
+	local button = loveframes.Create("imagebutton")
+	button:SetX(x)
+	button:SetY(y)
+	button:SetState("lobby")
+	button.Draw = function(self)
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.draw(load_asset("fight.png"), x-1-1, y-1)
+	end
+	button.OnClick = function()
+      net_send({type="join_fight"})
+    end
+	
+	return button
+end
+
+function menu_dungeon_button(x, y)
+	local button = loveframes.Create("imagebutton")
+	button:SetX(x)
+	button:SetY(y)
+	button:SetState("lobby")
+	button.Draw = function(self)
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.draw(load_asset("dungeon.png"), x-1, y-1)
+	end
+    button.OnClick = function()
+      from_lobby = {main_dungeon}
+    end
+	
+	return button
+end
+
+function menu_deck_button(x, y)
+	local button = loveframes.Create("imagebutton")
+	button:SetX(x)
+	button:SetY(y)
+	button:SetState("lobby")
+	button.Draw = function(self)
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.draw(load_asset("deck.png"), x-1, y-1)
+	end
+    button.OnClick = function()
+      from_lobby = {main_decks}
+    end
+	
+	return button
+end]]
 
 local function modal_choice(prompt, lt, rt, lcb, rcb)
   prompt = prompt or "Is this prompt dumb?"
