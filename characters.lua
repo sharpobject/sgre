@@ -1561,15 +1561,7 @@ end,
 end,
 
 -- apostle l red sun
-
 [100118] = function(player, opponent, my_card)
-  --print("OMGGGGG")
-  player:to_bottom_deck(Card(300193))
-  if player.character.life < opponent.character.life then
-    OneBuff(player, 0, {life={"+",1}}):apply()
-  end
-end,
---[[[100118] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   if target then
     if #player.deck > 0 and pred.follower(player.deck[#player.deck]) then
@@ -1578,14 +1570,14 @@ end,
       OneBuff(player, target, {atk={"+",1},sta={"+",1}}):apply()
     end
   end
-end,--]]
+end,
 
 -- crux knight rosa
 [100119] = function(player, opponent, my_card)
   if #player.hand == 5 then
     player:hand_to_top_deck(1)
   end
-  local amt = min(3,5-#player.hand)
+  local amt = min(2,5-#player.hand)
   local target = player:deck_idxs_with_preds(pred.follower)[1]
   if target then
     local buff = GlobalBuff(player)
@@ -1644,6 +1636,16 @@ end,
     buff:apply()
   end
   ep7_recycle(player)
+end,
+
+-- Knight Captain Eisenwane
+[100123] = function(player, opponent)
+	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+	if idx then
+		OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+	else
+		OneBuff(opponent, 0, {life={"-", 1}}):apply()
+	end
 end,
 
 -- GS 3rd Star
@@ -3009,7 +3011,80 @@ end,
   recycle_one(player)
 end,
 
+-- Apostle Six
+[110143] = function(player)
+	local idx = player:grave_idxs_with_preds(pred.aletheian)
+	if idx and player:first_empty_field_slot() then
+		player:grave_to_field(idx)
+	end
+end,
 
+-- Apostle Isena
+[110144] = function(player, opponent)
+	local p_idx = player:first_empty_field_slot()
+	if not p_idx then
+		return
+	end
+	local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+		function(card) return card.size <= 3 end))
+	if not o_idx then
+		return
+	end
+	player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
+	player.field[p_idx]:gain_skill(1235)
+end,
+
+-- Apostle Yula
+[110145] = function(player, opponent)
+	local idxs = opponent:field_idxs_with_preds(pred.follower)
+	local idx = uniformly(idxs)
+	local mag = #idxs
+	if not idx then
+		return
+	end
+	OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+end,
+
+-- Informant Six
+[110146] = function(player)
+	local idx1 = player:grave_idxs_with_preds(pred.follower, pred.aletheian)
+	local idx2 = player:first_empty_field_slot()
+	if idx1 and idx2 then
+		player:grave_to_field(idx1)
+		OneBuff(player, idx2, {atk={"+", 3}, sta={"+", 3}}):apply()
+	end
+end,
+
+-- Obsessed Isena
+[110147] = function(player, opponent)
+	local p_idx = player:first_empty_field_slot()
+	if not p_idx then
+		return
+	end
+	local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+		function(card) return card.size <= 3 end))
+	if o_idx then
+		player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
+		player.field[p_idx]:gain_skill(1235)
+	end
+	o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+	if o_idx then
+		OneBuff(opponent, o_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
+	end
+end,
+
+-- Wealthy Yula
+[110148] = function(player, opponent)
+	for i=1,3 do
+		local idxs = opponent:field_idxs_with_preds(pred.follower)
+		local idx = uniformly(idxs)
+		local mag = #idxs
+		if not idx then
+			return
+		end
+		OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+	end
+end,
 
 -- sarah
 [110149] = function(player, opponent, my_card)
@@ -3606,5 +3681,21 @@ end,
     opponent:field_to_bottom_deck(idx)
   end
 end,
+
+-- Apostle L Red Sun
+[120016] = function(player)
+	local idx1 = uniformly(player:grave_idxs_with_preds(pred.follower))
+	local idx2 = player:first_empty_field_slot()
+	if idx1 and idx2 then
+		player:grave_to_field(idx1)
+		OneBuff(player, idx2, {size={"=", 1}, atk={"+", 3}, sta={"+", 3}}):apply()
+	end
+	if #player.grave > 0 then
+		idx1 = random(#player.grave)
+		player:grave_to_bottom_deck(idx1)
+	end
+end
+
+-- Do not touch that curly brace!
 }
 setmetatable(characters_func, {__index = function()return function() end end})
