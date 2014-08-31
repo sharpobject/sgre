@@ -177,7 +177,7 @@ function Player:upkeep_phase()
           if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
             error("oh no")
           end
-          self.game:snapshot()
+          self.game:snapshot(nil, nil, true)
           self:check_hand()
           self.opponent:check_hand()
         end
@@ -825,7 +825,7 @@ function Player:combat_round()
     --print("Got attack target! "..target_idx)
     self:follower_combat_round(idx, target_idx)
     card.active = false
-    self.game:snapshot()
+    self.game:snapshot(nil, nil, true)
   else
     self.send_spell_to_grave = true
     print("About to run spell func for id "..card.id)
@@ -845,8 +845,8 @@ function Player:combat_round()
     --print("Just ran spell func for id "..card.id)
     if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
-      self.game:snapshot()
     end
+    self.game:snapshot(nil,nil,true)
   end
 end
 
@@ -1124,7 +1124,7 @@ do
   end
 end
 
-function Game:snapshot(buff_msg, atk_msg)
+function Game:snapshot(buff_msg, atk_msg, can_lose)
   if self.client or self.winner then
     return
   end
@@ -1167,23 +1167,25 @@ function Game:snapshot(buff_msg, atk_msg)
   self.state_view = new_view
   --print(json.encode(new_view))
 
-  if self.P1.character.life <= 0 then
-    self.P1.lose = true
-  end
-  if self.P2.character.life <= 0 then
-    self.P2.lose = true
-  end
-  local winner = nil
-  if self.P1.lose and self.P2.lose then
-    winner = self.active_player
-  elseif self.P1.lose then
-    winner = 2
-  elseif self.P2.lose then
-    winner = 1
-  end
+  if can_lose then
+    if self.P1.character.life <= 0 then
+      self.P1.lose = true
+    end
+    if self.P2.character.life <= 0 then
+      self.P2.lose = true
+    end
+    local winner = nil
+    if self.P1.lose and self.P2.lose then
+      winner = self.active_player
+    elseif self.P1.lose then
+      winner = 2
+    elseif self.P2.lose then
+      winner = 1
+    end
 
-  if winner then
-    self:game_over(winner)
+    if winner then
+      self:game_over(winner)
+    end
   end
 end
 
@@ -1371,7 +1373,7 @@ function Game:run()
     end
     P1:draw_phase()
     P2:draw_phase()
-    self:snapshot()
+    self:snapshot(nil, nil, true)
     self:wait_for_clients()
     if self.winner then
       return self.winner

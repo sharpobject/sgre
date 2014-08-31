@@ -1981,17 +1981,10 @@ end,
 
 -- Sacrificial Defense
 [1188] = function(player, my_idx)
+  OneBuff(player, my_idx, {sta={"-", 2}}):apply()
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
-  if not idx then
-    return
-  end
-  if idx == my_idx then
-    OneBuff(player, my_idx, {atk={"+", 2}}):apply()
-  else
-    local buff = OnePlayerBuff(player)
-    buff[idx] = {atk={"+", 2}, sta={"+", 2}}
-    buff[my_idx] = {sta={"-", 2}}
-    buff:apply()
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
   end
 end,
 
