@@ -3012,7 +3012,7 @@ end,
 end,
 
 -- Apostle Six
-[110143] := function(player)
+[110143] = function(player)
   local idx = player:grave_idxs_with_preds(pred.aletheian)[1]
   if idx and player:first_empty_field_slot() then
     player:grave_to_field(idx)
