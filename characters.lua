@@ -3012,8 +3012,8 @@ end,
 end,
 
 -- Apostle Six
-[110143] = function(player)
-	local idx = player:grave_idxs_with_preds(pred.aletheian)
+[110143] := function(player)
+	local idx = player:grave_idxs_with_preds(pred.aletheian)[1]
 	if idx and player:first_empty_field_slot() then
 		player:grave_to_field(idx)
 	end
@@ -3047,7 +3047,7 @@ end,
 
 -- Informant Six
 [110146] = function(player)
-	local idx1 = player:grave_idxs_with_preds(pred.follower, pred.aletheian)
+	local idx1 = player:grave_idxs_with_preds(pred.follower, pred.aletheian)[1]
 	local idx2 = player:first_empty_field_slot()
 	if idx1 and idx2 then
 		player:grave_to_field(idx1)
@@ -3058,15 +3058,14 @@ end,
 -- Obsessed Isena
 [110147] = function(player, opponent)
 	local p_idx = player:first_empty_field_slot()
-	if not p_idx then
-		return
-	end
-	local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
-		function(card) return card.size <= 3 end))
-	if o_idx then
-		player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
-		player.field[p_idx]:gain_skill(1235)
-	end
+	if p_idx then
+    local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+      function(card) return card.size <= 3 end))
+    if o_idx then
+      player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
+      player.field[p_idx]:gain_skill(1235)
+    end
+  end
 	o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
 	if o_idx then
 		OneBuff(opponent, o_idx, {atk={"-", 2}, sta={"-", 2}}):apply()

@@ -2020,8 +2020,17 @@ end,
         #player:hand_idxs_with_preds(pred[name]) > 0)
   end
   if go then
-    local target = player:field_idxs_with_preds(pred.follower)
-    OneBuff(player, target, {atk={"+",4},sta={"+",4}}):apply()
+    local any_pred = pred.union(pred.lucca, pred.milka, pred.serie)
+    local buff = GlobalBuff(player)
+    local idxs = player:field_idxs_with_preds(pred.follower, any_pred)
+    for _,idx in ipairs(idxs) do
+      buff.field[player][idx] = {atk={"+",3},sta={"+",3}}
+    end
+    idxs = player:hand_idxs_with_preds(pred.follower)
+    for _,idx in ipairs(idxs) do
+      buff.hand[player][idx] = {atk={"+",3},sta={"+",3}}
+    end
+    buff:apply()
   end
 end,
 
