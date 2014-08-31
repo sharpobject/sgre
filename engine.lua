@@ -1322,7 +1322,7 @@ function Player:receive(msg)
     self.ready = false
   elseif msg.type == "forfeit" then
     self.lose = true
-    self.game:snapshot()
+    self.game:snapshot(nil, nil, true)
   else
     print("Got an unexpected message in player:receive "..json.encode(msg))
   end
