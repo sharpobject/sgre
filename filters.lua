@@ -244,21 +244,21 @@ end
 function reset_filters(state)
   if state == "craft" then
     craft_filters[1]:SelectChoice("Type")
-	craft_filters[2]:SelectChoice("Episode")
-	craft_filters[3]:SelectChoice("Rarity")
-	craft_filters[4]:SelectChoice("Faction")
-	craft_filters[5]:SelectChoice("Size")
-	for i=1,5 do craft_filter_values[i] = nil end
-	craft_search_bar:SetText("")
-	substr = ""
-	frames.craft.populate_text_card_list(recipes, substr, true)
+  craft_filters[2]:SelectChoice("Episode")
+  craft_filters[3]:SelectChoice("Rarity")
+  craft_filters[4]:SelectChoice("Faction")
+  craft_filters[5]:SelectChoice("Size")
+  for i=1,5 do craft_filter_values[i] = nil end
+  craft_search_bar:SetText("")
+  substr = ""
+  frames.craft.populate_text_card_list(recipes, substr, true)
   elseif state == "decks" then
     decks_filters[1]:SelectChoice("Type")
-	decks_filters[2]:SelectChoice("Episode")
-	decks_filters[3]:SelectChoice("Rarity")
-	decks_filters[4]:SelectChoice("Faction")
-	decks_filters[5]:SelectChoice("Size")
-	for i=1,5 do decks_filter_values[i] = nil end
+  decks_filters[2]:SelectChoice("Episode")
+  decks_filters[3]:SelectChoice("Rarity")
+  decks_filters[4]:SelectChoice("Faction")
+  decks_filters[5]:SelectChoice("Size")
+  for i=1,5 do decks_filter_values[i] = nil end
   end
 end
 
@@ -270,8 +270,8 @@ function add_search_bar(pane)
   craft_search_bar:SetPos(math.floor(pane:GetWidth()*0.1),10)
   function craft_search_bar:OnTextChanged(key)
     substr = string.lower(craft_search_bar:GetText())
-	frames.craft.populate_text_card_list(recipes, substr, true)
-	frames.craft.populate_card_list(recipes, substr)
+  frames.craft.populate_text_card_list(recipes, substr, true)
+  frames.craft.populate_card_list(recipes, substr)
   end
 
 end
