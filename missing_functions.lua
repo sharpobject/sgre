@@ -6,6 +6,7 @@ require("buff")
 require("skills")
 require("spells")
 require("characters")
+require("giftable")
 recipes = fix_num_keys(json.decode(file_contents("recipes_current.json"), nil))
 npc_decks = fix_num_keys(json.decode(file_contents("npc_decks.json"), nil))
 npc_decks_manual = json.decode(file_contents("npc_decks_manual.json"))
@@ -24,6 +25,13 @@ for k,v in pairs(npc_decks) do
   cards[k] = true
   for kk,_ in pairs(v) do
     cards[kk] = true
+  end
+end
+for k,_ in pairs(cards) do
+  if giftable[k] then
+    for _,v in pairs(giftable[k]) do
+      cards[v] = true
+    end
   end
 end
 for id,_ in pairs(cards) do

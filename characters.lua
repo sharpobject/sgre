@@ -3032,6 +3032,7 @@ end,
   end
   player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
   player.field[p_idx]:gain_skill(1235)
+  player.field[p_idx].active = false
 end,
 
 -- Apostle Yula
@@ -3064,6 +3065,7 @@ end,
     if o_idx then
       player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
       player.field[p_idx]:gain_skill(1235)
+      player.field[p_idx].active = false
     end
   end
   o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
