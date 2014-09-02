@@ -3013,7 +3013,7 @@ end,
 
 -- Apostle Six
 [110143] = function(player)
-	local idx = player:grave_idxs_with_preds(pred.aletheian)
+	local idx = uniformly(player:grave_idxs_with_preds(pred.aletheian))
 	if idx and player:first_empty_field_slot() then
 		player:grave_to_field(idx)
 	end
@@ -3047,11 +3047,13 @@ end,
 
 -- Informant Six
 [110146] = function(player)
-	local idx1 = player:grave_idxs_with_preds(pred.follower, pred.aletheian)
+	local idx1 = uniformly(player:grave_idxs_with_preds(pred.follower, pred.aletheian))
 	local idx2 = player:first_empty_field_slot()
 	if idx1 and idx2 then
 		player:grave_to_field(idx1)
-		OneBuff(player, idx2, {atk={"+", 3}, sta={"+", 3}}):apply()
+		if pred.follower(player.field[idx2]( then
+			OneBuff(player, idx2, {atk={"+", 3}, sta={"+", 3}}):apply()
+		end
 	end
 end,
 
