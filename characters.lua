@@ -1703,8 +1703,8 @@ end,
 --    If the Turn Number is even, a random card in your Grave is removed from the game.
 --    If this happens, a random Follower in your Grave is sent to the bottom of your Deck.
 [100169] = function(player, opponent, my_card)
-  local buff = GlobalBuff(opponent)
   if #opponent.deck > 0 then
+    local buff = GlobalBuff(opponent)
     local target = opponent.deck[#opponent.deck]
     buff.deck[opponent][#opponent.deck] = {size={"+",1}}
     if pred.follower(target) then
@@ -1719,8 +1719,8 @@ end,
       end
     end
     buff:apply()
-    ep7_recycle(player)
   end
+  ep7_recycle(player)
 end,
 
 -- wafuku sita
