@@ -349,9 +349,6 @@ end,
 end,
 
 -- Dress Sita
---    Turn Start: If there are at least 2 cards on the enemy Field,
---      the first Follower on the enemy Field with the highest SIZE gets ATK -2/DEF -1/STA -2.
---    If there is 1 card, the first Follower in your Deck gets ATK +1/STA +2.
 [100010] = function(player)
   local nme_cards = player.opponent:ncards_in_field()
   if nme_cards == 0 then
@@ -1697,11 +1694,6 @@ end,--]]
 end,
 
 -- Dress Asmis
---    Turn Start: The first card in the enemy Deck gets SIZE +1.
---    If that card is a Follower, a random Follower in the enemy Hand gets ATK -1/STA -1.
---    If it is a Spell, a random Follower on your Field gets ATK +1/STA +1.
---    If the Turn Number is even, a random card in your Grave is removed from the game.
---    If this happens, a random Follower in your Grave is sent to the bottom of your Deck.
 [100169] = function(player, opponent, my_card)
   if #opponent.deck > 0 then
     local buff = GlobalBuff(opponent)
@@ -1720,6 +1712,23 @@ end,
     end
     buff:apply()
   end
+  ep7_recycle(player)
+end,
+
+-- Dress Linus
+[100170] = function(player, opponent, my_card)
+  local idxs = opponent:deck_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  for i=1,min(2,#idxs) do
+    buff.deck[opponent][idxs[i]] = {atk={"-",1},sta={"-",1}}
+  end
+  if #opponent.deck > 0 and opponent.deck[#opponent.deck].size <= 2 then
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      buff.field[opponent][idx] = {atk={"-",1},sta={"-",1}}
+    end
+  end
+  buff:apply()
   ep7_recycle(player)
 end,
 
