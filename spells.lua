@@ -3857,24 +3857,24 @@ end,
 -- sanctuary pillar
 [200272] = function(player, opponent, my_idx, my_card)
   local buff = OnePlayerBuff(player)
-  for _,idx in ipairs({my_idx-1,my_idx+1}) do
+  local targets = player:field_idxs_with_preds(pred.C, pred.follower)
+  for _,idx in ipairs(targets) do
     local card = player.field[idx]
-    if card and pred.follower(card) then
-      buff[idx] = {sta={"+",3}}
-      if pred.seeker(card) then
-        buff[idx].atk={"+",2}
-      end
+    buff[idx] = {sta={"+",3}}
+    if pred.seeker(card) then
+      buff[idx].atk={"+",2}
     end
   end
   buff:apply()
-  my_card.active = false
-  player.send_spell_to_grave = false
   if player.game.turn % 2 == 0 then
     local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
     if target then
       opponent.field[target].active = false
+      OneImpact(opponent, target):apply()
     end
   end
+  my_card.active = false
+  player.send_spell_to_grave = false
 end,
 
 -- meaningless research
@@ -3915,14 +3915,18 @@ end,
 -- cursed totem
 [200275] = function(player, opponent, my_idx, my_card)
   local atk,sta = {0,1,1,2,2}, {2,1,2,2,3}
-  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if target then
-    OneBuff(opponent, target, {atk={"-",atk[my_idx]},sta={"-",sta[my_idx]}}):apply()
+  local my_ncards = #player:field_idxs_with_preds()
+  local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player.opponent)
+  for i=1,min(2, #targets) do
+    buff[targets[i]] = {atk={"-",atk[my_ncards]},sta={"-",sta[my_ncards]}}
   end
+  buff:apply()
   if player.game.turn % 2 == 1 then
-    target = uniformly(opponent:field_idxs_with_preds(pred.spell))
+    local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
     if target then
       opponent.field[target].active = false
+      OneImpact(opponent, target):apply()
     end
   end
   my_card.active = false

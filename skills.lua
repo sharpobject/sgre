@@ -1551,6 +1551,7 @@ end,
 [1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
     other_card.skills = {1076}
+    my_card:remove_skill_until_refresh(skill_idx)
   end
 end,
 
@@ -2353,9 +2354,9 @@ end,
 -- magic lady chirushi, hot winds! hurricane!
 [1226] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = #player:field_idxs_with_preds(pred.lady) + #player:hand_idxs_with_preds(pred.lady)
-  if n >= 2 and n <= 3 then
-    OneBuff(player, my_idx, {atk={"+",3},sta={"+",3}}):apply()
-  elseif n >= 5 then
+  if n >= 1 and n <= 2 then
+    OneBuff(player, my_idx, {atk={"+",2},sta={"+",2}}):apply()
+  elseif n >= 4 then
     local buff = OnePlayerBuff(player.opponent)
     local targets = player.opponent:field_idxs_with_preds(pred.follower)
     for _,idx in ipairs(targets) do
