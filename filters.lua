@@ -102,7 +102,7 @@ function add_craft_filters()
   craftsizefilter:SetState(state)
   craftsizefilter:SetChoice("Size")
   craftsizefilter:AddChoice("Size")
-  for i=1,10 do
+  for i=0,10 do
     craftsizefilter:AddChoice(tostring(i))
   end
 
@@ -223,7 +223,7 @@ function add_decks_filters()
   decksizefilter:SetState(state)
   decksizefilter:SetChoice("Size")
   decksizefilter:AddChoice("Size")
-  for i=1,10 do
+  for i=0,10 do
     decksizefilter:AddChoice(tostring(i))
   end
 
