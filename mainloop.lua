@@ -555,6 +555,7 @@ function main_lobby()
     
     text = loveframes.Create("textinput", frame)
     text:SetMultiline(true)
+    text:SetAutoScroll(true)
     text.linenumbers = false
     text:SetSize(690, 435)
     text:SetPos(5, 30)
