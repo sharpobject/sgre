@@ -72417,7 +72417,7 @@
     "1153": "\u25b6Defend: This card gets STA increased by the number of adjacent cards that belong to the same faction as this card. This card gets ATK increased by half the amount of STA increased (rounding up).",
     "1154": "\u25b6Attack: The first Follower in your Deck with \"Student Council\" in the name is sent to the first empty Slot in your Hand.",
     "1155": "\u25b6Defend: The first card in your Hand with \"Student Council\" in the name is sent to the bottom of your Deck. If this happens, this card gets ATK +1/STA +2.",
-    "1156": "\u25b6Attack: The attacker's first 2 skills are copied to this card. If this happens, this card gets ATK/STA increased by the number of skills copied.",
+    "1156": "\u25b6Attack: The defender's first 2 skills are copied to this card. If this happens, this card gets ATK/STA increased by the number of skills copied.",
     "1157": "\u25b6Turn Start: This card is sent to the Grave. If this happens, a random Follower on the enemy Field whose SIZE is greater than or equal to this card's SIZE is sent to the Grave.",
     "1158": "\u25b6Attack: The first Follower in your Deck with \"Lady\" in the name is sent to the first empty Slot in your Hand.",
     "1159": "\u25b6Defend: The first card in your Hand with \"Lady\" in the name is sent to the bottom of your Deck. If this happens, this card gets ATK +1/STA +2.",
