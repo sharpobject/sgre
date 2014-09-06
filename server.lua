@@ -794,20 +794,17 @@ function Connection:feed_card(msg)
   -- check for transformation
   local transform = false
   if cafe_stats[5] > 99 then
-    if giftable[eater_id][5] and cafe_stats[1] > 200 and cafe_stats[2] > 200 and cafe_stats[3] > 200 and cafe_stats[4] > 200 then
-      cafe_stats = nil
+    local max_stat = math.max(cafe_stats[1], cafe_stats[2], cafe_stats[3], cafe_stats[4])
+    local min_stat = math.min(cafe_stats[1], cafe_stats[2], cafe_stats[3], cafe_stats[4])
+    if giftable[eater_id][5] and min_stat >= 200 then
       self:update_collection({[eater_id]=-1, [giftable[eater_id][5]]=1})
-    elseif giftable[eater_id][1] and cafe_stats[1] > cafe_stats[2] and cafe_stats[1] > cafe_stats[3] and cafe_stats[1] > cafe_stats[4] then
-      cafe_stats = nil
+    elseif giftable[eater_id][1] and cafe_stats[1] == max_stat then
       self:update_collection({[eater_id]=-1, [giftable[eater_id][1]]=1})
-    elseif giftable[eater_id][2] and cafe_stats[2] > cafe_stats[1] and cafe_stats[2] > cafe_stats[3] and cafe_stats[2] > cafe_stats[4] then
-      cafe_stats = nil
+    elseif giftable[eater_id][2] and cafe_stats[2] == max_stat  then
       self:update_collection({[eater_id]=-1, [giftable[eater_id][2]]=1})
-    elseif giftable[eater_id][3] and cafe_stats[3] > cafe_stats[1] and cafe_stats[3] > cafe_stats[2] and cafe_stats[3] > cafe_stats[4] then
-      cafe_stats = nil
+    elseif giftable[eater_id][3] and cafe_stats[3] == max_stat then
       self:update_collection({[eater_id]=-1, [giftable[eater_id][3]]=1})
-    elseif giftable[eater_id][4] and cafe_stats[4] > cafe_stats[1] and cafe_stats[4] > cafe_stats[2] and cafe_stats[4] > cafe_stats[3] then
-      cafe_stats = nil
+    elseif giftable[eater_id][4] and cafe_stats[4] == max_stat then
       self:update_collection({[eater_id]=-1, [giftable[eater_id][4]]=1})
     end
     transform = true
