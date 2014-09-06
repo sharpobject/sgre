@@ -568,8 +568,9 @@ function start_fight(aid, bid)
     end
     local rewards = {}
     local s1_accessories = {210001, 210002, 210003, 210004, 210005, 210006, 210007}
+    local s2_accessories = {210022, 210023, 210024, 210025, 210026, 210027, 210028}
     for i=1,num_accessories*reward_multiplier do
-      local acc_id = uniformly(s1_accessories)
+      local acc_id = uniformly(s2_accessories)
       rewards[acc_id] = (rewards[acc_id] or 0) + 1
     end
     self:update_collection(rewards)
