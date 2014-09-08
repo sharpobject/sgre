@@ -21,6 +21,15 @@ local s1_fight = {
   210006, -- cat doll
   210007, -- book
 }
+local s2_fight = {
+  210022, -- dagger
+  210023, -- panda doll
+  210024, -- trump
+  210025, -- gloves
+  210026, -- perfume
+  210027, -- lipstick
+  210028, -- pendant
+}
 local ore = {
   210008, -- red ore
   210009, -- green ore
@@ -37,8 +46,9 @@ local dungeon_mats = {
   210018, -- blood pack
   210019, -- good job stamp
   210020, -- spiral fragment
+  210029, -- aletheian brick
 }
-local materials = {s1_fight, ore, dungeon_mats}
+local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}
 for _,t in ipairs(materials) do
   for _,v in ipairs(t) do

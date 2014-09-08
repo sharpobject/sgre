@@ -8,4 +8,5 @@ return {
   "EP5",
   "EP6",
   "EX2",
+  "EP7",
 }
