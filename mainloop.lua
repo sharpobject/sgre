@@ -456,6 +456,7 @@ function rewards(data)
   -- make outer frame
   local frame = loveframes.Create("frame")
   frame:SetState("playing")
+  play_bgm("rewards")
   frame:SetName("Rewards!")
   frame:SetSize(500, 300)
   frame:ShowCloseButton(false)
@@ -690,23 +691,7 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_craft}
     end
-
-    local button = loveframes.Create("button")
-    button:SetPos(750,100)
-    button:SetSize(50, 50)
-    button:SetText("MUSIC")
-    button:SetState("lobby")
-    bgm_playing=false
-    music = love.audio.newSource("sg_assets/bgm/SwordGirls_Waiting_Room.mp3")
-    button.OnClick = function()
-      print("isStopped"..tostring(music:isStopped()))
-      print("isPlaying"..tostring(music:isPlaying()))
-      if not bgm_playing then
-        music:play()
-        bgm_playing = true
-      end
-    end
-
+    
     local button = loveframes.Create("button")
     button:SetPos(50,0)
     button:SetSize(70, 50)
@@ -724,7 +709,7 @@ function main_lobby()
   end
 
   loveframes.SetState("lobby")
-  
+  play_bgm("lobby")
   -- goes back to dungeon select screen after a dungeon battle
   if gobacktodungeon then
     gobacktodungeon = false
@@ -1099,6 +1084,7 @@ function main_craft()
   
 
   loveframes.SetState("craft")
+  play_bgm("other_main")
   reset_filters("craft")
   while true do
     wait()
@@ -1597,6 +1583,7 @@ function main_cafe()
   end
 
   loveframes.SetState("cafe")
+  play_bgm("other_main")
   while true do
     wait()
     if from_cafe then
@@ -1848,6 +1835,7 @@ function main_xmute()
   end
 
   loveframes.SetState("xmute")
+  play_bgm("other_main")
   while true do
     wait()
     if from_xmute then
@@ -1933,6 +1921,7 @@ end
 local from_fight = nil
 function main_fight(msg)
   loveframes.SetState("playing")
+  play_bgm("fight")
   game = Game(nil, nil, true, get_active_char())
   game.opponent_name = msg.opponent_name
   game.game_type = msg.game_type
@@ -1953,7 +1942,6 @@ local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, {"Crux Tra
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11}}
 
 function main_dungeon()
-  
   if not frames.dungeon then
     frames.dungeon = {}
   end
@@ -1982,7 +1970,7 @@ function main_dungeon()
   frame:Center()
   frame:SetModal(true)
   loveframes.modalobject.modalbackground:SetState("lobby")
-  
+  play_bgm("dungeon")
 
   local prevbutton = loveframes.Create("button", frame)
   prevbutton:SetPos(10, 400)
