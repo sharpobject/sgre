@@ -19,6 +19,7 @@ ep_cap = {
   EP5="EP5",
   EP6="EP6",
   EX2="EX2",
+  EP7="EP7",
 }
 -- Some NPCs can have more than 3 of a card. Most cannot....
 can_exceed_3 = {
