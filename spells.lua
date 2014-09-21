@@ -4300,7 +4300,7 @@ You get Shuffles +1
 [200303] = function(player)
   local mag = 5
   local buff = GlobalBuff(player)
-  local idxs = player:deck_idxs_with_preds(pred.follower)
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred.V)
   for i=1,min(mag,#idxs) do
     buff.deck[player][idxs[i]] = {atk={"+",mag},sta={"+",mag}}
     mag = mag - 1
@@ -4347,7 +4347,30 @@ The number of movements will not exceed the total number of cards on the Field
   if not pred.A(player.character) or player:field_size() < 3 then
     return
   end
-  local mag = #player:field_idxs_with_preds() + #opponent:field_idxs_with_preds()
+  local card_locations = {}
+  for i=1,5 do
+    for _,p in ipairs({player, opponent}) do
+      if p.field[i] then
+        card_locations[#card_locations+1] = {p, i}
+      end
+    end
+  end
+  local mag = #card_locations
+  if mag > 1 then
+    for i=1,mag do
+      local a_card = uniformly(card_locations)
+      local b_card = a_card
+      while b_card == a_card do
+        b_card = uniformly(card_locations)
+      end
+      local ap, ai, bp, bi = a_card[1], a_card[2], b_card[1], b_card[2]
+      local impact = Impact(player)
+      impact[ap][ai] = true
+      impact[bp][bi] = true
+      impact:apply()
+      ap.field[ai], bp.field[bi] = bp.field[bi], ap.field[ai]
+    end
+  end
 end,
 
 --[[
@@ -4390,26 +4413,19 @@ Artificial Sanctuary Experiment with SIZE=2 is created on the enemy Field
   if not pred.faction.C(player.character) then
     return
   end
-  local check = false;
   local idxs = player:field_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
     player:field_to_grave(idx)
-    check = true
   end
   idxs = opponent:field_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
     opponent:field_to_grave(idx)
-    check = true
-  end
-  if not check then
-    return
   end
   local idx = player:hand_idxs_with_preds(pred.spell)[1]
-  if not idx then
-    return
-  end
-  if player:first_empty_field_slot() then
-    player:hand_to_field(idx)
+  if idx then
+    if player:first_empty_field_slot() then
+      player:hand_to_field(idx)
+    end
   end
   idx = opponent:first_empty_field_slot()
   if not idx then
