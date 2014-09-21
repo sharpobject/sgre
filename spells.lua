@@ -2983,20 +2983,25 @@ end,
 
 -- enemy within
 [200212] = function(player, opponent, my_idx, my_card)
-  local buff = 0
+  local amt = 0
+  to_buff = {}
   for i=1,5 do
     local card = player.field[i]
     if card and pred.follower(card) and card.faction == "C" then
-      buff = buff + #card.skills
+      for j=1,3 do
+        if card.skills[j] then
+          amt = amt + 1
+          to_buff[i] = true
+        end
+      end
       card.skills = {}
     end
   end
-  for i=1,5 do
-    local card = player.field[i]
-    if card and pred.follower(card) and card.faction == "C" then
-      OneBuff(player, i, {atk={"+",buff},sta={"+",buff}}):apply()
-    end
+  local buff = OnePlayerBuff(player)
+  for i,_ in pairs(to_buff) do
+    buff[i] = {atk={"+",amt},sta={"+",amt}}
   end
+  buff:apply()
 end,
 
 -- commissioned research
@@ -3012,7 +3017,7 @@ end,
   if size then
     for i=1,5 do
       local card = opponent.field[i]
-      if card and pred.spell(card) and size < card.size then
+      if card and pred.spell(card) and card.size < size then
         opponent:field_to_bottom_deck(i)
       end
     end

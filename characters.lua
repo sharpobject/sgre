@@ -1626,7 +1626,6 @@ end,
 
 -- witch cadet linus falco
 [100122] = function(player, opponent, my_card)
-  --print("OMGGGGG LINUXXXX")
   for i=1,2 do
     local buff = GlobalBuff(player)
     local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
@@ -1650,24 +1649,11 @@ end,
 
 -- GS 3rd Star
 [100133] = function(player, opponent, my_card)
-  --print("OMGGGGG BSD")
-  for i=1,2 do
-    local buff = GlobalBuff(player)
-    local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
-    if target then
-      buff.deck[opponent][target] = {atk={"-",1},sta={"-",1}}
-    end
-    buff:apply()
-  end
-  ep7_recycle(player)
-end,
---[[[100133] = function(player, opponent, my_card)
-  print("OMGGGGG")
   player:to_bottom_deck(Card(300193))
   if player.character.life < opponent.character.life then
     OneBuff(player, 0, {life={"+",1}}):apply()
   end
-end,--]]
+end,
 
 --At the start of the turn, Crux cards are sent from the top of your Deck to your Hand until there are four cards in your Hand. Any sent Followers get ATK +1/STA +1. If no cards are sent, a random Follower in your Field gets ATK +1/STA +1.</s
 -- icy glacier

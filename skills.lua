@@ -2392,8 +2392,8 @@ end,
   local target = player.hand[1]
   if target then
     local buff = GlobalBuff(player)
-    buff.hand[player][1] = {size={"-",1}}
-    buff.field[player][my_idx] = {sta={"+",target.size}}
+    buff.hand[player][1] = {size={"-",2}}
+    buff.field[player][my_idx] = {sta={"+",1+target.size}}
     buff:apply()
     player:hand_to_top_deck(1)
   end
