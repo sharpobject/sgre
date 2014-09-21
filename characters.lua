@@ -1660,7 +1660,7 @@ end,
 	if player:field_size() < 5 then
 		return
 	end
-	local idx = player:field_idxs_with_preds(pred.follower)
+	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
 	local mag = pred.dress_up(player.field[idx]) and 2 or 0
 	OneBuff(player, idx, {size={"-", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
 end,
@@ -1689,14 +1689,12 @@ end,
 		end
 	else
 		local idx = player:grave_idxs_with_preds(pred.D)
+    idx = idx[#idx]
 		if not idx then
 			return
 		end
 		player:grave_to_exile(idx)
 		local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
-		if not idxs[1] then
-			return
-		end
 		local buff = OnePlayerBuff(opponent)
 		for i=1,2 do
 			if idxs[i] then
@@ -3745,14 +3743,13 @@ end,
 -- Cherum
 [110169] = function(player, opponent)
 	local idxs = opponent:field_idxs_with_preds(pred.follower)
-	if not idxs then
-		return
-	end
-	local buff = OnePlayerBuff(opponent)
 	local mag = #opponent:empty_field_slots() - 1
+  if mag <= 0 then return end
+	local buff = OnePlayerBuff(opponent)
 	for i=1,#idxs do
 		buff[idxs[i]] = {sta={"-", mag}}
 	end
+  buff:apply()
 end,
 
 -- Axis Wing Natura
@@ -3782,11 +3779,13 @@ end,
 	if not idxs then
 		return
 	end
-	local buff = OnePlayerBuff(opponent)
 	local mag = #opponent:empty_field_slots() - 1
+  if mag <= 0 then return end
+	local buff = OnePlayerBuff(opponent)
 	for i=1,#idxs do
 		buff[idxs[i]] = {atk={"-", mag}, sta={"-", mag}}
 	end
+  buff:apply()
 end,
 
 -- amethystar
@@ -4154,7 +4153,7 @@ end,
     idx1 = random(#player.grave)
     player:grave_to_bottom_deck(idx1)
   end
-end
+end,
 
 -- Knight Captain Eisenwane
 [120017] = function(player)

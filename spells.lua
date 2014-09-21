@@ -2984,7 +2984,7 @@ end,
 -- enemy within
 [200212] = function(player, opponent, my_idx, my_card)
   local amt = 0
-  to_buff = {}
+  local to_buff = {}
   for i=1,5 do
     local card = player.field[i]
     if card and pred.follower(card) and card.faction == "C" then

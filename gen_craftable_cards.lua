@@ -47,6 +47,7 @@ local dungeon_mats = {
   210019, -- good job stamp
   210020, -- spiral fragment
   210029, -- aletheian brick
+  210033, -- pass
 }
 local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}

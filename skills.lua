@@ -2971,7 +2971,7 @@ end,
 [1281] = function(player, my_idx, my_card, skill_idx)
 	if #player.hand <= 2 then
 		OneBuff(player, my_idx, {size={"+", 2}}):apply()
-	else if #player.hand >= 4 then
+	elseif #player.hand >= 4 then
 		OneBuff(player, my_idx, {}):apply()
 		my_card:remove_skill(skill_idx)
 	end
@@ -2984,15 +2984,14 @@ end,
 	end
 	local mag1 = ceil(other_card.atk / 2)
 	local mag2 = floor(mag1 / 2)
-	OneBuff(player, idx, {atk={"+", mag1}, sta={"+", mag2}}):apply()
+	OneBuff(player, my_idx, {atk={"+", mag1}, sta={"+", mag2}}):apply()
 end,
 
 -- Disruption
 [1283] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-	if not other_card or my_card.active then
-		return
-	end
-	OneBuff(opponent, other_idx, {atk={"-", 2}, sta={"+", 1}}):apply()
+  if other_card and not my_card.active then
+    OneBuff(player.opponent, other_idx, {atk={"-", 2}, sta={"+", 1}}):apply()
+  end
 end,
 
 -- The Past is Now
@@ -3001,9 +3000,7 @@ end,
 		return
 	end
 	local idxs = player:field_idxs_with_preds(pred.follower)
-	local buff = OnePlayerBuff(player)
 	for i=1,#idxs do
-		buff.field[idxs[i]] = {}
 		player.field[idxs[i]]:refresh()
 	end
 end,
@@ -3015,6 +3012,7 @@ end,
 	for i=1,#idxs do
 		buff[idxs[i]] = {sta={"+", 2}}
 	end
+  buff:apply()
 	my_card:remove_skill(skill_idx)
 end,
 
@@ -3058,28 +3056,31 @@ end,
 
 -- Summoning Magic
 [1291] = function(player, my_idx, my_card)
-	local idx = player:deck_idxs_with_preds(pred.dress_up, 
+	local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up, 
 		function(card) return card.name ~= my_card.name end)[1]
 	local idx2 = player:first_empty_field_slot()
-	if not idx or not idx2 then
-		return
-	end
-	player:deck_to_field(idx, idx2)
-	OneBuff(player, idx2, {size={"=", 5}, atk={"+", 3}, sta={"+", 3}}):apply()
-	OneBuff(player, my_idx, {}):apply()
-	player:field_to_grave(my_idx)
+  if idx and idx2 then
+    player:deck_to_field(idx, idx2)
+    OneBuff(player, idx2, {size={"=", 5}, atk={"+", 3}, sta={"+", 3}}):apply()
+    OneImpact(player, my_idx):apply()
+    player:field_to_grave(my_idx)
+  end
 end,
 
 -- Curse Attack
---[[
 [1292] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-	local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
-	if idx then
-		opponent:hand_to_top_deck(idx)
-	end
-	
+  local opponent = player.opponent
+  local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+  if idx then
+    opponent:hand_to_top_deck(idx)
+    if other_card then
+      OneBuff(opponent, other_idx, {atk={"-",1},sta={"-",1}}):apply()
+    end
+  elseif other_card then
+    OneBuff(opponent, other_idx, {atk={"-",1},sta={"-",1}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
 end,
-]]
 
 -- Curse Shift
 [1293] = function(player, my_idx, my_card, skill_idx)
