@@ -483,10 +483,10 @@ end,
   local target_idxs = player:field_idxs_with_preds(
       function(card) return card.id == 300087 end)
   if #target_idxs > 0 then
-    local buffsize = #player:field_idxs_with_preds({pred.A, pred.follower})
+    local buffsize = #player:field_idxs_with_preds({pred.A})
     local buff = OnePlayerBuff(player)
     for _,idx in ipairs(target_idxs) do
-      buff[idx] = {atk={"-",buffsize}, sta={"-",buffsize}}
+      buff[idx] = {atk={"+",buffsize}, sta={"+",buffsize}}
     end
     buff:apply()
   end

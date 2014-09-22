@@ -670,7 +670,7 @@ end,
 
 -- unwilling sacrifice
 [200048] = function(player, opponent)
-  local sac = player:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
+  local sac = player:field_idxs_with_least_and_preds(pred.sta, pred.follower, pred.A)[1]
   if sac then
     local sta = player.field[sac].sta
     player:field_to_grave(sac)
