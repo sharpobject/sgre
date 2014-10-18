@@ -10,6 +10,9 @@ function love.keypressed(key, unicode)
   if key == "f12" then
     DISPLAY_FRAMERATE = not DISPLAY_FRAMERATE
   end
+  if key == "f6" then
+    RIP_IMAGEFONTS = not RIP_IMAGEFONTS
+  end
   loveframes.keypressed(key, unicode)
 end
 

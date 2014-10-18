@@ -348,7 +348,7 @@ end,
   buff:apply()
 end,
 
---Dress Sita
+-- Dress Sita
 [100010] = function(player)
   local nme_cards = player.opponent:ncards_in_field()
   if nme_cards == 0 then
@@ -1578,7 +1578,7 @@ end,
     player:hand_to_top_deck(1)
   end
   local amt = min(2,5-#player.hand)
-  local target = player:deck_idxs_with_preds(pred.follower)[1]
+  local target = uniformly(player:deck_idxs_with_preds(pred.follower))
   if target then
     local buff = GlobalBuff(player)
     buff.deck[player][target] = {atk={"+",amt},sta={"+",amt}}
@@ -1640,12 +1640,12 @@ end,
 
 -- Knight Captain Eisenwane
 [100123] = function(player, opponent)
-	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-	if idx then
-		OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
-	else
-		OneBuff(opponent, 0, {life={"-", 1}}):apply()
-	end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  else
+    OneBuff(opponent, 0, {life={"-", 1}}):apply()
+  end
 end,
 
 -- GS 3rd Star
@@ -1745,6 +1745,45 @@ end,
   end
 end,
 
+-- Dress Asmis
+[100169] = function(player, opponent, my_card)
+  if #opponent.deck > 0 then
+    local buff = GlobalBuff(opponent)
+    local target = opponent.deck[#opponent.deck]
+    buff.deck[opponent][#opponent.deck] = {size={"+",1}}
+    if pred.follower(target) then
+      target = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+      if target then
+        buff.hand[opponent][target] = {atk={"-",1},sta={"-",1}}
+      end
+    elseif pred.spell(target) then
+      target = uniformly(player:field_idxs_with_preds(pred.follower))
+      if target then
+        OneBuff(player, target, {atk={"+",1},sta={"+",1}}):apply()
+      end
+    end
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- Dress Linus
+[100170] = function(player, opponent, my_card)
+  local idxs = opponent:deck_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  for i=1,min(2,#idxs) do
+    buff.deck[opponent][idxs[i]] = {atk={"-",1},sta={"-",1}}
+  end
+  if #opponent.deck > 0 and opponent.deck[#opponent.deck].size <= 2 then
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      buff.field[opponent][idx] = {atk={"-",1},sta={"-",1}}
+    end
+  end
+  buff:apply()
+  ep7_recycle(player)
+end,
+
 -- wafuku sita
 [100171] = hanbok_sita,
 
@@ -1768,6 +1807,319 @@ end,
 
 -- hero iri
 [100185] = hanbok_iri,
+
+-- Dress Rose
+[100193] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local def = player.deck[idx].def
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+",ceil(def/2)},sta={"+",def}}
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- Dress Helena
+[100194] = function(player, opponent, my_card)
+  local idx = opponent:deck_idxs_with_preds(pred.follower)[1]
+  local amt = min(3, #player:field_idxs_with_preds(pred.follower))
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[opponent][idx] = {atk={"-",amt}}
+    local my_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if my_idx then
+      buff.field[player][my_idx] = {atk={"+",amt}}
+    end
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- Rinshan Kaihou Asmis
+[100198] = function(player, opponent, my_card)
+  local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+  if idx and #player.hand < 5 then
+    player:deck_to_hand(idx)
+    local hidx = #player.hand
+    if player.hand[1].size == player.hand[hidx].size then
+      local buff = GlobalBuff(player)
+      buff.hand[player][hidx] = {atk={"+",2},sta={"+",3}}
+      buff:apply()
+    end
+  end
+  ep7_recycle(player)
+end,
+
+-- Baker Linus
+[100199] = function(player, opponent, my_card)
+  if player.game.turn % 2 == 1 then
+    local idx = player:grave_idxs_with_preds(pred.follower)[1]
+    local fidx = player:first_empty_field_slot()
+    if idx and fidx then
+      player:grave_to_field(idx)
+      OneBuff(player, fidx, {atk={"+",2},sta={"+",2}}):apply()
+    end
+  end
+  ep7_recycle(player)
+end,
+
+-- Horseback Rose
+[100200] = function(player, opponent, my_card)
+  if #player.hand <= 2 then
+    local idx = player:deck_idxs_with_preds(pred.follower)[1]
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {atk={"+",2},def={"+",1},sta={"+",2}}
+      buff:apply()
+    end
+  elseif #player.hand >= 4 then
+    local idx = player:field_idxs_with_preds(pred.follower)[1]
+    if idx then
+      OneBuff(player, idx, {atk={"+",2},sta={"+",2}}):apply()
+    end
+  end
+  ep7_recycle(player)
+end,
+
+-- Flower Arrangement Helena
+[100201] = function(player, opponent, my_card)
+  local amt = 0
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  for i=#player.grave-3,#player.grave do
+    if player.grave[i] and pred.follower(player.grave[i]) then
+      amt = amt + 1
+    end
+  end
+  amt = min(3, amt)
+  if idx then
+    OneBuff(player, idx, {atk={"+",amt}}):apply()
+    local my_card = player.grave[#player.grave-3]
+    local hidx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+    if my_card and hidx and player.field[idx].atk >= 10 then
+      local buff = GlobalBuff(player)
+      buff.hand[opponent][hidx] = {atk={"-",my_card.size}}
+      buff:apply()
+    end
+  end
+  ep7_recycle(player)
+end,
+
+-- Pajama Asmis
+[100213] = function(player, opponent, my_card)
+  local idx = player:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
+  if idx then
+    player.field[idx].active = false
+    OneBuff(player, idx, {size={"-",2}}):apply()
+  else
+    idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(opponent, idx, {size={"+",1}}):apply()
+    end
+  end
+end,
+
+-- Pajama Linus
+[100214] = function(player, opponent, my_card)
+  local idx = opponent:field_idxs_with_most_and_preds(pred.atk, pred.follower)[1]
+  if idx then
+    opponent.field[idx].active = false
+    OneBuff(opponent, idx, {atk={"-",2}}):apply()
+  else
+    idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {size={"+",1}}):apply()
+    end
+  end
+end,
+
+-- Pajama Rose
+[100215] = function(player, opponent, my_card)
+  local atk_pred = function(card) return card.atk <= 7 end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, atk_pred))
+  if idx then
+    player.field[idx].active = false
+    OneBuff(player, idx, {atk={"+",player.field[idx].atk}}):apply()
+  else
+    idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {atk={"+",2}}):apply()
+    end
+  end
+end,
+
+-- Pajama Helena
+[100216] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local buff = GlobalBuff(player)
+    local amt = 0
+    for i=idx-1,idx+1 do
+      if opponent.field[i] and pred.follower(opponent.field[i]) then
+        buff.field[opponent][i] = {atk={"-",1}}
+        amt = amt + 1
+      end
+    end
+    opponent.field[idx].active = false
+    local my_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if my_idx then
+      buff.field[player][my_idx] = {sta={"+",amt}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Aspiring Detective Asmis
+[100218] = function(player, opponent, my_card)
+  if #player.grave < 3 then
+    return
+  end
+  local sz = player.grave[#player.grave-2]
+  player:grave_to_exile(#player.grave-2)
+  local cards = {}
+  local sz_pred = function(card) return card.size == sz end
+  for _,idx in ipairs(opponent:field_idxs_with_preds(sz_pred)) do
+    cards[#cards+1] = {"field",idx}
+  end
+  for _,idx in ipairs(opponent:hand_idxs_with_preds(sz_pred)) do
+    cards[#cards+1] = {"hand",idx}
+  end
+  local card = uniformly(cards)
+  if card then
+    if card[1] == "hand" then
+      opponent:hand_to_grave(card[2])
+    else
+      opponent:field_to_grave(card[2])
+    end
+  end
+end,
+
+-- Singer Songwriter Linus
+[100219] = function(player, opponent, my_card)
+  local idx = uniformly(player:grave_idxs_with_preds())
+  if idx then
+    local sz = player.grave[idx].size
+    local acad = pred.A(player.grave[idx])
+    player:grave_to_exile(idx)
+    idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      local first_amt = ceil(sz/2)
+      buff.field[player][idx] = {sta={"+",first_amt}}
+      if acad then
+        local opp_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+        if opp_idx then
+          buff.field[opponent][opp_idx] = {sta={"-",floor(first_amt/2)}}
+        end
+      end
+      buff:apply()
+    end
+  end
+end,
+
+-- Gambler Rose
+[100220] = function(player, opponent, my_card)
+  if opponent.shuffles >= 3 then
+    opponent.shuffles = opponent.shuffles - 1
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    local amt = opponent.shuffles + 1
+    OneBuff(player, idx, {atk={"+",amt},sta={"+",amt}}):apply()
+  end
+end,
+
+-- Nurse Helena
+[100221] = function(player, opponent, my_card)
+  local size_to_n = {}
+  for i=1,#player.hand do
+    local sz = player.hand[i].size
+    size_to_n[sz] = (size_to_n[sz] or 0) + 1
+  end
+  local size = -1
+  for k,v in pairs(size_to_n) do
+    if v >= 2 and k > size then
+      size = k
+    end
+  end
+  if size > 0 then
+    for i=5,1,-1 do
+      if player.hand[i] and player.hand[i].size == size then
+        player:hand_to_bottom_deck(i)
+      end
+    end
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      local amt = 1 + floor(size/2)
+      OneBuff(opponent, idx, {atk={"-",amt},sta={"-",amt}}):apply()
+    end
+  end
+end,
+
+-- Wedding Dress Asmis
+[100228] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  if #opponent.deck > 0 and pred.spell(opponent.deck[#opponent.deck]) then
+    buff.deck[opponent][#opponent.deck] = {size={"+",1}}
+  elseif #player.deck > 0 then
+    if pred.follower(player.deck[#player.deck]) then
+      buff.deck[player][#player.deck] = {size={"-",1},atk={"+",1},sta={"+",1}}
+    else
+      buff.deck[player][#player.deck] = {size={"-",1}}
+    end
+  end
+  buff:apply()
+  ep7_recycle(player)
+end,
+
+-- Wedding Dress Linus
+[100229] = function(player, opponent, my_card)
+  for i=1,2 do
+    local buff = GlobalBuff(player)
+    local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
+    if target then
+      buff.deck[opponent][target] = {atk={"-",1},sta={"-",1}}
+    end
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- Wedding Dress Rose
+[100230] = function(player, opponent, my_card)
+  if #player.hand == 5 then
+    player:hand_to_top_deck(1)
+  end
+  local amt = min(2,5-#player.hand)
+  local target = uniformly(player:deck_idxs_with_preds(pred.follower))
+  if target then
+    local buff = GlobalBuff(player)
+    buff.deck[player][target] = {atk={"+",amt},sta={"+",amt}}
+    buff:apply()
+  end
+  ep7_recycle(player)
+end,
+
+-- Wedding Dress Helena
+[100231] = function(player, opponent, my_card)
+  local buff = GlobalBuff(player)
+  local amt = 1
+  for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    buff.field[opponent][idx] = {atk={"-",1}}
+    amt = amt + 1
+  end
+  for _,idx in ipairs(opponent:hand_idxs_with_preds(pred.follower)) do
+    buff.hand[opponent][idx] = {atk={"-",1}}
+    amt = amt + 1
+  end
+  amt = min(3, amt)
+  local target = player:deck_idxs_with_preds(pred.follower)[1]
+  if target then
+    buff.deck[player][target] = {atk={"+",amt}}
+  end
+  buff:apply()
+  ep7_recycle(player)
+end,
 
 -- Bunny Lady
 [110001] = function(player, opponent, my_card)
@@ -2866,7 +3218,7 @@ end,
 [110125] = function(player, opponent)
   local buff = GlobalBuff(player)
   buff.field[opponent][0] = {life={"-", 2}}
-  buff.field[player][0] = {life={"+", 1}}
+  buff.field[player][0] = {life={"-", 1}}
   buff:apply()
 end,
 
@@ -3065,79 +3417,78 @@ end,
 
 -- Apostle Six
 [110143] = function(player)
-	local idx = uniformly(player:grave_idxs_with_preds(pred.aletheian))
-	if idx and player:first_empty_field_slot() then
-		player:grave_to_field(idx)
-	end
+  local idx = player:grave_idxs_with_preds(pred.aletheian)[1]
+  if idx and player:first_empty_field_slot() then
+    player:grave_to_field(idx)
+  end
 end,
 
 -- Apostle Isena
 [110144] = function(player, opponent)
-	local p_idx = player:first_empty_field_slot()
-	if not p_idx then
-		return
-	end
-	local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
-		function(card) return card.size <= 3 end))
-	if not o_idx then
-		return
-	end
-	player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
-	player.field[p_idx]:gain_skill(1235)
+  local p_idx = player:first_empty_field_slot()
+  if not p_idx then
+    return
+  end
+  local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+    function(card) return card.size <= 3 end))
+  if not o_idx then
+    return
+  end
+  player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
+  player.field[p_idx]:gain_skill(1235)
+  player.field[p_idx].active = false
 end,
 
 -- Apostle Yula
 [110145] = function(player, opponent)
-	local idxs = opponent:field_idxs_with_preds(pred.follower)
-	local idx = uniformly(idxs)
-	local mag = #idxs
-	if not idx then
-		return
-	end
-	OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+  local idxs = opponent:field_idxs_with_preds(pred.follower)
+  local idx = uniformly(idxs)
+  local mag = #idxs
+  if not idx then
+    return
+  end
+  OneBuff(opponent, idx, {sta={"-", mag}}):apply()
 end,
 
 -- Informant Six
 [110146] = function(player)
-	local idx1 = uniformly(player:grave_idxs_with_preds(pred.follower, pred.aletheian))
-	local idx2 = player:first_empty_field_slot()
-	if idx1 and idx2 then
-		player:grave_to_field(idx1)
-		if pred.follower(player.field[idx2]( then
-			OneBuff(player, idx2, {atk={"+", 3}, sta={"+", 3}}):apply()
-		end
-	end
+  local idx1 = player:grave_idxs_with_preds(pred.follower, pred.aletheian)[1]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:grave_to_field(idx1)
+    OneBuff(player, idx2, {atk={"+", 3}, sta={"+", 3}}):apply()
+  end
 end,
 
 -- Obsessed Isena
 [110147] = function(player, opponent)
-	local p_idx = player:first_empty_field_slot()
-	if not p_idx then
-		return
-	end
-	local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
-		function(card) return card.size <= 3 end))
-	if o_idx then
-		player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
-		player.field[p_idx]:gain_skill(1235)
-	end
-	o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-	if o_idx then
-		OneBuff(opponent, o_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
-	end
+  local p_idx = player:first_empty_field_slot()
+  if p_idx then
+    local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+      function(card) return card.size <= 3 end))
+    if o_idx then
+      player.field[p_idx], opponent.field[o_idx] = opponent.field[o_idx], nil
+      player.field[p_idx]:gain_skill(1235)
+      player.field[p_idx].active = false
+    end
+  end
+  local o_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if o_idx then
+    OneBuff(opponent, o_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
+  end
 end,
 
 -- Wealthy Yula
 [110148] = function(player, opponent)
-	for i=1,3 do
-		local idxs = opponent:field_idxs_with_preds(pred.follower)
-		local idx = uniformly(idxs)
-		local mag = #idxs
-		if not idx then
-			return
-		end
-		OneBuff(opponent, idx, {sta={"-", mag}}):apply()
-	end
+  for i=1,3 do
+    local idxs = opponent:field_idxs_with_preds(pred.follower)
+    local idx = uniformly(idxs)
+    local mag = #idxs
+    if not idx then
+      return
+    end
+    OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+  end
 end,
 
 -- sarah
@@ -3807,17 +4158,17 @@ end,
 
 -- Apostle L Red Sun
 [120016] = function(player)
-	local idx1 = uniformly(player:grave_idxs_with_preds(pred.follower))
-	local idx2 = player:first_empty_field_slot()
-	if idx1 and idx2 then
-		player:grave_to_field(idx1)
-		OneBuff(player, idx2, {size={"=", 1}, atk={"+", 3}, sta={"+", 3}}):apply()
-	end
-	if #player.grave > 0 then
-		idx1 = random(#player.grave)
-		player:grave_to_bottom_deck(idx1)
-	end
-end
+  local idx1 = uniformly(player:grave_idxs_with_preds(pred.follower))
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:grave_to_field(idx1)
+    OneBuff(player, idx2, {size={"=", 1}, atk={"+", 3}, sta={"+", 3}}):apply()
+  end
+  if #player.grave > 0 then
+    idx1 = random(#player.grave)
+    player:grave_to_bottom_deck(idx1)
+  end
+end,
 
 -- Knight Captain Eisenwane
 [120017] = function(player)

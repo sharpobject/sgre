@@ -351,6 +351,7 @@ end,
   end
   if my_idx and other_idx then
     opponent.field[other_idx].active = false
+    OneImpact(opponent, other_idx):apply()
   end
 end,
 
@@ -2019,8 +2020,17 @@ end,
         #player:hand_idxs_with_preds(pred[name]) > 0)
   end
   if go then
-    local target = player:field_idxs_with_preds(pred.follower)
-    OneBuff(player, target, {atk={"+",4},sta={"+",4}}):apply()
+    local any_pred = pred.union(pred.lucca, pred.milka, pred.serie)
+    local buff = GlobalBuff(player)
+    local idxs = player:field_idxs_with_preds(pred.follower, any_pred)
+    for _,idx in ipairs(idxs) do
+      buff.field[player][idx] = {atk={"+",3},sta={"+",3}}
+    end
+    idxs = player:hand_idxs_with_preds(pred.follower)
+    for _,idx in ipairs(idxs) do
+      buff.hand[player][idx] = {atk={"+",3},sta={"+",3}}
+    end
+    buff:apply()
   end
 end,
 
@@ -3021,6 +3031,7 @@ end,
           buff = buff + other_card.size
         end
       end
+      buff = min(buff, 8)
       OneBuff(player, i, {atk={"+",buff},sta={"+",buff}}):apply()
       break
     end
@@ -3232,7 +3243,7 @@ end,
   local target = player:field_idxs_with_preds(pred.follower, pred.A)[1]
   if target then
     local buff = {}
-    local orig = Card(player.field[target].id, player.field[target].upgrade_lvl)
+    local orig = Card(player.field[target].id)
     for _,stat in ipairs({"atk","def","sta"}) do
       if player.field[target][stat] < orig[stat] then
         buff[stat] = {"=",orig[stat]}
@@ -3283,7 +3294,7 @@ their Size and 4
 ]]
 [200230] = function(player)
   local buff = OnePlayerBuff(player)
-  local idxs = player:field_idxs_with_preds(pred.follower)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   for i=1,min(3,#idxs) do
     buff[idxs[i]] = {atk={"+",abs(4-player.field[idxs[i]].size)},
         sta={"+",abs(4-player.field[idxs[i]].size)}}
@@ -3319,11 +3330,11 @@ If the card's SIZE <= 3 a Follower named Zombie with the skill Death is created 
 Otherwise, a Follower named Devil Lady is created in your first empty slot
 ]]
 [200233] = function(player, opponent)
-  if not opponent.grave[1] then
+  if #opponent.grave == 0 then
     return
   end
-  local mag = opponent.grave[1].size
-  opponent:grave_to_exile(1)
+  local mag = opponent.grave[#opponent.grave].size
+  opponent:grave_to_exile(#opponent.grave)
   local idx = player:first_empty_field_slot()
   if not idx then
     return
@@ -3846,24 +3857,24 @@ end,
 -- sanctuary pillar
 [200272] = function(player, opponent, my_idx, my_card)
   local buff = OnePlayerBuff(player)
-  for _,idx in ipairs({my_idx-1,my_idx+1}) do
+  local targets = player:field_idxs_with_preds(pred.C, pred.follower)
+  for _,idx in ipairs(targets) do
     local card = player.field[idx]
-    if card and pred.follower(card) then
-      buff[idx] = {sta={"+",3}}
-      if pred.seeker(card) then
-        buff[idx].atk={"+",2}
-      end
+    buff[idx] = {sta={"+",3}}
+    if pred.seeker(card) then
+      buff[idx].atk={"+",2}
     end
   end
   buff:apply()
-  my_card.active = false
-  player.send_spell_to_grave = false
   if player.game.turn % 2 == 0 then
     local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
     if target then
       opponent.field[target].active = false
+      OneImpact(opponent, target):apply()
     end
   end
+  my_card.active = false
+  player.send_spell_to_grave = false
 end,
 
 -- meaningless research
@@ -3904,14 +3915,18 @@ end,
 -- cursed totem
 [200275] = function(player, opponent, my_idx, my_card)
   local atk,sta = {0,1,1,2,2}, {2,1,2,2,3}
-  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if target then
-    OneBuff(opponent, target, {atk={"-",atk[my_idx]},sta={"-",sta[my_idx]}}):apply()
+  local my_ncards = #player:field_idxs_with_preds()
+  local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(player.opponent)
+  for i=1,min(2, #targets) do
+    buff[targets[i]] = {atk={"-",atk[my_ncards]},sta={"-",sta[my_ncards]}}
   end
+  buff:apply()
   if player.game.turn % 2 == 1 then
-    target = uniformly(opponent:field_idxs_with_preds(pred.spell))
+    local target = uniformly(opponent:field_idxs_with_preds(pred.spell))
     if target then
       opponent.field[target].active = false
+      OneImpact(opponent, target):apply()
     end
   end
   my_card.active = false

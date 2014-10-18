@@ -847,7 +847,7 @@ end,
 
 -- sweet lady isfeldt, sweet spell
 [1073] = function(player, my_idx, my_card, skill_idx)
-  my_card.skills[skill_idx] = 1076
+  my_card.skills[skill_idx] = 1074
 end,
 
 -- sweet lady isfeldt, sweet count
@@ -857,7 +857,7 @@ end,
   end
   if other_card.size <= my_card.size then
     player.opponent:field_to_top_deck(other_idx)
-    my_card.skills[skill_idx] = 1073
+    my_card:remove_skill_until_refresh(skill_idx)
   end
 end,
 
@@ -1400,7 +1400,13 @@ end,
       local fol = uniformly(followers)
       if fol then
         local zone, target_idx = fol[1], fol[2]
-        buff[zone][player][target_idx] = {atk={"+",1}, sta={"+",1}}
+        local this_buff = buff[zone][player][target_idx]
+        if this_buff then
+          this_buff.atk[2] = this_buff.atk[2] + 1
+          this_buff.sta[2] = this_buff.sta[2] + 1
+        else
+          buff[zone][player][target_idx] = {atk={"+",1}, sta={"+",1}}
+        end
       end
     end
     buff:apply()
@@ -1545,6 +1551,7 @@ end,
 [1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
     other_card.skills = {1076}
+    my_card:remove_skill_until_refresh(skill_idx)
   end
 end,
 
@@ -1792,10 +1799,12 @@ end,
 -- shock lady elberto, shock!
 [1160] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
+  local n = 0
   for _,idx in ipairs(player.opponent:field_idxs_with_preds(pred.follower)) do
     buff.field[player.opponent][idx] = {sta={"-",1}}
+    n = n + 1
   end
-  buff.field[player][my_idx] = {atk={"+",1}}
+  buff.field[player][my_idx] = {sta={"+",ceil(n/2)}}
   buff:apply()
 end,
 
@@ -1903,6 +1912,7 @@ end,
 -- Search for a New Book
 [1177] = function(player, my_idx, my_card, skill_idx)
   local mag = #player:hand_idxs_with_preds(pred.library_club) - 1
+  mag = max(0, mag)
   OneBuff(player, my_idx, {atk={"+", mag},sta={"+", mag}}):apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
@@ -1929,8 +1939,9 @@ end,
 end,
 
 -- Master Servant Pact
-[1181] = function(player, my_idx)
+[1181] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, my_idx, {sta={"=", min(player.character.life, 15)}}):apply()
+  my_card.skills[skill_idx] = nil
 end,
 
 -- Bleeding
@@ -1946,15 +1957,13 @@ end,
 
 -- Amnesia
 [1184] = function(player, my_idx, my_card)
-  for i=1,3 do
-    my_card:remove_skill(i)
-  end
+  my_card.skills = {}
 end,
 
 -- Cycle of Defense
 [1185] = function(player, my_idx, my_card)
   local mag = my_card.def <= 1 and 2 or my_card.def == 2 and 3 or 1
-  OneBuff(player, my_idx, {sta={"=", mag}}):apply()
+  OneBuff(player, my_idx, {def={"=", mag}}):apply()
 end,
 
 -- Dark Destruction
@@ -1973,17 +1982,10 @@ end,
 
 -- Sacrificial Defense
 [1188] = function(player, my_idx)
+  OneBuff(player, my_idx, {sta={"-", 2}}):apply()
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.D))
-  if not idx then
-    return
-  end
-  if idx == my_idx then
-    OneBuff(player, my_idx, {atk={"+", 2}}):apply()
-  else
-    local buff = OnePlayerBuff(player)
-    buff[idx] = {atk={"+", 2}, sta={"+", 2}}
-    buff[my_idx] = {sta={"-", 2}}
-    buff:apply()
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
   end
 end,
 
@@ -2015,23 +2017,14 @@ end,
 
 -- sword girls sita, position change!
 [1192] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local card_to_skill = {[300320]=1193,[300322]=1194,[300324]=1195,[300326]=1196,
-                         [300875]=1822,[300877]=1824,[300879]=1826,[300881]=1828}
   local target_idx = player:deck_idxs_with_preds(pred.follower, pred.sword_girls)[1]
   local slot = player:first_empty_field_slot()
   if target_idx and slot then
     local target_card = player.deck[target_idx]
     if slot < my_idx then
-      assert(card_to_skill[target_card.id])
-      -- TODO: this probably still isn't quite right...
-      target_card:gain_skill(card_to_skill[target_card.id])
+      target_card:refresh()
     else
-      for i=1,3 do
-        if target_card.skills[i] == 1192 then
-          target_card.skills[i] = nil
-        end
-      end
-      target_card:gain_skill(1076)
+      target_card.skills = {1076}
     end
     player:deck_to_field(target_idx)
     OneBuff(player, slot, {sta={"+",3}}):apply()
@@ -2081,6 +2074,7 @@ end,
     buff[idx] = {size={"-",1}}
   end
   buff[my_idx].sta = {"+",2}
+  buff[my_idx].size = {"-",2}
   buff:apply()
   my_card:remove_skill(skill_idx)
 end,
@@ -2360,9 +2354,9 @@ end,
 -- magic lady chirushi, hot winds! hurricane!
 [1226] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local n = #player:field_idxs_with_preds(pred.lady) + #player:hand_idxs_with_preds(pred.lady)
-  if n >= 2 and n <= 3 then
-    OneBuff(player, my_idx, {atk={"+",3},sta={"+",3}}):apply()
-  elseif n >= 5 then
+  if n >= 1 and n <= 2 then
+    OneBuff(player, my_idx, {atk={"+",2},sta={"+",2}}):apply()
+  elseif n >= 4 then
     local buff = OnePlayerBuff(player.opponent)
     local targets = player.opponent:field_idxs_with_preds(pred.follower)
     for _,idx in ipairs(targets) do
@@ -2977,7 +2971,7 @@ end,
 [1281] = function(player, my_idx, my_card, skill_idx)
 	if #player.hand <= 2 then
 		OneBuff(player, my_idx, {size={"+", 2}}):apply()
-	else if #player.hand >= 4 then
+	elseif #player.hand >= 4 then
 		OneBuff(player, my_idx, {}):apply()
 		my_card:remove_skill(skill_idx)
 	end

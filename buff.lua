@@ -53,6 +53,36 @@ function OneBuff:apply()
   end
 end
 
+Impact = class(function(self, player)
+    self.player = player
+    self[player] = {}
+    self[player.opponent] = {}
+  end)
+
+function Impact:apply()
+  local gb = GlobalBuff(self.player)
+  for p,slots in pairs(self) do
+    if p ~= "player" then
+      gb.field[k] = {}
+      for slot,_ in pairs(slots) do
+        gb.field[k][slot] = {}
+      end
+    end
+  end
+  gb:apply()
+end
+
+OneImpact = class(function(self, player, idx)
+    self.player = player
+    self.idx = idx
+  end)
+
+function OneImpact:apply()
+  local gb = GlobalBuff(self.player)
+  gb.field[self.player][self.idx] = {}
+  gb:apply()
+end
+
 pred = setmetatable({}, {__index=function()error("420 blaze it") end})
 
 function groups_init()
