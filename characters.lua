@@ -1674,9 +1674,11 @@ end,--]]
 	if player:field_size() < 5 then
 		return
 	end
-	local idx = player:field_idxs_with_preds(pred.follower)
-	local mag = pred.dress_up(player.field[idx]) and 2 or 0
-	OneBuff(player, idx, {size={"-", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
+	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+	if idx then
+		local mag = pred.dress_up(player.field[idx]) and 2 or 0
+		OneBuff(player, idx, {size={"-", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
+	end
 end,
 
 -- Pocketball Queen Layna
@@ -1702,7 +1704,7 @@ end,
 			player:to_grave(Card(300072))
 		end
 	else
-		local idx = player:grave_idxs_with_preds(pred.D)
+		local idx = player:grave_idxs_with_preds(pred.D)[1]
 		if not idx then
 			return
 		end
@@ -3767,6 +3769,7 @@ end,
 	for i=1,#idxs do
 		buff[idxs[i]] = {sta={"-", mag}}
 	end
+	buff:apply()
 end,
 
 -- Axis Wing Natura
@@ -3801,6 +3804,7 @@ end,
 	for i=1,#idxs do
 		buff[idxs[i]] = {atk={"-", mag}, sta={"-", mag}}
 	end
+	buff:apply()
 end,
 
 -- amethystar

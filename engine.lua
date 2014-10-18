@@ -175,7 +175,7 @@ function Player:upkeep_phase()
             skill_func[skill_id](self, idx, card, skill_idx)
           end
           if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
-            error("oh no")
+            error("unresolved buff in skill " .. skill_id)
           end
           self.game:snapshot(nil, nil, true)
           self:check_hand()
@@ -759,7 +759,7 @@ function Player:follower_combat_round(idx, target_idx)
             skill_func[skill_id](defend_player, defend_idx, defender, skill_idx,
                 attack_idx, other_card)
             if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
-              error("oh no")
+              error("unresolved buff found in skill " .. skill_id)
             end
             if flicker_follower then
               attack_player.field[attack_idx] = flicker_follower

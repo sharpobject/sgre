@@ -2984,7 +2984,7 @@ end,
 	end
 	local mag1 = ceil(other_card.atk / 2)
 	local mag2 = floor(mag1 / 2)
-	OneBuff(player, idx, {atk={"+", mag1}, sta={"+", mag2}}):apply()
+	OneBuff(player, my_idx, {atk={"+", mag1}, sta={"+", mag2}}):apply()
 end,
 
 -- Disruption
@@ -2992,7 +2992,7 @@ end,
 	if not other_card or my_card.active then
 		return
 	end
-	OneBuff(opponent, other_idx, {atk={"-", 2}, sta={"+", 1}}):apply()
+	OneBuff(player.opponent, other_idx, {atk={"-", 2}, sta={"+", 1}}):apply()
 end,
 
 -- The Past is Now
@@ -3003,9 +3003,10 @@ end,
 	local idxs = player:field_idxs_with_preds(pred.follower)
 	local buff = OnePlayerBuff(player)
 	for i=1,#idxs do
-		buff.field[idxs[i]] = {}
+		buff[idxs[i]] = {}
 		player.field[idxs[i]]:refresh()
 	end
+	buff:apply()
 end,
 
 -- Knowledge Use
@@ -3016,6 +3017,7 @@ end,
 		buff[idxs[i]] = {sta={"+", 2}}
 	end
 	my_card:remove_skill(skill_idx)
+	buff:apply()
 end,
 
 -- forced tranformation!
@@ -3058,7 +3060,7 @@ end,
 
 -- Summoning Magic
 [1291] = function(player, my_idx, my_card)
-	local idx = player:deck_idxs_with_preds(pred.dress_up, 
+	local idx = player:deck_idxs_with_preds(pred.dress_up, pred.follower,
 		function(card) return card.name ~= my_card.name end)[1]
 	local idx2 = player:first_empty_field_slot()
 	if not idx or not idx2 then
