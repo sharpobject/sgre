@@ -1626,7 +1626,6 @@ end,
 
 -- witch cadet linus falco
 [100122] = function(player, opponent, my_card)
-  --print("OMGGGGG LINUXXXX")
   for i=1,2 do
     local buff = GlobalBuff(player)
     local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
@@ -1650,24 +1649,61 @@ end,
 
 -- GS 3rd Star
 [100133] = function(player, opponent, my_card)
-  --print("OMGGGGG BSD")
-  for i=1,2 do
-    local buff = GlobalBuff(player)
-    local target = uniformly(opponent:deck_idxs_with_preds(pred.follower))
-    if target then
-      buff.deck[opponent][target] = {atk={"-",1},sta={"-",1}}
-    end
-    buff:apply()
-  end
-  ep7_recycle(player)
-end,
---[[[100133] = function(player, opponent, my_card)
-  print("OMGGGGG")
   player:to_bottom_deck(Card(300193))
   if player.character.life < opponent.character.life then
     OneBuff(player, 0, {life={"+",1}}):apply()
   end
-end,--]]
+end,
+
+-- Kar Vistas
+[100134] = function(player)
+  if player:field_size() < 5 then
+    return
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local mag = pred.dress_up(player.field[idx]) and 2 or 0
+  OneBuff(player, idx, {size={"-", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Pocketball Queen Layna
+[100135] = function(player, opponent)
+  local mag = #player:field_idxs_with_preds(pred.follower)
+  if mag == 0 then
+    return
+  end
+  local buff = GlobalBuff(player)
+  local my_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  buff.field[player][my_idx] = {sta={"+", mag}}
+  local op_idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if op_idx then
+    buff.hand[opponent][op_idx] = {sta={"-", mag}}
+  end
+  buff:apply()
+end,
+
+-- Chaos Destroyer Seven
+[100136] = function(player, opponent)
+  if player.game.turn % 2 == 1 then
+    for i=1,2 do
+      player:to_grave(Card(300072))
+    end
+  else
+    local idx = player:grave_idxs_with_preds(pred.D)
+    idx = idx[#idx]
+    if not idx then
+      return
+    end
+    player:grave_to_exile(idx)
+    local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+    local buff = OnePlayerBuff(opponent)
+    for i=1,2 do
+      if idxs[i] then
+        buff[idxs[i]] = {atk={"-", 1}, def={"-", 1}, sta={"-", 2}}
+      end
+    end
+    buff:apply()
+  end
+end,
 
 --At the start of the turn, Crux cards are sent from the top of your Deck to your Hand until there are four cards in your Hand. Any sent Followers get ATK +1/STA +1. If no cards are sent, a random Follower in your Field gets ATK +1/STA +1.</s
 -- icy glacier
@@ -3682,6 +3718,76 @@ end,
   buff:apply()
 end,
 
+-- Natura
+[110167] = function(player, opponent)
+  local idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if idx then
+    local buff = GlobalBuff(opponent)
+    buff.hand[opponent][idx] = {atk={"-", 2}, sta={"-", 2}}
+    buff:apply()
+  end
+end,
+
+-- Ignis
+[110168] = function(player, opponent)
+  if player.game.turn % 2 == 0 then
+    OneBuff(player, 0, {life={"+", 2}}):apply()
+  else
+    local buff = GlobalBuff(player)
+    buff.field[player][0] = {life={"-", 2}}
+    buff.field[opponent][0] = {life={"-", 2}}
+    buff:apply()
+  end
+end,
+
+-- Cherum
+[110169] = function(player, opponent)
+  local idxs = opponent:field_idxs_with_preds(pred.follower)
+  local mag = #opponent:empty_field_slots() - 1
+  if mag <= 0 then return end
+  local buff = OnePlayerBuff(opponent)
+  for i=1,#idxs do
+    buff[idxs[i]] = {sta={"-", mag}}
+  end
+  buff:apply()
+end,
+
+-- Axis Wing Natura
+[110170] = function(player, opponent)
+  for i=1,2 do
+    local idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(opponent)
+      buff.hand[opponent][idx] = {atk={"-", 2}, sta={"-", 2}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Axis Wing Ignis
+[110171] = function(player, opponent)
+  if player.game.turn % 2 == 0 then
+    OneBuff(player, 0, {life={"+", 2}}):apply()
+  else
+    OneBuff(opponent, 0, {life={"-", 2}}):apply()
+  end
+end,
+
+-- Axis Wing Cherum
+[110172] = function(player, opponent)
+  local idxs = opponent:field_idxs_with_preds(pred.follower)
+  if not idxs then
+    return
+  end
+  local mag = #opponent:empty_field_slots() - 1
+  if mag <= 0 then return end
+  local buff = OnePlayerBuff(opponent)
+  for i=1,#idxs do
+    buff[idxs[i]] = {atk={"-", mag}, sta={"-", mag}}
+  end
+  buff:apply()
+end,
+
 -- amethystar
 [110173] = function(player, opponent, my_card)
   local which = random(1,5)
@@ -4047,8 +4153,21 @@ end,
     idx1 = random(#player.grave)
     player:grave_to_bottom_deck(idx1)
   end
-end
+end,
 
+-- Knight Captain Eisenwane
+[120017] = function(player)
+  while #player.grave > 0 do
+      recycle_one(player)
+    end
+  local idxs = player:deck_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  for i=1,#idxs do
+    buff.deck[player][idxs[i]] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  buff:apply()
+end,
+  
 -- Do not touch that curly brace!
 }
 setmetatable(characters_func, {__index = function()return function() end end})
