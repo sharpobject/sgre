@@ -21,6 +21,7 @@ require("filters")
 require("xmutable")
 require("animation")
 require("sounds")
+require("options")
 --require("imagedata-ffi")
 
 local N_FRAMES = 0

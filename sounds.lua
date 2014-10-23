@@ -1,4 +1,4 @@
-local bgm = nil
+bgm = nil
 
 local bgm_table = {}
 bgm_table["lobby"] = love.audio.newSource("sg_assets/bgm/SwordGirls_Waiting_Room.mp3")
@@ -19,5 +19,6 @@ function play_bgm(state)
         bgm:stop() 
     end
     bgm = bgm_table[state]
+    bgm:setVolume(options.music_volume)
     bgm:play()
 end
