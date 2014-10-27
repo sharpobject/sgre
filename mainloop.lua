@@ -1639,10 +1639,10 @@ function main_options()
     music_volume_slider:SetMinMax(0.0, 1.0)
     music_volume_slider:SetDecimals(2)
     music_volume_slider:SetValue(options.music_volume)
-    music_volume_slider.OnRelease = function(object)
+    music_volume_slider.OnValueChanged = function(object)
       options.music_volume = object:GetValue()
       music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
-      bgm:setVolume(object:GetValue())
+      bgm:setVolume(options.music_volume)
       set_file("options.json", json.encode(options))
     end
 
