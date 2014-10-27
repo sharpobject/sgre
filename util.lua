@@ -266,6 +266,12 @@ function file_contents(filename)
 end
 
 function set_file(filename, contents)
+  if love then
+    local success = love.filesystem.write(filename, contents)
+    if not success then
+      print("error writing to "..filename)
+    end
+  end
   local file = io.open(filename, "w")
   file:write(contents)
   file:close()
