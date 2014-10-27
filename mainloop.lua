@@ -545,20 +545,23 @@ function main_lobby()
   if not frames.lobby then
     frames.lobby = {}
     local frame, text, textinput
-
+	
+	local chatWidth = 470
+	local chatHeight = 560
+	
     frame = loveframes.Create("frame")
     frame:SetName("Let's talk about the SG~~")
-    frame:SetSize(700, 500)
+    frame:SetSize(chatWidth, chatHeight)
+	frame:SetPos(20,20)
     frame:ShowCloseButton(false)
     frame:SetDraggable(false)
-    frame:Center()
     frame:SetState("lobby")
     
     text = loveframes.Create("textinput", frame)
     text:SetMultiline(true)
     text:SetAutoScroll(true)
     text.linenumbers = false
-    text:SetSize(690, 435)
+    text:SetSize(chatWidth-10, chatHeight-65)
     text:SetPos(5, 30)
     text:SetText("")
     text:SetLimit(200)
@@ -566,24 +569,40 @@ function main_lobby()
     frames.lobby.text = text
     
     textinput = loveframes.Create("textinput", frame)
-    textinput:SetWidth(690)
+    textinput:SetWidth(chatWidth-10)
     textinput:Center()
-    textinput:SetY(470)
+    textinput:SetY(chatHeight-30)
     function textinput:OnEnter()
       local text = self:GetText()
       self:Clear()
       net_send({type="general_chat",text=text})
     end
 
-    frames.lobby.game_buttons = {}
+	make_player_info(frame)
 
-    local button = loveframes.Create("button")
-    button:SetPos(0,0)
-    button:SetSize(50, 50)
-    button:SetText("Fite")
-    button:SetState("lobby")
-    button.OnClick = function()
-      net_send({type="join_fight"})
+	-- === Create Menubar and Lobby Buttons === --
+	
+    frames.lobby.game_buttons = {}
+	--tried4's TODO: don't hardcode frame position and size
+	local menuX = 497
+	local menuY = 0
+	local offsetX = 13
+	local offsetY = 105
+	local spacing = 57
+
+	local button = make_menubar(menuX,menuY)
+	table.insert(frames.lobby.game_buttons, button)
+	
+	local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)	
+	button.OnClick = function()
+		from_lobby = {main_dungeon}
+    end
+    table.insert(frames.lobby.game_buttons, button)
+	
+	local button = menu_fight_button(menuX+offsetX,menuY+offsetY+spacing)	
+	button.OnClick = function()
+		net_send({type="join_fight"})
+		net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
     end
     table.insert(frames.lobby.game_buttons, button)
 --[[
@@ -647,11 +666,19 @@ function main_lobby()
     end
     table.insert(frames.lobby.game_buttons, button)
 ]]
+
     local button = loveframes.Create("button")
-    button:SetPos(700,0)
-    button:SetSize(50, 50)
-    button:SetText("CAFE")
+    button:SetPos(menuX, 530)
+    button:SetSize(92, 50)
+    button:SetText("OPTIONS")
     button:SetState("lobby")
+    button.OnClick = function()
+      from_lobby = {main_options}
+    end
+    table.insert(frames.lobby.game_buttons, button)
+
+	-- == Lobby Buttons, continued == --
+	local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)	
     button.OnClick = function()
       if frames.cafe then
         frames.cafe.populate_cafe_card_list()
@@ -660,58 +687,31 @@ function main_lobby()
       end
       from_lobby = {main_cafe}
     end
-
-    local button = loveframes.Create("button")
-    button:SetPos(750, 100)
-    button:SetSize(50, 50)
-    button:SetText("XMUTE")
-    button:SetState("lobby")
+    table.insert(frames.lobby.game_buttons, button)
+	
+	local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)	
+    button.OnClick = function()
+      from_lobby = {main_decks}
+    end
+	table.insert(frames.lobby.game_buttons, button)
+	
+	local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)	
+    button.OnClick = function()
+      from_lobby = {main_craft}
+    end
+    table.insert(frames.lobby.game_buttons, button)
+	
+	local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)	
     button.OnClick = function()
       if frames.xmute then
         frames.xmute.xmute_type = nil
         frames.xmute.populate_xmutable_card_list()
-      end
+		end
       from_lobby = {main_xmute}
-    end
-
-    local button = loveframes.Create("button")
-    button:SetPos(750, 150)
-    button:SetSize(50, 50)
-    button:SetText("OPTIONS")
-    button:SetState("lobby")
-    button.OnClick = function()
-      from_lobby = {main_options}
-    end
-
-    local button = loveframes.Create("button")
-    button:SetPos(750,0)
-    button:SetSize(50, 50)
-    button:SetText("DECKS")
-    button:SetState("lobby")
-    button.OnClick = function()
-      from_lobby = {main_decks}
-    end
-
-    local button = loveframes.Create("button")
-    button:SetPos(750,50)
-    button:SetSize(50, 50)
-    button:SetText("CRAFT")
-    button:SetState("lobby")
-    button.OnClick = function()
-      from_lobby = {main_craft}
-    end
-    
-    local button = loveframes.Create("button")
-    button:SetPos(50,0)
-    button:SetSize(70, 50)
-    button:SetText("DUNGEON")
-    button:SetState("lobby")
-    button.OnClick = function()
-      from_lobby = {main_dungeon}
     end
     table.insert(frames.lobby.game_buttons, button)
   end
-
+  
   local enable_buttons = check_active_deck()
   for _,button in ipairs(frames.lobby.game_buttons) do
     button:SetEnabled(enable_buttons)
