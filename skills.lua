@@ -3356,20 +3356,20 @@ end,
 
 -- Eyes of Future Sight
 [1318] = function(player, my_idx, my_card)
-  --local mag = 0
-  --while #player.hand > 0 do
-  --  mag = mag + (pred.lady(player.hand[1]) and 1 or 0)
-  --  player:hand_to_bottom_deck(1)
-  --end
-  --local idxs = player:field_idxs_with_preds(function(card) return card ~= my_card end)
-  --for _, idx in ipairs(idxs) do
-  --  mag = mag + (pred.lady(player.field[idx]) and 1 or 0)
-  --  player:field_to_bottom_deck(idx)
-  --end
-  --OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
-  --while #player.hand < 4 and #player.deck > 0 do
-  --  player:draw_a_card()
-  --end
+  local mag = 0
+  while #player.hand > 0 do
+    mag = mag + (pred.lady(player.hand[1]) and 1 or 0)
+    player:hand_to_bottom_deck(1)
+  end
+  local idxs = player:field_idxs_with_preds(function(card) return card ~= my_card end)
+  for _, idx in ipairs(idxs) do
+    mag = mag + (pred.lady(player.field[idx]) and 1 or 0)
+    player:field_to_bottom_deck(idx)
+  end
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  while #player.hand < 4 and #player.deck > 0 do
+    player:draw_a_card()
+  end
 end,
 
 -- Battle Stance
@@ -3606,6 +3606,11 @@ end,
   if other_card then
     OneBuff(player.opponent, other_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
+end,
+
+-- Adjustment Preparation
+[1705] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+",1}, sta={"+",2}}):apply()
 end,
 
 -- if enemy is NPC, best attack

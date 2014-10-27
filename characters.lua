@@ -4056,20 +4056,18 @@ end,
 
 -- SS Clerk
 [110184] = function(player, opponent)
-  --if player.game.turn ~= 1 then
-  --  return
-  --end
-  --local buff = GlobalBuff(player)
-  --while player.deck[1] do
-  --  table.remove(player.deck)
-  --end
-  --for idx = 1, #opponent.deck do
-  --  player.deck[idx] = deepcpy(opponent.deck[idx])
-  --  if pred.follower(player.deck[idx]) then
-  --    buff.deck[player][idx] = {atk={"-", 1}, sta={"-", 1}}
-  --  end
-  --end
-  --buff:apply()
+  if player.game.turn ~= 1 then
+    return
+  end
+  local buff = GlobalBuff(player)
+  player.deck = {}
+  for idx = 1, #opponent.deck do
+    player.deck[idx] = deepcpy(opponent.deck[idx])
+    if pred.follower(player.deck[idx]) then
+      buff.deck[player][idx] = {atk={"-", 1}, sta={"-", 1}}
+    end
+  end
+  buff:apply()
 end,
 
 -- SS Intimidator
@@ -4105,9 +4103,9 @@ end,
 
 -- SS Spy
 [110187] = function(player, opponent)
-  --while opponent.hand[4] do
-  --  opponent:hand_to_grave(4)
-  --end
+  while opponent.hand[4] do
+    opponent:hand_to_grave(4)
+  end
 end,
 
 -- SS Agent
@@ -4116,15 +4114,13 @@ end,
 
 -- SS Clerk Jasmine
 [110189] = function(player, opponent)
-  --if player.game.turn ~= 1 then
-  --  return
-  --end
-  --while player.deck[1] do
-  --  table.remove(player.deck)
-  --end
-  --for idx = 1, #opponent.deck do
-  --  player.deck[idx] = deepcpy(opponent.deck[idx])
-  --end
+  if player.game.turn ~= 1 then
+    return
+  end
+  player.deck = {}
+  for idx = 1, #opponent.deck do
+    player.deck[idx] = deepcpy(opponent.deck[idx])
+  end
 end,
 
 -- SS Casey
@@ -4157,9 +4153,9 @@ end,
 
 -- SS Spy Forty
 [110192] = function(player, opponent)
-  --while opponent.hand[3] do
-  --  opponent:hand_to_grave(3)
-  --end
+  while opponent.hand[3] do
+    opponent:hand_to_grave(3)
+  end
 end,
 
 -- SS Agent Ice
