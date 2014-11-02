@@ -591,7 +591,7 @@ function main_lobby()
 	local spacing = 57
 
 	local button = make_menubar(menuX,menuY)
-	table.insert(frames.lobby.game_buttons, button)
+--	table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)	
 	button.OnClick = function()
@@ -675,7 +675,7 @@ function main_lobby()
     button.OnClick = function()
       from_lobby = {main_options}
     end
-    table.insert(frames.lobby.game_buttons, button)
+--    table.insert(frames.lobby.game_buttons, button)
 
 	-- == Lobby Buttons, continued == --
 	local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)	
@@ -687,19 +687,19 @@ function main_lobby()
       end
       from_lobby = {main_cafe}
     end
-    table.insert(frames.lobby.game_buttons, button)
+--    table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)	
     button.OnClick = function()
       from_lobby = {main_decks}
     end
-	table.insert(frames.lobby.game_buttons, button)
+--	table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)	
     button.OnClick = function()
       from_lobby = {main_craft}
     end
-    table.insert(frames.lobby.game_buttons, button)
+--    table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)	
     button.OnClick = function()
@@ -709,7 +709,7 @@ function main_lobby()
 		end
       from_lobby = {main_xmute}
     end
-    table.insert(frames.lobby.game_buttons, button)
+--    table.insert(frames.lobby.game_buttons, button)
   end
   
   local enable_buttons = check_active_deck()
