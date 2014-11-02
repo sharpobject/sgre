@@ -2397,6 +2397,7 @@ end,
     buff:apply()
     player:hand_to_top_deck(1)
   end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- aletheian a-ga, attack roulette!
@@ -2532,7 +2533,9 @@ end,
   local buff = OnePlayerBuff(player)
   buff[my_idx] = {def={"=",0}}
   local amt = abs(my_card.def)
-  if target then
+  if target == my_idx then
+	buff[target] = {atk={"+",amt}, def={"=",0}, sta={"+",amt}}
+  else
     buff[target] = {atk={"+",amt},sta={"+",amt}}
   end
   buff:apply()
