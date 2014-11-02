@@ -1,3 +1,5 @@
+local tinymaids = require("tinymaids")
+
 local floor,ceil,min,max = math.floor, math.ceil, math.min, math.max
 local abs = math.abs
 local random = math.random
@@ -4988,7 +4990,25 @@ end,
 Mass Polymorph
 All cards have their SIZE randomly redistributed.
 ]]
---200339
+[200339] = function(player, opponent, my_idx, my_card)
+  local card_locations = {}
+  local sizes = {}
+  for i=1,5 do
+    for _,p in ipairs({player, opponent}) do
+      if p.field[i] and p.field[i] ~= my_card then
+        card_locations[#card_locations+1] = {p, i}
+        sizes[#sizes+1] = p.field[i].size
+      end
+    end
+  end
+  sizes = tinymaids(sizes)
+  local buff = GlobalBuff(player)
+  for i=1,#card_locations do
+    local p, idx = card_locations[i][1], card_locations[i][2]
+    buff.field[p][idx] = {size={"=",sizes[i]}}
+  end
+  buff:apply()
+end,
 
 --[[
 Appointment
