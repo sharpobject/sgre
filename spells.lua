@@ -4959,7 +4959,7 @@ set equal to half (rounding down) the sum of both Followers' ATK/STA.
 end,
 
 --[[
-Petrifying Curse
+Petrification Curse
 If you have a Vita Character, all Followers with a SIZE < this card's SIZE are exiled
 If this card's SIZE >= 6, this card is exiled
 Otherwise, this card gets SIZE+ 2 and is sent to the top of your Deck

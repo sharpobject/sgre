@@ -1671,10 +1671,10 @@ end,
   local nongs_target_idxs = player:field_idxs_with_preds({pred.neg(pred.gs), pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(gs_target_idxs) do
-    buff[idx] = {atk={"+",1}, sta={"+",1}}
+    buff[idx] = {atk={"+",1}, sta={"+",2}}
   end
   for _,idx in ipairs(nongs_target_idxs) do
-    buff[idx] = {atk={"-",1}, sta={"-",1}}
+    buff[idx] = {atk={"-",1}, sta={"-",2}}
   end
   buff:apply()
 end,
@@ -2508,6 +2508,7 @@ end,
 -- witch cadet dauner, status change!
 [1242] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {size={"-",#player:hand_idxs_with_preds(pred.witch)}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- witch cadet dauner, neutralize!
@@ -2737,8 +2738,8 @@ end,
 [1258] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, my_idx, {sta={"+", 3}}):apply()
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
-    function(card) return card.skills[1] == 1258 or card.skills[2] == 1258
-      or card.skills[3] == 1258 end))
+    function(card) return card.skills[1] ~= 1258 and card.skills[2] ~= 1258
+      and card.skills[3] ~= 1258 end))
   my_card:remove_skill(skill_idx)
   if idx then
     player.field[idx]:gain_skill(1258)

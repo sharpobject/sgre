@@ -2199,6 +2199,206 @@ end,
   ep7_recycle(player)
 end,
 
+-- Halloween Sita
+[100232] = function(player, opponent)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.sita)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = OnePlayerBuff(opponent)
+	for i = 1, 3 do
+		if opponent.field[i] then
+			buff[i] = {atk={"-", 1}, sta={"-", 2}}
+		end
+	end
+	buff:apply()
+end,
+
+-- Halloween Cinia
+[100233] = function(player, opponent)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.cinia)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+	if idx then
+		OneBuff(opponent, idx, {atk={"-", 2}, sta={"-", 3}}):apply()
+	end
+end,
+
+-- Halloween Luthica
+[100234] = function(player)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.luthica)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+	if idx then
+		OneBuff(opponent, idx, {atk={"+", 2}, sta={"+", 3}}):apply()
+	end
+end,
+	
+-- Halloween Iri
+[100235] = function(player, opponent)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.iri)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = OnePlayerBuff(opponent)
+	buff[0] = {life={"-", 1}}
+	local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+	if idx then
+		buff[idx] = {atk={"-", 1}, sta={"-", 1}}
+	end
+	buff:apply()
+end,
+
+-- Halloween Asmis
+[100236] = function(player)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.asmis)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = GlobalBuff(player)
+	if player.deck[1] then
+		buff.deck[player][1] = {size={"-", 1}
+		if player.deck[3] then
+			buff.deck[player][3] = {size={"-", 1}
+		end
+	end
+	buff:apply()
+end,
+
+-- Halloween Linus
+[100237] = function(player, opponent)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.linus)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = GlobalBuff(player)
+	local idxs = opponent:deck_idxs_with_preds(pred.follower)
+	for i = 1, 2 do
+		if idxs[i] then
+			buff.deck[opponent][idxs[i]] = {atk={"-", 1}, sta={"-", 1}}
+		end
+	end
+	buff:apply()
+end,
+
+-- Halloween Rose
+[100238] = function(player)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.rose)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = GlobalBuff(player)
+	local idxs = player:deck_idxs_with_preds(pred.follower)
+	for i = 1, 2 do
+		if idxs[i] then
+			buff.deck[player][idxs[i]] = {atk={"+", 1}, sta={"+", 1}}
+		end
+	end
+	buff:apply()
+end,
+
+-- Halloween Helena
+[100239] = function(player, opponent)
+	if player.game.turn == 1 then
+		local idxs = player:deck_idxs_with_preds(pred.follower, pred.helena)
+		local buff = GlobalBuff(player)
+		for _, idx in ipairs(idxs) do
+			buff.deck[player][idx] = {sta={"+", 1}}
+		end
+		buff:apply()
+	end
+	if player.character.life < 12 then
+		player.shuffles = 0
+		return
+	else if player.character.life == 12 then
+		return
+	end
+	local buff = GlobalBuff(player)
+	local idxs = opponent:field_idxs_with_preds(pred.follower)
+	for _, idx in ipairs(idxs) do
+		buff.field[opponent][idx] = {atk={"-", 1}}
+	end
+	local idx = player:hand_idxs_with_preds(pred.follower)[1]
+	if idx then
+		buff.hand[player][idx] = {atk={"+", 2}}
+	end
+	buff:apply()
+end,
+
 -- Bunny Lady
 [110001] = function(player, opponent, my_card)
   buff_random(player, opponent, my_card, {sta={"+",1}})
