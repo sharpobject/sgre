@@ -4278,11 +4278,11 @@ Hiking Lesson
 All enemy Followers get -STA equal to average SIZE on your Field
 ]]
 [200302] = function(player, opponent)
-  local mag = floor(player:field_size() / (#player.field - #player:empty_field_slots()))
+  local mag = floor(player:field_size() / #player:field_idxs_with_preds())
   local idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(idxs) do
-    buff[idx] = {sta={"-",mag}}
+    buff[idx] = {sta={"-", mag}}
   end
   buff:apply()
 end,
@@ -5313,17 +5313,16 @@ Kinship
 If all cards in your Hand/Field other than this shares your Character's faction, 2 random
 enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 2
 ]]
-[200359] = function(player, opponent, my_idx)
-  local mag = 0
-  local pred_filter = function(card) mag = mag + 1 return card.faction ~= player.character.faction end
-  mag = floor(mag / 2)
-  if player:field_idxs_with_preds(pred_filter)[1] or #player:hand_idxs_with_preds(pred_filter) then
+[200359] = function(player, opponent, my_idx, my_card)
+  local pred_filter = function(card) return card ~= my_card and card.faction ~= player.character.faction end
+  if #player:field_idxs_with_preds(pred_filter) ~= 0 or #player:hand_idxs_with_preds(pred_filter) ~= 0 then
     return
   end
+  local mag = floor((#player:field_idxs_with_preds() + #player.hand) / 2)
   local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
-  for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"-",mag},def={"-",mag}}
+  for i = 1, min(2, #idxs) do
+    buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
   end
   buff:apply()
 end,
