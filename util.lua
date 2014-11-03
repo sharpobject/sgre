@@ -260,15 +260,23 @@ function file_contents(filename)
     file:open("r")
     local ret = file:read(file:getSize())
     return ret
+  else
+    local ret = io.open(filename):read("*a")
+    return ret
   end
-  local ret = io.open(filename):read("*a")
-  return ret
 end
 
 function set_file(filename, contents)
-  local file = io.open(filename, "w")
-  file:write(contents)
-  file:close()
+  if love then
+    local success = love.filesystem.write(filename, contents)
+    if not success then
+      print("error writing to "..filename)
+    end
+  else
+    local file = io.open(filename, "w")
+    file:write(contents)
+    file:close()
+  end
 end
 
 function arr_to_counter(t)

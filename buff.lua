@@ -63,9 +63,9 @@ function Impact:apply()
   local gb = GlobalBuff(self.player)
   for p,slots in pairs(self) do
     if p ~= "player" then
-      gb.field[k] = {}
+      gb.field[p] = {}
       for slot,_ in pairs(slots) do
-        gb.field[k][slot] = {}
+        gb.field[p][slot] = {}
       end
     end
   end

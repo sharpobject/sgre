@@ -1078,4 +1078,5 @@ function main()
 end
 
 math.randomseed(os.time())
+for i=1,100 do math.random() end
 main()
