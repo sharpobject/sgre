@@ -4609,20 +4609,20 @@ end,
 --[[
 Enrollment
 A random allied Follower gets ATK+1/STA+1
-If there are any active enemy cards of the same spell, this card remains active on the Field
+If there are not any active enemy cards of the same spell, this card remains active on the Field
 ]]
 [200322] = function(player, opponent, my_idx, my_card)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  if idx then
-    OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
-  end
-  idx = opponent:field_idxs_with_preds(pred.active,
-      function(card) return card.name ~= my_card.name end)[1]
-  if not idx then
-    return
-  end
-  my_card.active = true
-  player.send_spell_to_grave = false
+	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+	if idx then
+		OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
+	end
+	local 
+	if not opponent:field_idxs_with_preds(pred.active)[1] or 
+			opponent:field_idxs_with_preds(function(card) return card.name ~= my_card.name end)[1] then
+		return
+	end
+	my_card.active = true
+	player.send_spell_to_grave = false
 end,
 
 --[[
