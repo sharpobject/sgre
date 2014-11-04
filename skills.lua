@@ -454,7 +454,7 @@ end,
       function(card) return card.id == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   if ally_target_idx then
-    player:field_to_exile(ally_target_idx)
+    player:field_to_bottom_deck(ally_target_idx)
     player.opponent:destroy(opp_target_idx)
   end
 end,
@@ -1742,10 +1742,12 @@ end,
 [1152] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local targets = player:deck_idxs_with_preds(function(card) return card.id == my_card.id end)
   for _,idx in ipairs(targets) do
-    player:deck_to_grave(idx)
+    player:deck_to_exile(idx)
   end
   local n = #targets
-  OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
+  if n > 0 then
+	OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
+  end
 end,
 
 -- cook club critic, unite
