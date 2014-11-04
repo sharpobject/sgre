@@ -214,12 +214,12 @@ Connection = class(function(s, socket)
   s.index = INDEX
   INDEX = INDEX + 1
   socket:settimeout(0)
+  s.peername = socket:getpeername()
   socket = ssl.wrap(socket, ssl_context)
   socket:settimeout(0)
   connections[s.index] = s
   socket_to_idx[socket] = s.index
   s.socket = socket
-  s.peername = socket:getpeername()
   s.leftovers = ""
   s.state = "handshake"
   s.last_read = time()
