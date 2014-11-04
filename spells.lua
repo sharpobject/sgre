@@ -4616,7 +4616,6 @@ If there are not any active enemy cards of the same spell, this card remains act
 	if idx then
 		OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
 	end
-	local 
 	if not opponent:field_idxs_with_preds(pred.active)[1] or 
 			opponent:field_idxs_with_preds(function(card) return card.name ~= my_card.name end)[1] then
 		return
