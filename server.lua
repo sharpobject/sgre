@@ -552,8 +552,12 @@ end
 
 function start_fight(aid, bid)
   local a,b = uid_to_connection[aid], uid_to_connection[bid]
+  no_accessories = a.socket:getpeername() == b.socket:getpeername()
   local function on_fight_over(self, score)
     local data = uid_to_data[self.uid]
+    if no_accessories then
+      score = -99
+    end
     local num_accessories = 0
     if score < 0 then
       num_accessories = 0
