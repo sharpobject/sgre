@@ -219,6 +219,7 @@ Connection = class(function(s, socket)
   connections[s.index] = s
   socket_to_idx[socket] = s.index
   s.socket = socket
+  s.peername = socket:getpeername()
   s.leftovers = ""
   s.state = "handshake"
   s.last_read = time()
@@ -552,7 +553,7 @@ end
 
 function start_fight(aid, bid)
   local a,b = uid_to_connection[aid], uid_to_connection[bid]
-  no_accessories = a.socket:getpeername() == b.socket:getpeername()
+  no_accessories = a.peername == b.peername
   local function on_fight_over(self, score)
     local data = uid_to_data[self.uid]
     if no_accessories then
