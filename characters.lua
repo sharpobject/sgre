@@ -2212,7 +2212,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = OnePlayerBuff(opponent)
@@ -2237,7 +2237,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
@@ -2259,7 +2259,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local idx = uniformly(player:field_idxs_with_preds(pred.follower))
@@ -2281,7 +2281,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = OnePlayerBuff(opponent)
@@ -2306,14 +2306,14 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = GlobalBuff(player)
 	if player.deck[1] then
-		buff.deck[player][1] = {size={"-", 1}
+		buff.deck[player][1] = {size={"-", 1}}
 		if player.deck[3] then
-			buff.deck[player][3] = {size={"-", 1}
+			buff.deck[player][3] = {size={"-", 1}}
 		end
 	end
 	buff:apply()
@@ -2332,7 +2332,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = GlobalBuff(player)
@@ -2358,7 +2358,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = GlobalBuff(player)
@@ -2384,7 +2384,7 @@ end,
 	if player.character.life < 12 then
 		player.shuffles = 0
 		return
-	else if player.character.life == 12 then
+	elseif player.character.life == 12 then
 		return
 	end
 	local buff = GlobalBuff(player)
