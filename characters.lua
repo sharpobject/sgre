@@ -1731,7 +1731,7 @@ end,
     for i=1,3 do
       opponent.field[idx]:remove_skill_until_refresh(i)
     end
-    OneBuff(opponent, idx, {}):apply()
+    OneImpact(opponent, idx):apply()
   end
   idx = uniformly(opponent:deck_idxs_with_preds(pred.follower))
   if idx then

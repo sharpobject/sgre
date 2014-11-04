@@ -455,9 +455,9 @@ end,
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   if ally_target_idx then
     player:field_to_bottom_deck(ally_target_idx)
-  OneBuff(player, ally_target_idx, {}):apply()
+    OneImpact(player, ally_target_idx):apply()
     player.opponent:destroy(opp_target_idx)
-  OneBuff(player, opp_target_idx, {}):apply()
+    OneImpact(opponent, opp_target_idx):apply()
   end
 end,
 
@@ -635,7 +635,7 @@ end,
   if other_card and pred.skill(other_card) then
     other_card.skills = {}
     my_card:remove_skill(skill_idx)
-  OneBuff(player, my_idx, {}):apply()
+    OneImpact(player, my_idx):apply()
   end
 end,
 
@@ -1749,7 +1749,7 @@ end,
   end
   local n = #targets
   if n > 0 then
-  OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
+    OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
   end
 end,
 
@@ -2540,7 +2540,7 @@ end,
   buff[my_idx] = {def={"=",0}}
   local amt = abs(my_card.def)
   if target == my_idx then
-  buff[target] = {atk={"+",amt}, def={"=",0}, sta={"+",amt}}
+    buff[target] = {atk={"+",amt}, def={"=",0}, sta={"+",amt}}
   else
     buff[target] = {atk={"+",amt},sta={"+",amt}}
   end
@@ -2981,7 +2981,7 @@ end,
   if #player.hand <= 2 then
     OneBuff(player, my_idx, {size={"+", 2}}):apply()
   elseif #player.hand >= 4 then
-    OneBuff(player, my_idx, {}):apply()
+    OneImpact(player, my_idx):apply()
     my_card:remove_skill(skill_idx)
   end
 end,
@@ -3353,7 +3353,7 @@ end,
   end
   player.field[my_idx], player.field[idx] = nil, my_card
   my_card.active = false
-  OneBuff(player, my_idx, {}):apply()
+  OneImpact(player, my_idx):apply()
 end,
 
 -- Defense Ward
@@ -3407,7 +3407,7 @@ end,
   if not other_card or my_card.def + my_card.sta > other_card.atk then
     return
   end
-  OneBuff(player, my_idx, {}):apply()
+  OneImpact(player, my_idx):apply()
   my_card:remove_skill(skill_idx)
   OneBuff(player.opponent, 0, {life={"-", math.ceil(my_card.size / 2)}}):apply()
 end,
