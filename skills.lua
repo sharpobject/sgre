@@ -454,10 +454,10 @@ end,
       function(card) return card.id == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   if ally_target_idx then
-    player:field_to_bottom_deck(ally_target_idx)
     OneImpact(player, ally_target_idx):apply()
-    player.opponent:destroy(opp_target_idx)
+    player:field_to_bottom_deck(ally_target_idx)
     OneImpact(opponent, opp_target_idx):apply()
+    player.opponent:destroy(opp_target_idx)
   end
 end,
 
