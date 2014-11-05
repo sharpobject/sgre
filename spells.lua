@@ -2308,14 +2308,15 @@ end,
 [200160] = function(player, opponent, my_idx, my_card)
   if pred.C(player.character) and #player:field_idxs_with_preds(pred.follower) > 0 then
     local nlife = 0
-    for i=1,5 do
+    for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
+	    OneImpact(opponent, i):apply()
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
     end
-    OneBuff(player, 0, {life={"-",nlife}}):apply()
+    OneBuff(player, 0, {life={"-", nlife}}):apply()
   end
 end,
 
@@ -5111,7 +5112,7 @@ Scout's Attitude
 The first allied Follower regains its original skills and gets ATK+ 1/STA+ 1
 ]]
 [200345] = function(player)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local idx = player:field_idxs_with_preds(pred.follower)[1]
   if not idx then
     return
   end

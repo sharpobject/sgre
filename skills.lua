@@ -3421,24 +3421,20 @@ end,
 
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local do_default = true
-  local buff = GlobalBuff(player)
-  buff.field[player][my_idx] = {}
-  buff.field[player.opponent][other_idx] = {}
-  if other_card then
-    for _,stat in ipairs({"atk","def","sta"}) do
-      if other_card[stat] > id_to_canonical_card[other_card.id][stat] then
-        do_default = false
-        local amt = ceil((other_card[stat] - id_to_canonical_card[other_card.id][stat])/2)
-        buff.field[player][my_idx][stat] = {"+",amt}
-        buff.field[player.opponent][other_idx][stat] = {"-",amt}
+  if player.character.faction == my_card.faction and other_card then
+	local orig = Card(other_card.id, other_card.upgrade_lvl)
+	local buff = GlobalBuff(player)
+	buff.field[player][my_idx] = {}
+	buff.field[player.opponent][other_idx] = {}
+	for _, stat in ipairs({"atk", "def", "sta"}) do
+      if other_card[stat] > orig[stat] then
+		local amt = ceil((other_card[stat] - orig[stat]) / 2)
+        buff.field[player][my_idx][stat] = {"+", amt}
+        buff.field[player.opponent][other_idx][stat] = {"-", amt}
       end
     end
+	buff:apply()
   end
-  if do_default then
-    buff.field[player][my_idx] = {sta={"+",2}}
-  end
-  buff:apply()
 end,
 
 -- Power Change
@@ -3446,12 +3442,10 @@ end,
   if not other_card then
     return
   end
-  local buff = GlobalBuff(player)
   local idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
   local mag = math.abs(other_card.atk)
-  buff.field[player.opponent][other_idx] = {atk={"=", 0}}
-  buff.field[player.opponent][idx] = {atk={"=", mag + player.opponent.field[idx].atk}}
-  buff:apply()
+  OneBuff(player.opponent, other_idx, {atk={"=", 0}}):apply()
+  OneBuff(player.opponent, idx, {atk={"=", mag + player.opponent.field[idx].atk}}):apply()
 end,
 
 -- Song of Encouragement
