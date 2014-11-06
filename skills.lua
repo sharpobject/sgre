@@ -3268,7 +3268,7 @@ end,
   if not other_card then
     return
   end
-  OneBuff(player, my_idx, {atk={"=", other_card.def + other_card.sta + 1}}):apply()
+  OneBuff(player, my_idx, {atk={"=", other_card.def + other_card.sta - 1}}):apply()
 end,
 
 -- Apostle's Skill

@@ -5362,8 +5362,10 @@ enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 
   local mag = floor((#player:field_idxs_with_preds() + #player.hand) / 2)
   local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
-  for i = 1, min(2, #idxs) do
-    buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
+  for i = 1, 2 do
+    if idxs[i] then
+	  buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
+    end
   end
   buff:apply()
 end,
@@ -5441,7 +5443,7 @@ If that happens, a random allied Follower gets SIZE- 1/ATK+ 4/STA+ 4
   if not idx then
     return
   end
-  player:deck_to_exile(idx)
+  player:deck_to_grave(idx)
   idx = player:field_idxs_with_preds(pred.follower)[1]
   if idx then
     OneBuff(player, idx, {size={"-",1},atk={"+",4},sta={"+",4}}):apply()
