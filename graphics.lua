@@ -638,7 +638,7 @@ function make_player_info(frame)
       draw_hover_frame(self.x, self.y, self.width, self.height)
 	  love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
 	  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
-	  local id = get_active_char()
+	  local id = get_active_char() or 100089
 	  if not IMG_card[id] then
 		IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
 	  end
