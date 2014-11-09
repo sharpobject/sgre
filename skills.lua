@@ -29,7 +29,7 @@ local esprit = function(player, my_idx, my_card, skill_idx, other_idx, other_car
 end
 
 local dressup_skill = function(dressup_id, player, my_idx)
-  local dressup = function(card) return card.id == dressup_id end
+  local dressup = function(card) return floor(card.id) == floor(dressup_id) end
   local field_idxs = player:field_idxs_with_preds({dressup})
   for _,idx in ipairs(field_idxs) do
     player:field_to_grave(idx)
@@ -44,7 +44,7 @@ local dressup_skill = function(dressup_id, player, my_idx)
 end
 
 local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type)
-  local dressup = function(card) return card.id == dressup_id end
+  local dressup = function(card) return floor(card.id) == floor(dressup_id) end
   local buff = false
   local field_targets = player:field_idxs_with_preds({dressup})
   for _,idx in ipairs(field_targets) do
@@ -451,10 +451,12 @@ end,
 -- stigma flint, stigma
 [1035] = function(player)
   local ally_target_idx = player:field_idxs_with_preds(
-      function(card) return card.id == 300090 end)[1]
+      function(card) return floor(card.id) == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
   if ally_target_idx then
-    player:field_to_exile(ally_target_idx)
+    OneImpact(player, ally_target_idx):apply()
+    player:field_to_bottom_deck(ally_target_idx)
+    OneImpact(opponent, opp_target_idx):apply()
     player.opponent:destroy(opp_target_idx)
   end
 end,
@@ -481,7 +483,7 @@ end,
 -- stigma witness felicia, proof of stigma
 [1037] = function(player)
   local target_idxs = player:field_idxs_with_preds(
-      function(card) return card.id == 300087 end)
+      function(card) return floor(card.id) == 300087 end)
   if #target_idxs > 0 then
     local buffsize = #player:field_idxs_with_preds({pred.A})
     local buff = OnePlayerBuff(player)
@@ -633,6 +635,7 @@ end,
   if other_card and pred.skill(other_card) then
     other_card.skills = {}
     my_card:remove_skill(skill_idx)
+    OneImpact(player, my_idx):apply()
   end
 end,
 
@@ -945,7 +948,7 @@ end,
 
 -- justice lady, dress up rise
 [1084] = function(player, my_idx)
-  local lucerrie = function(card) return card.id == 300181 end
+  local lucerrie = function(card) return floor(card.id) == 300181 end
   local deck_idx = player:deck_idxs_with_preds({lucerrie})[1]
   local field_idx = player:first_empty_field_slot()
   if deck_idx and field_idx then
@@ -957,7 +960,7 @@ end,
 
 -- dress up lucerrie, rising attack
 [1085] = function(player, my_idx)
-  local lucerrie = function(card) return card.id == 300181 end
+  local lucerrie = function(card) return floor(card.id) == 300181 end
   local buff = false
   local field_targets = player:field_idxs_with_preds({lucerrie})
   for _,idx in ipairs(field_targets) do
@@ -1083,7 +1086,7 @@ end,
 -- sion flina, dress up
 [1095] = function(player, my_idx)
   local rion_idx = player:deck_idxs_with_preds(pred.rion_flina)[1]
-  local dressup_func = function(card) return card.id == 300198 end
+  local dressup_func = function(card) return floor(card.id) == 300198 end
   local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if rion_idx and dressup_idx then
     player:field_to_grave(my_idx)
@@ -1100,7 +1103,7 @@ end,
 -- rion flina, dress up
 [1096] = function(player, my_idx)
   local sion_idx = player:deck_idxs_with_preds(pred.shion_flina)[1]
-  local dressup_func = function(card) return card.id == 300198 end
+  local dressup_func = function(card) return floor(card.id) == 300198 end
   local dressup_idx = player:deck_idxs_with_preds(dressup_func)[1]
   if sion_idx and dressup_idx then
     player:field_to_grave(my_idx)
@@ -1117,7 +1120,7 @@ end,
 -- gs alla marcia, gs march
 [1097] = function(player, my_idx, my_card, skill_idx)
   local deck_idx = player:deck_idxs_with_preds({function(card)
-    return card.id == 300193 end})[1]
+    return floor(card.id) == 300193 end})[1]
   local field_idx = player:first_empty_field_slot()
   if deck_idx and field_idx then
     player:deck_to_field(deck_idx)
@@ -1129,7 +1132,7 @@ end,
 -- dress up sionrion, twin attack
 [1098] = function(player, my_idx)
   local field_idxs = player:field_idxs_with_preds({function(card)
-    return card.id == 300198 end})
+    return floor(card.id) == 300198 end})
   for _,idx in ipairs(field_idxs) do
     if idx ~= my_idx then
       player:field_to_grave(idx)
@@ -1620,9 +1623,9 @@ end,
 -- mist lady, mist sorcery
 [1138] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    other_card.atk = id_to_canonical_card[other_card.id].atk
-    other_card.def = id_to_canonical_card[other_card.id].def
-    other_card.sta = id_to_canonical_card[other_card.id].sta
+    other_card.atk = id_to_canonical_card[floor(other_card.id)].atk
+    other_card.def = id_to_canonical_card[floor(other_card.id)].def
+    other_card.sta = id_to_canonical_card[floor(other_card.id)].sta
   end
   my_card:remove_skill(skill_idx)
 end,
@@ -1671,10 +1674,10 @@ end,
   local nongs_target_idxs = player:field_idxs_with_preds({pred.neg(pred.gs), pred.follower})
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(gs_target_idxs) do
-    buff[idx] = {atk={"+",1}, sta={"+",1}}
+    buff[idx] = {atk={"+",1}, sta={"+",2}}
   end
   for _,idx in ipairs(nongs_target_idxs) do
-    buff[idx] = {atk={"-",1}, sta={"-",1}}
+    buff[idx] = {atk={"-",1}, sta={"-",2}}
   end
   buff:apply()
 end,
@@ -1714,7 +1717,7 @@ end,
     player.opponent:grave_to_exile(grave_target_idx)
   end
   for _,stat in ipairs({"atk", "def", "sta"}) do
-    my_card[stat] = id_to_canonical_card[my_card.id][stat]
+    my_card[stat] = id_to_canonical_card[floor(my_card.id)][stat]
   end
 end,
 
@@ -1740,12 +1743,14 @@ end,
 
 -- lib. advisor, chain strike
 [1152] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local targets = player:deck_idxs_with_preds(function(card) return card.id == my_card.id end)
+  local targets = player:deck_idxs_with_preds(function(card) return floor(card.id) == floor(my_card.id) end)
   for _,idx in ipairs(targets) do
-    player:deck_to_grave(idx)
+    player:deck_to_exile(idx)
   end
   local n = #targets
-  OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
+  if n > 0 then
+    OneBuff(player, my_idx, {atk={"+",n},def={"+",n},sta={"+",n*2}}):apply()
+  end
 end,
 
 -- cook club critic, unite
@@ -2397,6 +2402,7 @@ end,
     buff:apply()
     player:hand_to_top_deck(1)
   end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- aletheian a-ga, attack roulette!
@@ -2507,6 +2513,7 @@ end,
 -- witch cadet dauner, status change!
 [1242] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {size={"-",#player:hand_idxs_with_preds(pred.witch)}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- witch cadet dauner, neutralize!
@@ -2533,7 +2540,11 @@ end,
   buff[my_idx] = {def={"=",0}}
   local amt = abs(my_card.def)
   if target then
-    buff[target] = {atk={"+",amt},sta={"+",amt}}
+    if target == my_idx then
+      buff[target] = {atk={"+",amt}, def={"=",0}, sta={"+",amt}}
+    else
+      buff[target] = {atk={"+",amt},sta={"+",amt}}
+    end
   end
   buff:apply()
 end,
@@ -2734,8 +2745,8 @@ end,
 [1258] = function(player, my_idx, my_card, skill_idx)
   OneBuff(player, my_idx, {sta={"+", 3}}):apply()
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
-    function(card) return card.skills[1] == 1258 or card.skills[2] == 1258
-      or card.skills[3] == 1258 end))
+    function(card) return card.skills[1] ~= 1258 and card.skills[2] ~= 1258
+      and card.skills[3] ~= 1258 end))
   my_card:remove_skill(skill_idx)
   if idx then
     player.field[idx]:gain_skill(1258)
@@ -2940,7 +2951,7 @@ end,
   end
   local op = player.opponent
   local buff = OneBuff(op, other_idx)
-  local orig = Card(other_card.id, other_card.upgrade_lvl)
+  local orig = Card(other_card.id)
   for _,attr in ipairs({"def", "sta"}) do
     if other_card[attr] > orig[attr] then
       buff[attr] = {"=", orig[attr]}
@@ -2957,7 +2968,7 @@ end,
   end
   local op = player.opponent
   local buff = OneBuff(op, other_idx)
-  local orig = Card(other_card.id, other_card.upgrade_lvl)
+  local orig = Card(other_card.id)
   for _,attr in ipairs({"atk", "def"}) do
     if other_card[attr] > orig[attr] then
       buff[attr] = {"=", orig[attr]}
@@ -2972,7 +2983,7 @@ end,
   if #player.hand <= 2 then
     OneBuff(player, my_idx, {size={"+", 2}}):apply()
   elseif #player.hand >= 4 then
-    OneBuff(player, my_idx, {}):apply()
+    OneImpact(player, my_idx):apply()
     my_card:remove_skill(skill_idx)
   end
 end,
@@ -3206,7 +3217,7 @@ end,
 
 -- Ace Power!
 [1301] = function(player, my_idx, my_card)
-  local orig_atk = math.abs(Card(my_card.id, my_card.upgrade_lvl).atk - my_card.atk)
+  local orig_atk = math.abs(Card(my_card.id).atk - my_card.atk)
   local mag = math.min(3, math.abs(orig_atk - my_card.atk))
   OneBuff(player, my_idx, {atk={"=", orig_atk}}):apply()
   local idx = player.opponent:deck_idxs_with_preds(pred.follower)[1]
@@ -3227,14 +3238,14 @@ end,
 
 -- Maid Service
 [1303] = function(player, my_idx, my_card, skill_idx)
-  player:to_grave(Card(my_card.id, my_card.upgrade_lvl))
+  player:to_grave(Card(my_card.id))
   OneBuff(player, my_idx, {sta={"+", 1}}):apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Maid Support
 [1304] = function(player, my_idx, my_card, skill_idx)
-  player:to_grave(Card(my_card.id, my_card.upgrade_lvl))
+  player:to_grave(Card(my_card.id))
   OneBuff(player, my_idx, {sta={"+", 1}}):apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
@@ -3259,7 +3270,7 @@ end,
   if not other_card then
     return
   end
-  OneBuff(player, my_idx, {atk={"=", other_card.def + other_card.sta + 1}}):apply()
+  OneBuff(player, my_idx, {atk={"=", other_card.def + other_card.sta - 1}}):apply()
 end,
 
 -- Apostle's Skill
@@ -3333,7 +3344,7 @@ end,
 
 -- My Lucky Day
 [1316] = function(player, my_idx, my_card)
-  local idx = player:grave_idxs_with_preds(function(card) return card.id == 200349 end)[1]
+  local idx = player:grave_idxs_with_preds(function(card) return floor(card.id) == 200349 end)[1]
   if not idx then
     return
   end
@@ -3344,7 +3355,7 @@ end,
   end
   player.field[my_idx], player.field[idx] = nil, my_card
   my_card.active = false
-  OneBuff(player, my_idx, {}):apply()
+  OneImpact(player, my_idx):apply()
 end,
 
 -- Defense Ward
@@ -3388,7 +3399,7 @@ end,
 
 -- Train Stop
 [1321] = function(player)
-  if player.id == 100117 and player.shuffles < 2 then
+  if floor(player.character.id) == 100117 and player.shuffles < 2 then
     player.shuffles = player.shuffles + 1
   end
 end,
@@ -3398,7 +3409,7 @@ end,
   if not other_card or my_card.def + my_card.sta > other_card.atk then
     return
   end
-  OneBuff(player, my_idx, {}):apply()
+  OneImpact(player, my_idx):apply()
   my_card:remove_skill(skill_idx)
   OneBuff(player.opponent, 0, {life={"-", math.ceil(my_card.size / 2)}}):apply()
 end,
@@ -3412,24 +3423,20 @@ end,
 
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local do_default = true
-  local buff = GlobalBuff(player)
-  buff.field[player][my_idx] = {}
-  buff.field[player.opponent][other_idx] = {}
-  if other_card then
-    for _,stat in ipairs({"atk","def","sta"}) do
-      if other_card[stat] > id_to_canonical_card[other_card.id][stat] then
-        do_default = false
-        local amt = ceil((other_card[stat] - id_to_canonical_card[other_card.id][stat])/2)
-        buff.field[player][my_idx][stat] = {"+",amt}
-        buff.field[player.opponent][other_idx][stat] = {"-",amt}
+  if player.character.faction == my_card.faction and other_card then
+	local orig = Card(other_card.id)
+	local buff = GlobalBuff(player)
+	buff.field[player][my_idx] = {}
+	buff.field[player.opponent][other_idx] = {}
+	for _, stat in ipairs({"atk", "def", "sta"}) do
+      if other_card[stat] > orig[stat] then
+		local amt = ceil((other_card[stat] - orig[stat]) / 2)
+        buff.field[player][my_idx][stat] = {"+", amt}
+        buff.field[player.opponent][other_idx][stat] = {"-", amt}
       end
     end
+	buff:apply()
   end
-  if do_default then
-    buff.field[player][my_idx] = {sta={"+",2}}
-  end
-  buff:apply()
 end,
 
 -- Power Change
@@ -3437,12 +3444,10 @@ end,
   if not other_card then
     return
   end
-  local buff = GlobalBuff(player)
   local idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
   local mag = math.abs(other_card.atk)
-  buff.field[player.opponent][other_idx] = {atk={"=", 0}}
-  buff.field[player.opponent][idx] = {atk={"=", mag + player.opponent.field[idx].atk}}
-  buff:apply()
+  OneBuff(player.opponent, other_idx, {atk={"=", 0}}):apply()
+  OneBuff(player.opponent, idx, {atk={"=", mag + player.opponent.field[idx].atk}}):apply()
 end,
 
 -- Song of Encouragement

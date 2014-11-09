@@ -1405,7 +1405,7 @@ end,
 [200101] = function(player, opponent)
   local map = {[300142]=300143,[300156]=300157}
   local target = player:field_idxs_with_preds(
-      function(card) return map[card.id] end)[1]
+      function(card) return map[floor(card.id)] end)[1]
   if target then
     local dressup_id = map[player.field[target].id]
     player:field_to_grave(target)
@@ -2308,14 +2308,15 @@ end,
 [200160] = function(player, opponent, my_idx, my_card)
   if pred.C(player.character) and #player:field_idxs_with_preds(pred.follower) > 0 then
     local nlife = 0
-    for i=1,5 do
+    for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
+	    OneImpact(opponent, i):apply()
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
     end
-    OneBuff(player, 0, {life={"-",nlife}}):apply()
+    OneBuff(player, 0, {life={"-", nlife}}):apply()
   end
 end,
 
@@ -4285,11 +4286,11 @@ Hiking Lesson
 All enemy Followers get -STA equal to average SIZE on your Field
 ]]
 [200302] = function(player, opponent)
-  local mag = floor(player:field_size() / (#player.field - #player:empty_field_slots()))
+  local mag = floor(player:field_size() / #player:field_idxs_with_preds())
   local idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(idxs) do
-    buff[idx] = {sta={"-",mag}}
+    buff[idx] = {sta={"-", mag}}
   end
   buff:apply()
 end,
@@ -4496,8 +4497,8 @@ If this happens, the first allied Follower gets ATK+/DEF+/STA+ equal to the numb
   local card2 = player.field[idx2]
   local mag = 0
   for i=1,3 do
-    if card1:first_empty_skill_slot() then
-      card1:gain_skill(card2.skills[1])
+    if card1:first_empty_skill_slot() and card2.skills[i] then
+      card1:gain_skill(card2.skills[i])
       mag = mag + 1
     end
   end
@@ -4609,20 +4610,19 @@ end,
 --[[
 Enrollment
 A random allied Follower gets ATK+1/STA+1
-If there are any active enemy cards of the same spell, this card remains active on the Field
+If there are any active cards on the enemy Field and no cards on the enemy Field with the same name, this card remains active on your Field.
 ]]
 [200322] = function(player, opponent, my_idx, my_card)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {atk={"+",1},sta={"+",1}}):apply()
   end
-  idx = opponent:field_idxs_with_preds(pred.active,
-      function(card) return card.name ~= my_card.name end)[1]
-  if not idx then
-    return
+  local check1 = #opponent:field_idxs_with_preds(pred.active) > 0
+  local check2 = #opponent:field_idxs_with_preds(function(card) return card.name == my_card.name end) == 0
+  if check1 and check2 then
+    my_card.active = true
+    player.send_spell_to_grave = false
   end
-  my_card.active = true
-  player.send_spell_to_grave = false
 end,
 
 --[[
@@ -4959,7 +4959,7 @@ set equal to half (rounding down) the sum of both Followers' ATK/STA.
 end,
 
 --[[
-Petrifying Curse
+Petrification Curse
 If you have a Vita Character, all Followers with a SIZE < this card's SIZE are exiled
 If this card's SIZE >= 6, this card is exiled
 Otherwise, this card gets SIZE+ 2 and is sent to the top of your Deck
@@ -5112,7 +5112,7 @@ Scout's Attitude
 The first allied Follower regains its original skills and gets ATK+ 1/STA+ 1
 ]]
 [200345] = function(player)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local idx = player:field_idxs_with_preds(pred.follower)[1]
   if not idx then
     return
   end
@@ -5354,17 +5354,18 @@ Kinship
 If all cards in your Hand/Field other than this shares your Character's faction, 2 random
 enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 2
 ]]
-[200359] = function(player, opponent, my_idx)
-  local mag = 0
-  local pred_filter = function(card) mag = mag + 1 return card.faction ~= player.character.faction end
-  mag = floor(mag / 2)
-  if player:field_idxs_with_preds(pred_filter)[1] or #player:hand_idxs_with_preds(pred_filter) then
+[200359] = function(player, opponent, my_idx, my_card)
+  local pred_filter = function(card) return card ~= my_card and card.faction ~= player.character.faction end
+  if #player:field_idxs_with_preds(pred_filter) ~= 0 or #player:hand_idxs_with_preds(pred_filter) ~= 0 then
     return
   end
+  local mag = floor((#player:field_idxs_with_preds() + #player.hand) / 2)
   local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
-  for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"-",mag},def={"-",mag}}
+  for i = 1, 2 do
+    if idxs[i] then
+	  buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
+    end
   end
   buff:apply()
 end,
@@ -5387,7 +5388,7 @@ Otherwise, all allied Followers get ATK-2/STA-2
     local buff = OnePlayerBuff(player)
     local idxs = player:field_idxs_with_preds(pred.follower)
     for _,idx in ipairs(idxs) do
-      buff[idx] = {atk={"-",4},sta={"-",4}}
+      buff[idx] = {atk={"-", 2}, sta={"-", 2}}
     end
     buff:apply()
   end
@@ -5442,7 +5443,7 @@ If that happens, a random allied Follower gets SIZE- 1/ATK+ 4/STA+ 4
   if not idx then
     return
   end
-  player:deck_to_exile(idx)
+  player:deck_to_grave(idx)
   idx = player:field_idxs_with_preds(pred.follower)[1]
   if idx then
     OneBuff(player, idx, {size={"-",1},atk={"+",4},sta={"+",4}}):apply()
@@ -6767,8 +6768,8 @@ Dress Up Extreme
 ]]
 [200432] = function(player, opponent, my_idx, my_card)
   local mag = 0
-  if pred.A(player.character) then
-    mag = Card(my_card.id).size
+  if not pred.A(player.character) then
+    mag = mag - Card(my_card.id).size
   end
   for _,idx in ipairs(player:field_idxs_with_preds()) do
     mag = mag + Card(player.field[idx].id).size
