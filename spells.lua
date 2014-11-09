@@ -1405,7 +1405,7 @@ end,
 [200101] = function(player, opponent)
   local map = {[300142]=300143,[300156]=300157}
   local target = player:field_idxs_with_preds(
-      function(card) return map[card.id] end)[1]
+      function(card) return map[floor(card.id)] end)[1]
   if target then
     local dressup_id = map[player.field[target].id]
     player:field_to_grave(target)
@@ -4497,8 +4497,8 @@ If this happens, the first allied Follower gets ATK+/DEF+/STA+ equal to the numb
   local card2 = player.field[idx2]
   local mag = 0
   for i=1,3 do
-    if card1:first_empty_skill_slot() then
-      card1:gain_skill(card2.skills[1])
+    if card1:first_empty_skill_slot() and card2.skills[i] then
+      card1:gain_skill(card2.skills[i])
       mag = mag + 1
     end
   end
@@ -5388,7 +5388,7 @@ Otherwise, all allied Followers get ATK-2/STA-2
     local buff = OnePlayerBuff(player)
     local idxs = player:field_idxs_with_preds(pred.follower)
     for _,idx in ipairs(idxs) do
-      buff[idx] = {atk={"-",4},sta={"-",4}}
+      buff[idx] = {atk={"-", 2}, sta={"-", 2}}
     end
     buff:apply()
   end
@@ -6768,8 +6768,8 @@ Dress Up Extreme
 ]]
 [200432] = function(player, opponent, my_idx, my_card)
   local mag = 0
-  if pred.A(player.character) then
-    mag = Card(my_card.id).size
+  if not pred.A(player.character) then
+    mag = mag - Card(my_card.id).size
   end
   for _,idx in ipairs(player:field_idxs_with_preds()) do
     mag = mag + Card(player.field[idx].id).size
