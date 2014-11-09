@@ -2311,7 +2311,7 @@ end,
     for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
-	    OneImpact(opponent, i):apply()
+        OneImpact(opponent, i):apply()
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
@@ -5364,7 +5364,7 @@ enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 
   local buff = OnePlayerBuff(opponent)
   for i = 1, 2 do
     if idxs[i] then
-	  buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
+      buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
     end
   end
   buff:apply()
