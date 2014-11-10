@@ -456,7 +456,7 @@ end,
   if ally_target_idx then
     OneImpact(player, ally_target_idx):apply()
     player:field_to_bottom_deck(ally_target_idx)
-    OneImpact(opponent, opp_target_idx):apply()
+    OneImpact(player.opponent, opp_target_idx):apply()
     player.opponent:destroy(opp_target_idx)
   end
 end,
