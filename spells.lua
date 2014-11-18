@@ -2311,7 +2311,7 @@ end,
     for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
-	    OneImpact(opponent, i):apply()
+      OneImpact(opponent, i):apply()
         opponent:field_to_grave(i)
         nlife = nlife + 1
       end
@@ -3590,16 +3590,24 @@ end,
   end
 end,
 
--- halloween wolf
+--[[
+Halloween Wolf
+The first card in your Hand is sent to the first empty Slot 
+of your Field and has its SIZE halved (rounding down). If this happens, 
+the first Spell in the enemy Hand without "Halloween" in the name is copied to 
+the first empty Slot of your Field.
+]]
 [200250] = function(player, opponent, my_idx, my_card)
-  if player:first_empty_field_slot() then
-    local myhand = player.hand[1]
-    if myhand then
-      myhand.size = floor(myhand.size/2)
-      player:hand_to_field(1)
-      halloween(player, opponent)
-    end
+  local idx = player:first_empty_field_slot()
+  if not idx then
+    return
   end
+  if not player.hand[1] then
+    return
+  end
+  player:hand_to_field(1)
+  OneBuff(player, idx, {size={"=", floor(player.field[idx].size / 2)}}):apply()
+  halloween(player, opponent)
 end,
 
 -- double student council kick
@@ -5364,7 +5372,7 @@ enemy Followers get ATK-/DEF- equal to the number of cards in your Hand/Field / 
   local buff = OnePlayerBuff(opponent)
   for i = 1, 2 do
     if idxs[i] then
-	  buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
+    buff[idxs[i]] = {atk={"-",mag}, def={"-",mag}}
     end
   end
   buff:apply()
@@ -5444,7 +5452,7 @@ If that happens, a random allied Follower gets SIZE- 1/ATK+ 4/STA+ 4
     return
   end
   player:deck_to_grave(idx)
-  idx = player:field_idxs_with_preds(pred.follower)[1]
+  idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {size={"-",1},atk={"+",4},sta={"+",4}}):apply()
   end

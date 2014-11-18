@@ -744,8 +744,13 @@ end,
 end,
 
 -- wedding dress rose
-[100035] = function(player)
-  thorn_witch_rose(player)
+[100035] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if not idx then
+    return
+  end
+  local mag = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
+  OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
 end,
 
 -- wedding dress sita
@@ -3426,7 +3431,7 @@ end,
 -- Panica
 [110119] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if not idx then
+  if not idx or player.game.turn % 2 == 1 then
     return
   end
   local card = opponent.field[idx]

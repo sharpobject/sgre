@@ -456,7 +456,7 @@ end,
   if ally_target_idx then
     OneImpact(player, ally_target_idx):apply()
     player:field_to_bottom_deck(ally_target_idx)
-    OneImpact(opponent, opp_target_idx):apply()
+    OneImpact(player.opponent, opp_target_idx):apply()
     player.opponent:destroy(opp_target_idx)
   end
 end,
@@ -3217,15 +3217,15 @@ end,
 
 -- Ace Power!
 [1301] = function(player, my_idx, my_card)
-  local orig_atk = math.abs(Card(my_card.id).atk - my_card.atk)
-  local mag = math.min(3, math.abs(orig_atk - my_card.atk))
-  OneBuff(player, my_idx, {atk={"=", orig_atk}}):apply()
+  local orig = Card(my_card.id).atk
+  local mag = math.min(3, math.abs(orig - my_card.atk))
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"=", orig}}
   local idx = player.opponent:deck_idxs_with_preds(pred.follower)[1]
   if idx then
-    local buff = GlobalBuff(player)
     buff.deck[player.opponent][idx] = {atk={"-", mag}, sta={"-", mag}}
-    buff:apply()
   end
+  buff:apply()
 end,
 
 -- Erupting Fury!
@@ -3424,18 +3424,18 @@ end,
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if player.character.faction == my_card.faction and other_card then
-	local orig = Card(other_card.id)
-	local buff = GlobalBuff(player)
-	buff.field[player][my_idx] = {}
-	buff.field[player.opponent][other_idx] = {}
-	for _, stat in ipairs({"atk", "def", "sta"}) do
-      if other_card[stat] > orig[stat] then
-		local amt = ceil((other_card[stat] - orig[stat]) / 2)
+  local orig = Card(other_card.id)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {}
+  buff.field[player.opponent][other_idx] = {}
+  for _, stat in ipairs({"atk", "def", "sta"}) do
+    if other_card[stat] > orig[stat] then
+    local amt = ceil((other_card[stat] - orig[stat]) / 2)
         buff.field[player][my_idx][stat] = {"+", amt}
         buff.field[player.opponent][other_idx][stat] = {"-", amt}
       end
     end
-	buff:apply()
+    buff:apply()
   end
 end,
 
