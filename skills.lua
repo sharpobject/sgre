@@ -453,7 +453,7 @@ end,
   local ally_target_idx = player:field_idxs_with_preds(
       function(card) return floor(card.id) == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
-  if ally_target_idx then
+  if ally_target_idx and opp_target_idx then
     OneImpact(player, ally_target_idx):apply()
     player:field_to_bottom_deck(ally_target_idx)
     OneImpact(player.opponent, opp_target_idx):apply()
@@ -1623,9 +1623,9 @@ end,
 -- mist lady, mist sorcery
 [1138] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    other_card.atk = id_to_canonical_card[floor(other_card.id)].atk
-    other_card.def = id_to_canonical_card[floor(other_card.id)].def
-    other_card.sta = id_to_canonical_card[floor(other_card.id)].sta
+    other_card.atk = id_to_canonical_card[other_card.id].atk
+    other_card.def = id_to_canonical_card[other_card.id].def
+    other_card.sta = id_to_canonical_card[other_card.id].sta
   end
   my_card:remove_skill(skill_idx)
 end,
@@ -1717,7 +1717,7 @@ end,
     player.opponent:grave_to_exile(grave_target_idx)
   end
   for _,stat in ipairs({"atk", "def", "sta"}) do
-    my_card[stat] = id_to_canonical_card[floor(my_card.id)][stat]
+    my_card[stat] = id_to_canonical_card[my_card.id][stat]
   end
 end,
 
@@ -3424,14 +3424,14 @@ end,
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if player.character.faction == my_card.faction and other_card then
-  local orig = Card(other_card.id)
-  local buff = GlobalBuff(player)
-  buff.field[player][my_idx] = {}
-  buff.field[player.opponent][other_idx] = {}
-  for _, stat in ipairs({"atk", "def", "sta"}) do
-    if other_card[stat] > orig[stat] then
-    local amt = ceil((other_card[stat] - orig[stat]) / 2)
-        buff.field[player][my_idx][stat] = {"+", amt}
+    local orig = Card(other_card.id)
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {}
+    buff.field[player.opponent][other_idx] = {}
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      if other_card[stat] > orig[stat] then
+        local amt = floor((other_card[stat] - orig[stat]) / 2)
+        buff.field[player][my_idx][stat] = {"+", ceil(amt / 2)}
         buff.field[player.opponent][other_idx][stat] = {"-", amt}
       end
     end

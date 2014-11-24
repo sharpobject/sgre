@@ -3518,7 +3518,7 @@ end,
 -- Panica
 [110119] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if not idx or player.game.turn % 2 == 1 then
+  if not idx or player.game.turn % 2 == 0 then
     return
   end
   local card = opponent.field[idx]

@@ -2308,12 +2308,20 @@ end,
 [200160] = function(player, opponent, my_idx, my_card)
   if pred.C(player.character) and #player:field_idxs_with_preds(pred.follower) > 0 then
     local nlife = 0
+    local impact = Impact(opponent)
     for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
-      OneImpact(opponent, i):apply()
-        opponent:field_to_grave(i)
+        impact[opponent][i] = true
         nlife = nlife + 1
+      end
+    end
+    impact:apply()
+    for i = 1, 5 do
+      local card = opponent.field[i]
+      local impact = Impact(opponent)
+      if card and (card.size + player.game.turn + i) % 2 == 1 then
+        opponent:field_to_grave(i)
       end
     end
     OneBuff(player, 0, {life={"-", nlife}}):apply()
