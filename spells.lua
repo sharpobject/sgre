@@ -3605,7 +3605,8 @@ the first Spell in the enemy Hand without "Halloween" in the name is copied to
 the first empty Slot of your Field.
 ]]
 [200250] = function(player, opponent, my_idx, my_card)
-  if player:first_empty_field_slot() then
+  local idx = player:first_empty_field_slot()
+  if idx then
     local myhand = player.hand[1]
     if myhand then
       player:hand_to_field(1)
