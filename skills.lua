@@ -453,7 +453,7 @@ end,
   local ally_target_idx = player:field_idxs_with_preds(
       function(card) return floor(card.id) == 300090 end)[1]
   local opp_target_idx = uniformly(player.opponent:get_follower_idxs())
-  if ally_target_idx then
+  if ally_target_idx and opp_target_idx then
     OneImpact(player, ally_target_idx):apply()
     player:field_to_bottom_deck(ally_target_idx)
     OneImpact(player.opponent, opp_target_idx):apply()
@@ -1623,9 +1623,9 @@ end,
 -- mist lady, mist sorcery
 [1138] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    other_card.atk = id_to_canonical_card[floor(other_card.id)].atk
-    other_card.def = id_to_canonical_card[floor(other_card.id)].def
-    other_card.sta = id_to_canonical_card[floor(other_card.id)].sta
+    other_card.atk = Card(other_card.id).atk
+    other_card.def = Card(other_card.id).def
+    other_card.sta = Card(other_card.id).sta
   end
   my_card:remove_skill(skill_idx)
 end,
@@ -1717,7 +1717,7 @@ end,
     player.opponent:grave_to_exile(grave_target_idx)
   end
   for _,stat in ipairs({"atk", "def", "sta"}) do
-    my_card[stat] = id_to_canonical_card[floor(my_card.id)][stat]
+    my_card[stat] = Card(my_card.id)[stat]
   end
 end,
 
@@ -3217,15 +3217,15 @@ end,
 
 -- Ace Power!
 [1301] = function(player, my_idx, my_card)
-  local orig_atk = math.abs(Card(my_card.id).atk - my_card.atk)
-  local mag = math.min(3, math.abs(orig_atk - my_card.atk))
-  OneBuff(player, my_idx, {atk={"=", orig_atk}}):apply()
+  local orig = Card(my_card.id).atk
+  local mag = math.min(3, math.abs(orig - my_card.atk))
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"=", orig}}
   local idx = player.opponent:deck_idxs_with_preds(pred.follower)[1]
   if idx then
-    local buff = GlobalBuff(player)
     buff.deck[player.opponent][idx] = {atk={"-", mag}, sta={"-", mag}}
-    buff:apply()
   end
+  buff:apply()
 end,
 
 -- Erupting Fury!
@@ -3419,7 +3419,7 @@ end,
   if other_card and other_card.def + other_card.sta <= my_card.atk then
     OneBuff(player, 0, {life={"-", 1}}):apply()
   end
-end,  
+end,
 
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -3430,13 +3430,12 @@ end,
     buff.field[player.opponent][other_idx] = {}
     for _, stat in ipairs({"atk", "def", "sta"}) do
       if other_card[stat] > orig[stat] then
-        local amt = floor((other_card[stat] - orig[stat])/2)
-        buff.field[player][my_idx][stat] = {"+",ceil(amt/2)}
-        buff.field[player.opponent][other_idx][stat] = {"-",amt}
+        local amt = floor((other_card[stat] - orig[stat]) / 2)
+        buff.field[player][my_idx][stat] = {"+", ceil(amt / 2)}
+        buff.field[player.opponent][other_idx][stat] = {"-", amt}
       end
     end
     buff:apply()
-    my_card:remove_skill_until_refresh(skill_idx)
   end
 end,
 
@@ -3512,6 +3511,105 @@ end,
   end
 end,
 
+-- Lend Power
+-- Tea Time Student Council President Celine
+[1333] = function(player, my_idx, my_card)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx == my_idx then
+    return
+  end
+  OneBuff(player, my_idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
+  OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}):apply()
+end,
+
+-- P.F. Academy
+-- Transfer Student Storm Bringer Sis
+[1334] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if pred.V(player.character) and other_card and pred.A(other_card) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
+-- Shield Burst
+-- Summer Uniform Sita, Dark Lady Seven, Youngest Knight Rotori, Crescent Conundrum, Child Sage
+[1335] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.character.faction == my_card.faction and other_card then
+    local mag = math.min(9, math.abs(my_card.def - other_card.def))
+    OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- Shield of 4
+-- Leering Witch
+[1336] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.size >= 4 then
+    OneBuff(player, my_idx, {sta={"+", other_card.atk}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- P.F. Vita
+-- Pure Maid
+[1337] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if pred.A(player.character) and other_card and pred.V(other_card) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
+-- Song of Power
+-- Poison Luthica 
+[1338] = function(player)
+  local idxs = player:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player)
+  for i = 1, #idxs do
+    buff[idxs[i]] = {atk={"+", 3}, sta={"-", 2}}
+  end
+  buff:apply()
+end,
+
+-- P.F. Darklore
+-- Knight of Destruction Pintail
+[1339] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if pred.C(player.character) and other_card and pred.D(other_card) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
+-- All or Nothing
+-- Reading Witch
+[1340] = function(player, my_idx)
+  if math.abs(player.character.life - player.opponent.character.life) >= 10 then
+    local str = player.character.life < player.opponent.character.life and "+" or "-"
+    OneBuff(player, my_idx, {atk={str, 2}, def={str, 2}, sta={str, 2}}):apply()
+  end
+end,
+
+-- P.F. Crux
+-- Witch Parfunte
+[1341] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if pred.D(player.character) and other_card and pred.C(other_card) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
+-- Life Change
+-- Yellow Queen Cannelle
+[1342] = function(player, my_idx, my_card)
+  local idx = player:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
+  local buff = OnePlayerBuff(player)
+  buff[idx] = {sta={"=", my_card.sta}}
+  buff[my_idx] = {sta={"=", player.field[idx].sta}}
+  buff:apply()
+end,
+
+-- P.F. Colorless
+-- Legacy Sojourner
+[1343] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and pred.N(other_card) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
 -- Guide Rio
 [1355] = function(player, my_idx, my_card)
   OneBuff(player, my_idx, {def={"+", 1}}):apply()
@@ -3535,6 +3633,13 @@ end,
 [1425] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
     OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
+  end
+end,
+
+-- Defense
+[1477] = function(player, my_idx)
+  if player.opponent:is_npc() then
+    OneBuff(player, my_idx, {sta={"+", 2}}):apply()
   end
 end,
 
@@ -3654,9 +3759,9 @@ end,
 
 -- rh asmis, homunculus power (rh)!
 [1752] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if my_card.sta < id_to_canonical_card[my_card.id].sta then
+  if my_card.sta < Card(my_card.id).sta then
     OneBuff(player, my_idx, {sta={"+",3}}):apply()
-  elseif my_card.sta > id_to_canonical_card[my_card.id].sta then
+  elseif my_card.sta > Card(my_card.id).sta then
     my_card.active = true
     OneBuff(player, my_idx, {atk={"+",2}}):apply()
   end

@@ -1410,7 +1410,7 @@ end,
     local dressup_id = map[player.field[target].id]
     player:field_to_grave(target)
     local deck_target = player:deck_idxs_with_preds(
-        function(card) return card.id == dressup_id end)[1]
+        function(card) return floor(card.id) == dressup_id end)[1]
     if deck_target then
       local idx = player:first_empty_field_slot()
       player:deck_to_field(deck_target)
@@ -2308,12 +2308,19 @@ end,
 [200160] = function(player, opponent, my_idx, my_card)
   if pred.C(player.character) and #player:field_idxs_with_preds(pred.follower) > 0 then
     local nlife = 0
+    local impact = Impact(opponent)
     for i = 1, 5 do
       local card = opponent.field[i]
       if card and (card.size + player.game.turn + i) % 2 == 1 then
-        OneImpact(opponent, i):apply()
-        opponent:field_to_grave(i)
+        impact[opponent][i] = true
         nlife = nlife + 1
+      end
+    end
+    impact:apply()
+    for i = 1, 5 do
+      local card = opponent.field[i]
+      if card and (card.size + player.game.turn + i) % 2 == 1 then
+        opponent:field_to_grave(i)
       end
     end
     OneBuff(player, 0, {life={"-", nlife}}):apply()
@@ -3590,13 +3597,19 @@ end,
   end
 end,
 
--- halloween wolf
+--[[
+Halloween Wolf
+The first card in your Hand is sent to the first empty Slot 
+of your Field and has its SIZE halved (rounding down). If this happens, 
+the first Spell in the enemy Hand without "Halloween" in the name is copied to 
+the first empty Slot of your Field.
+]]
 [200250] = function(player, opponent, my_idx, my_card)
   if player:first_empty_field_slot() then
     local myhand = player.hand[1]
     if myhand then
-      myhand.size = floor(myhand.size/2)
       player:hand_to_field(1)
+      OneBuff(player, idx, {size={"=", floor(player.field[idx].size / 2)}}):apply()
       halloween(player, opponent)
     end
   end
@@ -4149,7 +4162,7 @@ end,
   if #player:field_idxs_with_preds(pred.follower) >= 3 then
     local target = opponent:field_idxs_with_most_and_preds(pred.atk, pred.follower)[1]
     if target then
-      OneBuff(opponent, target, {atk={"=",id_to_canonical_card[opponent.field[target].id].atk}}):apply()
+      OneBuff(opponent, target, {atk={"=",Card(opponent.field[target].id).atk}}):apply()
     end
   end
 end,
@@ -5444,7 +5457,7 @@ If that happens, a random allied Follower gets SIZE- 1/ATK+ 4/STA+ 4
     return
   end
   player:deck_to_grave(idx)
-  idx = player:field_idxs_with_preds(pred.follower)[1]
+  idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {size={"-",1},atk={"+",4},sta={"+",4}}):apply()
   end
