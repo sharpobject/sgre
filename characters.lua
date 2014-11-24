@@ -3518,11 +3518,10 @@ end,
 -- Panica
 [110119] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if not idx or player.game.turn % 2 == 0 then
-    return
+  if idx and player.game.turn % 2 == 1 then
+    local card = opponent.field[idx]
+    OneBuff(opponent, idx, {atk={"=", ceil(card.atk / 2)}, sta={"=", ceil(card.sta / 2)}}):apply()
   end
-  local card = opponent.field[idx]
-  OneBuff(opponent, idx, {atk={"=", ceil(card.atk / 2)}, sta={"=", ceil(card.sta / 2)}}):apply()
 end,
 
 -- Sigma
@@ -3967,8 +3966,8 @@ end,
     local card = opponent.field[idx]
     buff.field[opponent][idx] = {}
     for _,stat in ipairs({"atk","def","sta"}) do
-      if card[stat] > id_to_canonical_card[card.id][stat] then
-        buff.field[opponent][idx][stat] = {"=",id_to_canonical_card[card.id][stat]}
+      if card[stat] > Card(card.id)[stat] then
+        buff.field[opponent][idx][stat] = {"=",Card(card.id)[stat]}
       end
     end
   end
@@ -3977,8 +3976,8 @@ end,
     local card = player.field[idx]
     buff.field[player][idx] = {}
     for _,stat in ipairs({"atk","def","sta"}) do
-      if card[stat] < id_to_canonical_card[card.id][stat] then
-        buff.field[player][idx][stat] = {"=",id_to_canonical_card[card.id][stat]}
+      if card[stat] < Card(card.id)[stat] then
+        buff.field[player][idx][stat] = {"=",Card(card.id)[stat]}
       end
     end
   end

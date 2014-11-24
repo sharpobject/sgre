@@ -1623,9 +1623,9 @@ end,
 -- mist lady, mist sorcery
 [1138] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    other_card.atk = id_to_canonical_card[other_card.id].atk
-    other_card.def = id_to_canonical_card[other_card.id].def
-    other_card.sta = id_to_canonical_card[other_card.id].sta
+    other_card.atk = Card(other_card.id).atk
+    other_card.def = Card(other_card.id).def
+    other_card.sta = Card(other_card.id).sta
   end
   my_card:remove_skill(skill_idx)
 end,
@@ -1717,7 +1717,7 @@ end,
     player.opponent:grave_to_exile(grave_target_idx)
   end
   for _,stat in ipairs({"atk", "def", "sta"}) do
-    my_card[stat] = id_to_canonical_card[my_card.id][stat]
+    my_card[stat] = Card(my_card.id)[stat]
   end
 end,
 
@@ -3419,7 +3419,7 @@ end,
   if other_card and other_card.def + other_card.sta <= my_card.atk then
     OneBuff(player, 0, {life={"-", 1}}):apply()
   end
-end,  
+end,
 
 -- crux knight ibis, balance of power!
 [1324] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -3759,9 +3759,9 @@ end,
 
 -- rh asmis, homunculus power (rh)!
 [1752] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if my_card.sta < id_to_canonical_card[my_card.id].sta then
+  if my_card.sta < Card(my_card.id).sta then
     OneBuff(player, my_idx, {sta={"+",3}}):apply()
-  elseif my_card.sta > id_to_canonical_card[my_card.id].sta then
+  elseif my_card.sta > Card(my_card.id).sta then
     my_card.active = true
     OneBuff(player, my_idx, {atk={"+",2}}):apply()
   end
