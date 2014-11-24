@@ -25,8 +25,10 @@ function love.load()
     local body, code, headers, status, digest = https.request(url)
     if digest == accept_digest and code == 200 then
       return body
+    elseif digest ~= accept_digest then
+      return nil, "Got wrong certificate digest."
     else
-      return nil
+      return nil, "Got status code "..tostring(code).." and body "..tostring(body)
     end
   end)
 
@@ -37,7 +39,7 @@ function love.load()
     start_time = love.timer.getTime() + 2
   end
 
-  function get_update(list, idx, new_versions, succeeded)
+  function get_update(list, idx, new_versions, old_versions, succeeded)
     if not succeeded then
       return update_failed()
     end
@@ -47,6 +49,16 @@ function love.load()
       file:write(json.encode(new_versions))
       file:close()
       return start_game()
+    else
+      local to_write = {}
+      for k,v in pairs(old_versions) do to_write[k] = v end
+      for i=1,idx-1 do
+        to_write[list[i]] = new_versions[list[i]]
+      end
+      local file = love.filesystem.newFile("version.dat")
+      file:open("w")
+      file:write(json.encode(to_write))
+      file:close()
     end
     msg = msg .. "\n" .. "Downloading " .. list[idx]
     httprequest({
@@ -60,9 +72,10 @@ function love.load()
         if succeeding then
           succeeding = succeeding and file:close()
         end
-        get_update(list, idx+1, new_versions, succeeded and succeeding)
+        get_update(list, idx+1, new_versions, old_versions, succeeded and succeeding)
       end,
       error = function(err)
+        error(err)
         update_failed()
       end,
     }, "https://update.burke.ro/"..list[idx])
@@ -77,10 +90,11 @@ function love.load()
   end
 
   httprequest({
-    success = function(result, digest)
+    success = function(result, err)
       print(result, type(result))
       print(digest, type(digest))
       if not result then
+        msg = msg .. "\n" .. err
         update_failed()
         return
       end
@@ -98,12 +112,13 @@ function love.load()
         end
       end
       if #to_get > 0 then
-        get_update(to_get, 1, remote_versions, true)
+        get_update(to_get, 1, remote_versions, my_version, true)
       else
         no_update_required()
       end
     end,
     error = function(err)
+      error(err)
       update_failed()
     end,
   }, "https://update.burke.ro/version.dat")
