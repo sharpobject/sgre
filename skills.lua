@@ -3515,9 +3515,6 @@ end,
 -- Tea Time Student Council President Celine
 [1333] = function(player, my_idx, my_card)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  if idx == my_idx then
-    return
-  end
   OneBuff(player, my_idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
   OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}):apply()
 end,
