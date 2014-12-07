@@ -2747,8 +2747,10 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card.skills[1] ~= 1258 and card.skills[2] ~= 1258
       and card.skills[3] ~= 1258 end))
-  my_card:remove_skill(skill_idx)
+  -- TODO: if you play this with a follower with 3 skills,
+  -- can the skil target that follower and vanish?
   if idx then
+    my_card:remove_skill(skill_idx)
     player.field[idx]:gain_skill(1258)
   end
 end,
