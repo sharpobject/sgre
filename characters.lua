@@ -1652,6 +1652,190 @@ end,
   end
 end,
 
+-- Santa Sita
+[100124] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+  if player.hand[1] then
+    player:hand_to_top_deck(1)
+    if player.deck[1].faction == player.character.faction then
+      OneBuff(player, 0, {life={"+", 1}}):apply()
+    end
+  end
+end,
+
+-- Santa Cinia
+[100125] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+  if player.hand[1] then
+    player:hand_to_top_deck(1)
+    if player.deck[1].faction == player.character.faction then
+      OneBuff(player, 0, {life={"+", 1}}):apply()
+    end
+  end
+end,
+
+-- Santa Luthica
+[100126] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+  if player.hand[1] then
+    player:hand_to_top_deck(1)
+    if player.deck[1].faction == player.character.faction then
+      OneBuff(player, 0, {life={"+", 1}}):apply()
+    end
+  end
+end,
+
+-- Santa Iri
+[100127] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+  if player.hand[1] then
+    player:hand_to_top_deck(1)
+    if player.deck[1].faction == player.character.faction then
+      OneBuff(player, 0, {life={"+", 1}}):apply()
+    end
+  end
+end,
+
+-- Santa Asmis
+[100128] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local check = false
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    check = pred.V(player.field[idx])
+  else
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+      buff:apply()
+      check = pred.V(player.hand[idx])
+    else
+      idx = player:deck_idxs_with_preds(pred.follower)[1]
+      if idx then
+        local buff = GlobalBuff(player)
+        buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+        buff:apply()
+        check = pred.V(player.deck[idx])
+      end
+    end
+  end
+  if check then
+    idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+end,
+
+-- Santa Linus
+[100129] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local check = false
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    check = pred.A(player.field[idx])
+  else
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+      buff:apply()
+      check = pred.A(player.hand[idx])
+    else
+      idx = player:deck_idxs_with_preds(pred.follower)[1]
+      if idx then
+        local buff = GlobalBuff(player)
+        buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+        buff:apply()
+        check = pred.A(player.deck[idx])
+      end
+    end
+  end
+  if check then
+    idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+end,
+
+-- Santa Rose
+[100130] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local check = false
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    check = pred.C(player.field[idx])
+  else
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+      buff:apply()
+      check = pred.C(player.hand[idx])
+    else
+      idx = player:deck_idxs_with_preds(pred.follower)[1]
+      if idx then
+        local buff = GlobalBuff(player)
+        buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+        buff:apply()
+        check = pred.C(player.deck[idx])
+      end
+    end
+  end
+  if check then
+    idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+end,
+
+-- Santa Helena
+[100131] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local check = false
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    check = pred.D(player.field[idx])
+  else
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+      buff:apply()
+      check = pred.D(player.hand[idx])
+    else
+      idx = player:deck_idxs_with_preds(pred.follower)[1]
+      if idx then
+        local buff = GlobalBuff(player)
+        buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+        buff:apply()
+        check = pred.D(player.deck[idx])
+      end
+    end
+  end
+  if check then
+    idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+end,
+
 -- GS 3rd Star
 [100133] = function(player, opponent, my_card)
   player:to_bottom_deck(Card(300193))
@@ -2489,6 +2673,84 @@ end,
     buff.hand[player][idx] = {atk={"+", 2}}
   end
   buff:apply()
+end,
+
+-- Santa Weekly
+[100252] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    local card = player.field[idx]
+    local mag = math.floor(math.abs(card.atk - card.sta))
+    if card.atk > card.sta then
+      OneBuff(player, idx, {sta={"+", mag}}):apply()
+    elseif card.atk < card.sta then
+      OneBuff(player, idx, {atk={"+", mag}}):apply()
+    else
+      OneImpact(player, idx):apply()
+    end
+  end
+end,
+
+-- Santa Seron
+[100253] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    if idx == 1 then
+      OneBuff(player, idx, {size={"-", 1}, atk={"+", 1}, sta={"+", 2}}):apply()
+    elseif idx % 2 == 1 then
+      OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}}):apply()
+    else
+      OneBuff(player, idx, {size={"-", 1}, sta={"+", 1}}):apply()
+    end
+  end
+end,
+
+-- Santa Pintail
+[100254] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mags = {atk=0, def=0, sta=0}
+    if math.random(1, 3) == 1 then
+      mags.atk = 2
+    elseif math.random(1, 2) == 1 then
+      mags.def = 2
+    else
+      mags.sta = 2
+    end
+    if pred.C(player.field[idx]) then
+      if math.random(1, 2) == 1 then
+        mags.atk = mags.atk + 2
+      else
+        mags.sta = mags.sta + 2
+      end
+    end
+    local buff = {}
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      if mags[stat] ~= 0 then
+        buff[stat] = {"+", mags[stat]}
+      end
+    end
+    OneBuff(player, idx, buff):apply()
+  end
+  if player.game.turn % 3 == 0 then
+    player.shuffles = math.random(0, 2)
+  end
+end,
+
+-- Santa Shion Rion
+[100255] = function(player, opponent)
+  local buff = OnePlayerBuff(opponent)
+  local check = false
+  for i = 1, 5 do
+    if opponent.field[i] and pred.follower(opponent.field[i]) and player.field[i] then
+      buff[i] = {size={"+", 1}, sta={"-", 1}}
+      check = true
+    end
+  end
+  buff:apply()
+  if not check then
+    OneBuff(opponent, 0, {life={"-", 1}}):apply()
+  end
 end,
 
 -- Bunny Lady
