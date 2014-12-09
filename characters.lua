@@ -1675,7 +1675,10 @@ end,
   if player.hand[1] then
     player:hand_to_top_deck(1)
     if player.deck[1].faction == player.character.faction then
-      OneBuff(player, 0, {life={"+", 1}}):apply()
+      idx = uniformly(player:field_idxs_with_preds(pred.follower))
+      if idx then
+        OneBuff(player, idx, {atk={"+", 1}}):apply()
+      end
     end
   end
 end,
@@ -1689,7 +1692,10 @@ end,
   if player.hand[1] then
     player:hand_to_top_deck(1)
     if player.deck[1].faction == player.character.faction then
-      OneBuff(player, 0, {life={"+", 1}}):apply()
+      idx = uniformly(player:field_idxs_with_preds(pred.follower))
+      if idx then
+        OneBuff(player, idx, {def={"+", 1}}):apply()
+      end
     end
   end
 end,
@@ -1703,7 +1709,10 @@ end,
   if player.hand[1] then
     player:hand_to_top_deck(1)
     if player.deck[1].faction == player.character.faction then
-      OneBuff(player, 0, {life={"+", 1}}):apply()
+      idx = uniformly(player:field_idxs_with_preds(pred.follower))
+      if idx then
+        OneBuff(player, idx, {sta={"+", 2}}):apply()
+      end
     end
   end
 end,
@@ -4853,6 +4862,23 @@ end,
     function(card) return card.size >= 4 end))
   if idx then
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+  end
+end,
+
+-- Santa Cinia
+[110232] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+  if player.hand[1] then
+    player:hand_to_top_deck(1)
+    if player.deck[1].faction == player.character.faction then
+      idx = uniformly(player:field_idxs_with_preds(pred.follower))
+      if idx then
+        OneBuff(player, idx, {atk={"+", 1}}):apply()
+      end
+    end
   end
 end,
 
