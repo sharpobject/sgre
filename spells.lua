@@ -5551,12 +5551,15 @@ Heads: ATK+ 3/DEF+ 1/STA+ 1
 Tails: ATK+ 1/DEF+ 1/STA+ 3
 ]]
 [200369] = function(player)
-  local flip = player.won_flip and 1 or 2
+  local slot_buff = {atk={"+",1},def={"+",1},sta={"+",3}}
+  if player.won_flip then
+    slot_buff = {atk={"+",3},def={"+",1},sta={"+",1}}
+  end
   local idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.neg(pred.student_council),
-      pred.neg(pred.library_club), function(card) return card.faction == "V" end}))
+      pred.neg(pred.library_club), pred.V}))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",5-flip*2},def={"+",1},sta={"+",1+flip*2}}
+    buff[idxs[i]] = slot_buff
   end
   buff:apply()
 end,
@@ -5611,12 +5614,15 @@ Heads: ATK+ 3/DEF+ 1/STA+ 1
 Tails: ATK+ 1/DEF+ 1/STA+ 3
 ]]
 [200372] = function(player)
-  local flip = player.won_flip and 1 or 2
+  local slot_buff = {atk={"+",1},def={"+",1},sta={"+",3}}
+  if player.won_flip then
+    slot_buff = {atk={"+",3},def={"+",1},sta={"+",1}}
+  end
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.neg(pred.maid),
       pred.neg(pred.lady), pred.A))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",5-flip*2},def={"+",1},sta={"+",1+flip*2}}
+    buff[idxs[i]] = slot_buff
   end
   buff:apply()
 end,
@@ -5663,13 +5669,15 @@ Heads: ATK+ 3/DEF+ 1/STA+ 1
 Tails: ATK+ 1/DEF+ 1/STA+ 3
 ]]
 [200375] = function(player)
-  local flip = player.won_flip and 1 or 0
-  player.game:send_coin(flip)
+  local slot_buff = {atk={"+",1},def={"+",1},sta={"+",3}}
+  if player.won_flip then
+    slot_buff = {atk={"+",3},def={"+",1},sta={"+",1}}
+  end
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.neg(pred.knight),
       pred.neg(pred.seeker), pred.C))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",5-flip*2},def={"+",1},sta={"+",1+flip*2}}
+    buff[idxs[i]] = slot_buff
   end
   buff:apply()
 end,
@@ -5719,13 +5727,15 @@ Heads: ATK+ 3/DEF+ 1/STA+ 1
 Tails: ATK+ 1/DEF+ 1/STA+ 3
 ]]
 [200378] = function(player)
-  local flip = player.won_flip and 1 or 0
-  player.game:send_coin(flip)
+  local slot_buff = {atk={"+",1},def={"+",1},sta={"+",3}}
+  if player.won_flip then
+    slot_buff = {atk={"+",3},def={"+",1},sta={"+",1}}
+  end
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.neg(pred.witch),
       pred.neg(pred.gs), pred.D))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",5-flip*2},def={"+",1},sta={"+",1+flip*2}}
+    buff[idxs[i]] = slot_buff
   end
   buff:apply()
 end,

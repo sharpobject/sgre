@@ -111,9 +111,16 @@ function network_init()
   network_init = function() end
 end
 
+local last_zombie_time = 0
+
 function do_messages()
   if not TCP_sock then return end
   flush_socket()
+  local now = love.timer.getTime()
+  if now - 10 > last_zombie_time then
+    net_send({type="zombie"})
+    last_zombie_time = now
+  end
 end
 
 function handlers.update_collection(msg)
