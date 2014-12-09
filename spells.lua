@@ -4059,7 +4059,7 @@ end,
   local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
   for i=1,min(2,#targets) do
-    buff[targets[i]] = {atk={"-",floor(amt/2)},sta={"-",floor(amt/2)}}
+    buff[targets[i]] = {atk={"-",floor(amt/2)},def={"-",floor(amt/2)}}
   end
   buff:apply()
 end,
@@ -5149,7 +5149,7 @@ STA - total DEF of all enemy Followers / 2 rounded up + 1
   idxs = player:field_idxs_with_preds(pred.follower, pred.faction.D)
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",mag},sta={"-",ceil(mag/2)+1}}
+    buff[idxs[i]] = {atk={"+",mag},sta={"-",ceil(mag/2)-1}}
   end
   buff:apply()
 end,
