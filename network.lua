@@ -190,3 +190,6 @@ function handlers.update_dungeon(msg)
   user_data.dungeon_clears = msg.dungeon_clears
   user_data.dungeon_floors = msg.dungeon_floors
 end
+
+function handlers.zombie(msg)
+end

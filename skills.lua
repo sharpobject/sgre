@@ -3516,9 +3516,9 @@ end,
 -- Lend Power
 -- Tea Time Student Council President Celine
 [1333] = function(player, my_idx, my_card)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   OneBuff(player, my_idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
-  if player.field[idx] then
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
     OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}):apply()
   end
 end,
@@ -3559,13 +3559,14 @@ end,
 
 -- Song of Power
 -- Poison Luthica 
-[1338] = function(player)
+[1338] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local idxs = player:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(player)
   for i = 1, #idxs do
     buff[idxs[i]] = {atk={"+", 3}, sta={"-", 2}}
   end
   buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- P.F. Darklore

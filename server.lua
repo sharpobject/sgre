@@ -234,22 +234,26 @@ end
 
 function Connection:send(stuff)
   if self.state=="handshake" then return end
-  print("CONNECTION SEND")
+  --print("CONNECTION SEND")
   assert(type(stuff) == "table")
   if type(stuff) == "table" then
     local json = json.encode(stuff)
     local len = json:len()
     local prefix = "J"..char(floor(len/65536))..char(floor((len/256)%256))..char(len%256)
-    print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
-    print("sending json "..json)
+    --print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
+    local to_whom = ""
+    if self.uid then
+      to_whom = "to "..(users.uid_to_username[self.uid]).." "
+    end
+    print("sending json "..to_whom..json)
     local computed_length = (byte(prefix[2])*65536 + byte(prefix[3])*256 + byte(prefix[4]))
-    print("length "..len.." computed length "..computed_length)
+    --print("length "..len.." computed length "..computed_length)
     assert(len == computed_length)
     stuff = prefix..json
   end
   local foo = {self.socket:send(stuff)}
   if stuff[1] ~= "I" then
-    print(unpack(foo))
+    --print(unpack(foo))
   end
   if not foo[1] then
     self:close()
@@ -286,15 +290,19 @@ function Connection:close()
 end
 
 function Connection:J(jmsg)
-  print("CONN J")
+  --print("CONN J")
   message = json.decode(jmsg)
   local tmp_password = message.password
+  local from_whom = ""
+  if self.uid then
+    from_whom = "from "..(users.uid_to_username[self.uid]).." "
+  end
   if tmp_password then
     message.password = "ass"
-    print("got JSON message "..json.encode(message))
+    print("got JSON message "..from_whom..json.encode(message))
     message.password = tmp_password
   else
-    print("got JSON message "..jmsg)
+    print("got JSON message "..from_whom..jmsg)
   end
   if message.type == "general_chat" and self.state ~= "connected" then
     self:try_chat(message)
@@ -302,6 +310,7 @@ function Connection:J(jmsg)
   end
   if message.type == "zombie" then
     self:send({type="zombie"})
+    return
   end
   if self.state == "connected" then
     if message.type == "register" then
@@ -590,6 +599,31 @@ function start_fight(aid, bid)
   setup_game(a,b)
 end
 
+do
+  local all_cards = get_obtainable_cards()
+  function grant_all_cards(uid)
+    load_user_data(uid)
+    local data = uid_to_data[uid]
+    if uid_to_connection[uid] then
+      local diff = {}
+      for k,_ in pairs(all_cards) do
+        local amt = 1000 - (data.collection[k] or 0)
+        if amt > 0 then
+          diff[k] = amt
+        end
+      end
+      uid_to_connection[uid]:update_collection(diff)
+    else
+      for k,_ in pairs(all_cards) do
+        if (data.collection[k] or 0) < 1000 then
+          data.collection[k] = 1000
+        end
+      end
+      modified_file(data)
+    end
+  end
+end
+
 function Connection:update_collection(diff, reason)
   local data = uid_to_data[self.uid]
   for k,v in pairs(diff) do
@@ -603,8 +637,8 @@ function Connection:update_collection(diff, reason)
       data.collection[k] = nil
     end
   end
-  self:send({type="update_collection",diff=diff,reason=reason})
   modified_file(data)
+  self:send({type="update_collection",diff=diff,reason=reason})
   return true
 end
 
@@ -694,12 +728,40 @@ function Connection:try_chat(msg)
       msg.text:len() > 200 then
     return false
   end
-  if data.email == "sharpobject@gmail.com" and msg.text == "stop_server_now" then
-    while file_q:len() > 0 do
-      print("writing a file!")
-      write_a_file()
+  if data.email == "sharpobject@gmail.com" then
+    local args = msg.text:split(" ")
+    local cmd = args[1]
+    if cmd == "stop_server_now" and #args == 1 then
+      while file_q:len() > 0 do
+        print("writing a file!")
+        write_a_file()
+      end
+      os.exit()
     end
-    os.exit()
+    if cmd == "grant_all_cards" and #args == 2 then
+      local username = args[2]
+      local uid = users.username_to_uid[username]
+      if uid then
+        grant_all_cards(uid)
+      end
+      return true
+    end
+    if cmd == "set_password" and #args == 3 then
+      local username = args[2]
+      local new_password = args[3]
+      local uid = users.username_to_uid[username]
+      if uid and check_password(new_password) then
+        local password_to_save = bcrypt.digest(new_password, bcrypt.salt(10))
+        load_user_data(uid)
+        uid_to_data[uid].password = password_to_save
+        modified_file(data)
+      end
+      return true
+    end
+  end
+  if data.username == "kingkong" then
+    self:send({type="general_chat", from=data.username, text=msg.text})
+    return true
   end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
   return true
