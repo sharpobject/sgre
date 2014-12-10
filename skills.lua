@@ -1879,7 +1879,7 @@ end,
 -- soul conductor charon, nether express
 [1172] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local amt = 1
-  if #player.grave + #player.opponent.grave >= 24 then
+  if #player.grave + #player.opponent.grave >= 21 then
     amt = 3
   end
   OneBuff(player, my_idx, {atk={"+",amt},sta={"+",amt}}):apply()
@@ -3609,6 +3609,120 @@ end,
 [1343] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.N(other_card) then
     OneBuff(player.opponent, other_idx, {atk={"-", 3}, sta={"-", 3}}):apply()
+  end
+end,
+
+-- Counterattack
+[1344] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and player.character.faction == my_card.faction then
+    OneBuff(player.opponent, other_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+  end
+end,
+
+-- Healing Technique
+-- Tennis Club Fiddle, Lady Cutie, Crux Knight Prea, Myo Informant
+[1345] = function(player, my_idx)
+  if player.opponent:is_npc() then
+    OneBuff(player, my_idx, {sta={"+", 3}}):apply()
+  else
+    OneBuff(player, my_idx, {sta={"+", 1}}):apply()
+  end
+end,
+
+-- Turnabout Technique
+-- Tennis Club Advisor Miki
+[1346] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk > my_card.def + my_card.sta then
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {sta={"=", other_card.sta}}
+    buff.field[player.opponent][other_idx] = {sta={"=", my_card.sta}}
+    buff:apply()
+  end
+end,
+
+-- Disarm
+-- Spirit of the Underground Library
+[1347] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    if other_card.def >= 1 then
+      OneBuff(player.opponent, other_idx, {def={"=", math.floor(other_card.def / 2)}}):apply()
+    end
+    if other_card.def <= 1 then
+      OneBuff(player.opponent, other_idx, {sta={"-", 1}}):apply()
+    end
+  end
+end,
+
+-- Curse Magic
+-- Lady Detective
+[1348] = function(player)
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player.opponent)
+  for i = 1, 2 do
+    if idxs[i] then
+      buff[idxs[i]] = {atk={"-", 1}, sta={"-", 1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Splash
+-- Southern Lady
+[1349] = function(player, my_idx, my_card, skill_idx, other_idx)
+  local idxs = {}
+  for i = -1, 1 do
+    if other_idx + i >= 1 and other_idx + i <= 5 and player.opponent.field[other_idx + i]
+        and pred.follower(player.opponent.field[other_idx + i]) then
+      table.insert(idxs, other_idx + i)
+    end
+  end
+  local mag = math.floor(math.floor(my_card.atk / 2) / #idxs)
+  local buff = OnePlayerBuff(player.opponent)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {sta={"-", mag}}
+  end
+  buff:apply()
+end,
+
+-- The Power of Peers
+-- Crux Knight Kraros
+[1350] = function(player)
+  if player.game.turn % 2 == 0 then
+    local idxs = player:field_idxs_with_preds(pred.follower, pred.C)
+    local buff = OnePlayerBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff[idx] = {atk={"+", 2}, sta={"+", 2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Weaken
+-- Crux Knight Oclette
+[1351] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    other_card:gain_skill(1354)
+    if other_card.skills[1] and other_card.skills[2] and other_card.skills[3] then
+      OneBuff(player.opponent, other_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
+    end
+  end
+end,
+
+-- Strike While the Iron's Hot!
+-- GS 6th Star
+[1352] = function(player, my_idx)
+  if #player.grave >= 7 and player.game.turn <= 7 then
+    local mag = math.min(4, 7 - player.game.turn)
+    OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- Cowardice
+-- The Forgotten Ancient God
+[1353] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = #player:field_idxs_with_preds()
+    OneBuff(player.opponent, other_idx, {atk={"-", mag}}):apply()
   end
 end,
 
