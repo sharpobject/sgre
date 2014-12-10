@@ -916,10 +916,12 @@ end,
 [100052] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.C))
   if target then
-    if player.field[target].size >= 3 then
+    if player.field[target].size > 3 then
       OneBuff(player, target, {atk={"+",2}}):apply()
-    else
+    elseif player.field[target].size < 3 then
       OneBuff(player, target, {sta={"+",3}}):apply()
+    else
+      OneBuff(player, target, {atk={"+",2}, sta={"+",3}}):apply()
     end
   end
 end,
@@ -5086,7 +5088,7 @@ end,
 [110219] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = math.floor(math.abs(opponent.field[idx].size - opponent.field[idx].sta))
+    local mag = math.ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
     OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
   end
   OneBuff(player, 0, {life={"+", 1}}):apply()

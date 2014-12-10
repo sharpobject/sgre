@@ -5872,11 +5872,11 @@ Personal Relationship
   local op_idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = GlobalBuff(player)
   for i=1,min(2,#pl_idxs) do
-    buff.field[player][pl_idxs[1]] = {atk={"+",2},sta={"+",2}}
+    buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
     for i=1,min(2,#op_idxs) do  
-      buff.field[opponent][op_idxs[1]] = {atk={"-",2},sta={"-",2}}
+      buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
   buff:apply()
@@ -5946,11 +5946,11 @@ Myo Clan's Aid
   local op_idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = GlobalBuff(player)
   for i=1,min(2,#pl_idxs) do
-    buff.field[player][pl_idxs[1]] = {atk={"+",2},sta={"+",2}}
+    buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
     for i=1,min(2,#op_idxs) do  
-      buff.field[opponent][op_idxs[1]] = {atk={"-",2},sta={"-",2}}
+      buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
   buff:apply()
@@ -6032,11 +6032,11 @@ No Gain
   local op_idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = GlobalBuff(player)
   for i=1,min(2,#pl_idxs) do
-    buff.field[player][pl_idxs[1]] = {atk={"+",2},sta={"+",2}}
+    buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
     for i=1,min(2,#op_idxs) do  
-      buff.field[opponent][op_idxs[1]] = {atk={"-",2},sta={"-",2}}
+      buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
   buff:apply()
@@ -6129,11 +6129,11 @@ Iri's Enjoyment
   local op_idxs = opponent:field_idxs_with_preds(pred.follower)
   local buff = GlobalBuff(player)
   for i=1,min(2,#pl_idxs) do
-    buff.field[player][pl_idxs[1]] = {atk={"+",2},sta={"+",2}}
+    buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
     for i=1,min(2,#op_idxs) do  
-      buff.field[opponent][op_idxs[1]] = {atk={"-",2},sta={"-",2}}
+      buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
   buff:apply()
