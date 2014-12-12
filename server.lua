@@ -39,7 +39,7 @@ local socket = socket
 local json = json
 local hash = hash
 local bcrypt = bcrypt
-local TIMEOUT = 10
+local IDLE_TIMEOUT = 5*60
 
 
 local INDEX = 1
@@ -299,6 +299,9 @@ function Connection:J(jmsg)
   if message.type == "general_chat" and self.state ~= "connected" then
     self:try_chat(message)
     return
+  end
+  if message.type == "zombie" then
+    self:send({type="zombie"})
   end
   if self.state == "connected" then
     if message.type == "register" then
@@ -1035,7 +1038,7 @@ function main()
       recvt[#recvt+1] = v.socket
     end
     local ready = socket.select(recvt, nil, 1)
-    socket.sleep(.01)
+    socket.sleep(.001)
     assert(type(ready) == "table")
     for _,v in ipairs(ready) do
       if socket_to_idx[v] then
@@ -1067,18 +1070,16 @@ function main()
       assert(no_string_keys(v.collection))
     end
 
-    --[[local now = time()
+    local now = time()
     if now ~= prev_now then
       for _,v in pairs(connections) do
-        if now - v.last_read > 10 then
-          --v:close()
-        elseif now - v.last_read > 1 then
-          --v:send("ELOL")
+        if now - v.last_read > IDLE_TIMEOUT then
+          v:close()
         end
       end
       prev_now = now
     end
-    broadcast_lobby()--]]
+
   end
 end
 
