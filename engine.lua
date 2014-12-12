@@ -1415,6 +1415,8 @@ function Game:run()
     self.state_view = nil
     self:snapshot()
     P1_first = self:coin_flip()
+    P1.won_flip = P1_first
+    P2.won_flip = not P1_first
     self:send_coin(P1_first and 1 or 2)
     local n_combat_rounds = 0
     while (P1:has_active_cards() or P2:has_active_cards()) and n_combat_rounds < 50 do
