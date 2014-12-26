@@ -1,3 +1,4 @@
+socket = require("socket")
 json = require("dkjson")
 require("stridx")
 require("util")
@@ -233,22 +234,26 @@ end
 
 function Connection:send(stuff)
   if self.state=="handshake" then return end
-  print("CONNECTION SEND")
+  --print("CONNECTION SEND")
   assert(type(stuff) == "table")
   if type(stuff) == "table" then
     local json = json.encode(stuff)
     local len = json:len()
     local prefix = "J"..char(floor(len/65536))..char(floor((len/256)%256))..char(len%256)
-    print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
-    print("sending json "..json)
+    --print(byte(prefix[1]), byte(prefix[2]), byte(prefix[3]), byte(prefix[4]))
+    local to_whom = ""
+    if self.uid then
+      to_whom = "to "..(users.uid_to_username[self.uid]).." "
+    end
+    print("sending json "..to_whom..json)
     local computed_length = (byte(prefix[2])*65536 + byte(prefix[3])*256 + byte(prefix[4]))
-    print("length "..len.." computed length "..computed_length)
+    --print("length "..len.." computed length "..computed_length)
     assert(len == computed_length)
     stuff = prefix..json
   end
   local foo = {self.socket:send(stuff)}
   if stuff[1] ~= "I" then
-    print(unpack(foo))
+    --print(unpack(foo))
   end
   if not foo[1] then
     self:close()
@@ -285,15 +290,19 @@ function Connection:close()
 end
 
 function Connection:J(jmsg)
-  print("CONN J")
+  --print("CONN J")
   message = json.decode(jmsg)
   local tmp_password = message.password
+  local from_whom = ""
+  if self.uid then
+    from_whom = "from "..(users.uid_to_username[self.uid]).." "
+  end
   if tmp_password then
     message.password = "ass"
-    print("got JSON message "..json.encode(message))
+    print("got JSON message "..from_whom..json.encode(message))
     message.password = tmp_password
   else
-    print("got JSON message "..jmsg)
+    print("got JSON message "..from_whom..jmsg)
   end
   if message.type == "general_chat" and self.state ~= "connected" then
     self:try_chat(message)
@@ -722,35 +731,32 @@ function Connection:try_chat(msg)
   if data.email == "sharpobject@gmail.com" then
     local args = msg.text:split(" ")
     local cmd = args[1]
-    if cmd == "stop_server_now" then
+    if cmd == "stop_server_now" and #args == 1 then
       while file_q:len() > 0 do
         print("writing a file!")
         write_a_file()
       end
       os.exit()
     end
-    if cmd == "grant_all_cards" then
+    if cmd == "grant_all_cards" and #args == 2 then
       local username = args[2]
-      if type(username) == "string" then
-        local uid = users.username_to_uid[username]
-        if uid then
-          grant_all_cards(uid)
-        end
+      local uid = users.username_to_uid[username]
+      if uid then
+        grant_all_cards(uid)
       end
       return
     end
-    if cmd == "set_password" then
+    if cmd == "set_password" and #args == 3 then
       local username = args[2]
       local new_password = args[3]
-      if type(username) == "string" and type(new_password) == "string" then
-        local uid = users.username_to_uid[username]
-        if uid and check_password(new_password) then
-          local password_to_save = bcrypt.digest(new_password, bcrypt.salt(10))
-          load_user_data(uid)
-          uid_to_data[uid].password = password_to_save
-          modified_file(data)
-        end
+      local uid = users.username_to_uid[username]
+      if uid and check_password(new_password) then
+        local password_to_save = bcrypt.digest(new_password, bcrypt.salt(10))
+        load_user_data(uid)
+        uid_to_data[uid].password = password_to_save
+        modified_file(data)
       end
+      return
     end
   end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})

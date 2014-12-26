@@ -4,6 +4,9 @@ local floor = math.floor
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
     --print("card init "..id)
+    if not id_to_canonical_card[id] then
+      print(id, type(id), "devil card????")
+    end
     for k,v in pairs(id_to_canonical_card[id]) do
       self[k]=deepcpy(v)
       --print(k,v,self[k])
