@@ -1,4 +1,3 @@
-socket = require("socket")
 json = require("dkjson")
 require("stridx")
 require("util")
@@ -302,6 +301,7 @@ function Connection:J(jmsg)
   end
   if message.type == "zombie" then
     self:send({type="zombie"})
+    return
   end
   if self.state == "connected" then
     if message.type == "register" then
@@ -590,6 +590,31 @@ function start_fight(aid, bid)
   setup_game(a,b)
 end
 
+do
+  local all_cards = get_obtainable_cards()
+  function grant_all_cards(uid)
+    load_user_data(uid)
+    local data = uid_to_data[uid]
+    if uid_to_connection[uid] then
+      local diff = {}
+      for k,_ in pairs(all_cards) do
+        local amt = 1000 - (data.collection[k] or 0)
+        if amt > 0 then
+          diff[k] = amt
+        end
+      end
+      uid_to_connection[uid]:update_collection(diff)
+    else
+      for k,_ in pairs(all_cards) do
+        if (data.collection[k] or 0) < 1000 then
+          data.collection[k] = 1000
+        end
+      end
+      modified_file(data)
+    end
+  end
+end
+
 function Connection:update_collection(diff, reason)
   local data = uid_to_data[self.uid]
   for k,v in pairs(diff) do
@@ -603,8 +628,8 @@ function Connection:update_collection(diff, reason)
       data.collection[k] = nil
     end
   end
-  self:send({type="update_collection",diff=diff,reason=reason})
   modified_file(data)
+  self:send({type="update_collection",diff=diff,reason=reason})
   return true
 end
 
@@ -694,12 +719,39 @@ function Connection:try_chat(msg)
       msg.text:len() > 200 then
     return false
   end
-  if data.email == "sharpobject@gmail.com" and msg.text == "stop_server_now" then
-    while file_q:len() > 0 do
-      print("writing a file!")
-      write_a_file()
+  if data.email == "sharpobject@gmail.com" then
+    local args = msg.text:split(" ")
+    local cmd = args[1]
+    if cmd == "stop_server_now" then
+      while file_q:len() > 0 do
+        print("writing a file!")
+        write_a_file()
+      end
+      os.exit()
     end
-    os.exit()
+    if cmd == "grant_all_cards" then
+      local username = args[2]
+      if type(username) == "string" then
+        local uid = users.username_to_uid[username]
+        if uid then
+          grant_all_cards(uid)
+        end
+      end
+      return
+    end
+    if cmd == "set_password" then
+      local username = args[2]
+      local new_password = args[3]
+      if type(username) == "string" and type(new_password) == "string" then
+        local uid = users.username_to_uid[username]
+        if uid and check_password(new_password) then
+          local password_to_save = bcrypt.digest(new_password, bcrypt.salt(10))
+          load_user_data(uid)
+          uid_to_data[uid].password = password_to_save
+          modified_file(data)
+        end
+      end
+    end
   end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
   return true

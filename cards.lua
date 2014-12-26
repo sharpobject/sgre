@@ -97,4 +97,39 @@ function cards_init()
   recipes = fix_num_keys(json.decode(file_contents("recipes_current.json")))
 end
 
+function get_obtainable_cards()
+  local recipes = recipes
+  local dungeons = fix_num_keys(json.decode(file_contents("dungeons.json")))
+  local cards = {}
+
+  for _,dungeon_data in pairs(dungeons.rewards) do
+    for _,floornum_data in pairs(dungeon_data) do
+      for _,reps_data in pairs(floornum_data) do
+        if type(reps_data) == "table" and reps_data.cards then
+          for card,_ in pairs(reps_data.cards) do
+            cards[card] = true
+          end
+        end
+      end
+    end
+  end
+
+  for k,v in pairs(recipes) do
+    cards[k] = true
+  end
+
+  local cafe_chars = {}
+  for k,_ in pairs(cards) do
+    if giftable[k] then
+      for _,v in pairs(giftable[k]) do
+        cafe_chars[v] = true
+      end
+    end
+  end
+  for k,_ in pairs(cafe_chars) do
+    cards[k] = true
+  end
+  return cards
+end
+
 cards_init()
