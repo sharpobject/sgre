@@ -49,6 +49,7 @@ local dungeon_mats = {
   210029, -- aletheian brick
   210033, -- pass
   210034, -- receipt (ep9)
+  --210036, -- cat paw stamp (ex3)
 }
 local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}

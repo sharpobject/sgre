@@ -52,4 +52,8 @@ local function tinymaids(in_sizes)
   return ret
 end
 
+for i=1,1000 do
+  count_possibilities(10, i)
+end
+
 return tinymaids
