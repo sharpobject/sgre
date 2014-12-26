@@ -98,7 +98,7 @@ end
 function network_init()
   TCP_sock = socket.tcp()
   TCP_sock:settimeout(7)
-  if not TCP_sock:connect("localhost",49570) then
+  if not TCP_sock:connect("burke.ro",49571) then
     error("failed to connect yolo")
   end
   local params = {
@@ -189,4 +189,7 @@ end
 function handlers.update_dungeon(msg)
   user_data.dungeon_clears = msg.dungeon_clears
   user_data.dungeon_floors = msg.dungeon_floors
+end
+
+function handlers.zombie(msg)
 end
