@@ -744,7 +744,7 @@ function Connection:try_chat(msg)
       if uid then
         grant_all_cards(uid)
       end
-      return
+      return true
     end
     if cmd == "set_password" and #args == 3 then
       local username = args[2]
@@ -756,8 +756,12 @@ function Connection:try_chat(msg)
         uid_to_data[uid].password = password_to_save
         modified_file(data)
       end
-      return
+      return true
     end
+  end
+  if data.username == "kingkong" then
+    self:send({type="general_chat", from=data.username, text=msg.text})
+    return true
   end
   chat_q:push({type="general_chat", from=data.username, text=msg.text})
   return true
