@@ -3379,10 +3379,45 @@ end,
   buff_all(player, opponent, my_card, {sta={"+",#player.hand}})
 end,
 
+-- Accident Maid
+[110064] = function(player, opponent, my_card)
+  local p = uniformly({player, opponent})
+  local idx = uniformly(p:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(p, idx, {sta={"-",3}}):apply()
+  end
+end,
+
+-- Kitchen Maid
+[110065] = function(player, opponent, my_card)
+  buff_random(opponent, nil, nil, {size={"+",1},atk={"+",1},def={"+",1},sta={"+",2}})
+end,
+
+-- Cleaning Maid
+[110066] = function(player, opponent, my_card)
+  local p = uniformly({player, opponent})
+  for i=1,2 do
+    local slot = p:first_empty_field_slot()
+    if #opponent.hand > 0 and slot then
+      p.field[slot] = opponent:remove_from_hand(1)
+    end
+  end
+end,
+
+-- Tea Time Maid
+[110067] = function(player, opponent, my_card)
+  local p = uniformly({player, opponent})
+  local buff = {life={"-",1}}
+  if p == opponent then
+    buff = {life={"-",2}}
+  end
+  OneBuff(p, 0, buff):apply()
+end,
+
 -- Disaster Maid
 [110069] = function(player, opponent, my_card)
   local p = uniformly({player, opponent})
-  local idx = p:field_idxs_with_preds(pred.follower)[1]
+  local idx = uniformly(p:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(p, idx, {sta={"-",5}}):apply()
   end
@@ -5142,7 +5177,7 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {sta={"+", 3}}):apply()
-    player:field_to_hand(idx)
+    player:field_to_top_deck(idx)
   end
 end,
   
