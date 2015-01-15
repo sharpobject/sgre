@@ -3103,7 +3103,7 @@ end,
 [200218] = function(player, opponent, my_idx, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.faction.D))
   if target then
-    OneBuff(player, target, {def={"+",1},sta={"+",3}}):apply()
+    OneBuff(player, target, {def={"+",1},sta={"+",4}}):apply()
   end
 end,
 
