@@ -2954,13 +2954,17 @@ end,
   local op = player.opponent
   local buff = {}
   local orig = Card(other_card.id)
+  local check = false
   for _,attr in ipairs({"def", "sta"}) do
     if other_card[attr] > orig[attr] then
       buff[attr] = {"=", orig[attr]}
+      check = true
     end
   end
   OneBuff(op, other_idx, buff):apply()
-  my_card:remove_skill_until_refresh(skill_idx)
+  if check then
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
 end,
 
 -- Attack Spin
@@ -2971,13 +2975,17 @@ end,
   local op = player.opponent
   local buff = {}
   local orig = Card(other_card.id)
+  local check = false
   for _,attr in ipairs({"atk", "def"}) do
     if other_card[attr] > orig[attr] then
       buff[attr] = {"=", orig[attr]}
+      check = true
     end
   end
   OneBuff(op, other_idx, buff):apply()
-  my_card:remove_skill_until_refresh(skill_idx)
+  if check then
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
 end,
 
 -- Diet Failure
