@@ -913,7 +913,7 @@ end,
     end
     local target = opponent:field_idxs_with_preds(pred.follower)[1]
     if target then
-      buff.field[opponent][target] = {sta={"-",reduced_amount}}
+      buff.field[opponent][target] = {sta={"-",math.floor(reduced_amount / 2)}}
     end
     buff:apply()
   end
@@ -3671,17 +3671,21 @@ end,
 -- strega think tank
 [200254] = function(player, opponent, my_idx, my_card)
   local targets = player:field_idxs_with_preds({pred.follower, pred.witch})
+  local buff = OnePlayerBuff(opponent)
   for i=1,5 do
     local card = opponent.field[i]
     if card and pred.follower(card) then
-      OneBuff(opponent, i, {atk={"-",#targets + 1}}):apply()
+      buff[i] = {atk={"-",#targets + 1}}
     end
   end
+  buff:apply()
+  buff = OnePlayerBuff(player)
   for i=1,5 do
     if targets[i] then
-      OneBuff(player, targets[i], {atk={"+",#targets}}):apply()
+      buff[targets[i]] = {atk={"+",#targets}}
     end
   end
+  buff:apply()
 end,
 
 -- rio's ward
