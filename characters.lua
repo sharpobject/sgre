@@ -5065,8 +5065,8 @@ end,
 
 -- Linia's Steward
 [110214] = function(player, opponent)
-  local idxs = opponent:field_idxs_with_preds(pred.follower)
-  local idxs2 = opponent:hand_idxs_with_preds(pred.follower)
+  local idxs = opponent:field_idxs_with_preds()
+  local idxs2 = opponent:hand_idxs_with_preds()
   for _, idx in ipairs(idxs2) do
     table.insert(idxs, idx + 5)
   end
@@ -5633,7 +5633,7 @@ end,
   local buff = GlobalBuff(player)
   for _, idx in ipairs(idxs) do
     local orig = Card(player.field[idx].id)
-    for _, stat in ipairs({"size", "atk", "def", "sta"}) do
+    for _, stat in ipairs({"atk", "def", "sta"}) do
       if player.field[idx][stat] < orig[stat] then
         if not buff.field[player][idx] then
           buff.field[player][idx] = {}
@@ -5645,7 +5645,7 @@ end,
   idxs = opponent:field_idxs_with_preds(pred.follower)
   for _, idx in ipairs(idxs) do
     local orig = Card(opponent.field[idx].id)
-    for _, stat in ipairs({"size", "atk", "def", "sta"}) do
+    for _, stat in ipairs({"atk", "def", "sta"}) do
       if opponent.field[idx][stat] > orig[stat] then
         if not buff.field[opponent][idx] then
           buff.field[opponent][idx] = {}
