@@ -172,11 +172,37 @@ function Player:upkeep_phase()
           wait(50)
           card.trigger = nil
           self.game:send_trigger(self.player_index, idx, "start")
+
+          local flicker_my_deck
+          local flicker_opp_deck
+          local my_deck = {}
+          local opp_deck = {}
+          if GO_HARD then
+            flicker_my_deck = (math.random(10) == 1)
+            flicker_opp_deck = (math.random(10) == 1)
+            if flicker_my_deck then
+              my_deck, self.deck = self.deck, my_deck
+            end
+            if flicker_opp_deck then
+              opp_deck, self.opponent.deck = self.opponent.deck, opp_deck
+            end
+          end
+
           if type(skill_id) == "number" and skill_id >= 100000 then
             characters_func[skill_id](self, self.opponent, card)
           else
             skill_func[skill_id](self, idx, card, skill_idx)
           end
+
+          if GO_HARD then
+            if flicker_my_deck then
+              my_deck, self.deck = self.deck, my_deck
+            end
+            if flicker_opp_deck then
+              opp_deck, self.opponent.deck = self.opponent.deck, opp_deck
+            end
+          end
+
           if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
             error("unresolved buff in skill " .. skill_id)
           end
@@ -1132,6 +1158,20 @@ do
 end
 
 function Game:snapshot(buff_msg, atk_msg, can_lose)
+  if GO_HARD then
+    for _,player in pairs({self.P1, self.P2}) do
+      for _,zone in pairs({"hand", "field", "deck"}) do
+        for _, card in pairs(player[zone]) do
+          if card.size == 0 then
+            print(card.id)
+            print(zone)
+            print(_)
+            error("size 0 card ok")
+          end
+        end
+      end
+    end
+  end
   if self.client or self.winner then
     return
   end

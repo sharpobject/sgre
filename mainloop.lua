@@ -67,6 +67,9 @@ local function get_deck()
   t[1] = uniformly(char_ids)
   for i=2,31 do
     t[i] = uniformly(norm_ids)
+    while Card(t[i]).size == 0 do
+      t[i] = uniformly(norm_ids)
+    end
   end
   return t
 end

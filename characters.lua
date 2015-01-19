@@ -1783,9 +1783,11 @@ end,
   end
   if check then
     idx = uniformly(player:deck_idxs_with_preds(pred.follower))
-    local buff = GlobalBuff(player)
-    buff.deck[player][idx] = {def={"+", 1}, sta={"+", 1}}
-    buff:apply()
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {def={"+", 1}, sta={"+", 1}}
+      buff:apply()
+    end
   end
 end,
 
