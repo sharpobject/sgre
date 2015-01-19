@@ -1749,9 +1749,11 @@ end,
   end
   if check then
     idx = uniformly(player:deck_idxs_with_preds(pred.follower))
-    local buff = GlobalBuff(player)
-    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
-    buff:apply()
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+      buff:apply()
+    end
   end
 end,
 
@@ -1822,7 +1824,7 @@ end,
   local check = false
   if idx then
     local buff = {atk={"+", 2}, sta={"+", 2}}
-    if pred.D(player.deck[idx]) then
+    if pred.D(player.field[idx]) then
       buff.size={"-", 1}
     end
     OneBuff(player, idx, buff):apply()
@@ -1831,7 +1833,7 @@ end,
     if idx then
       local buff = GlobalBuff(player)
       buff.hand[player][idx] = {atk={"+", 2}, sta={"+", 2}}
-      if pred.D(player.deck[idx]) then
+      if pred.D(player.hand[idx]) then
         buff.hand[player][idx].size = {"-", 1}
       end
       buff:apply()
