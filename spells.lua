@@ -581,7 +581,7 @@ end,
 [200041] = function(player, opponent)
   local n_council = #player:field_idxs_with_preds({pred.follower, pred.student_council})
   local n_vita = #player:field_idxs_with_preds({pred.follower, pred.faction.V})
-  if n_council then
+  if n_council > 0 then
     local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
     local buff = OnePlayerBuff(opponent)
     for i=1,min(2,#targets) do
@@ -589,7 +589,7 @@ end,
         buff[targets[i]] = {atk={"-",2}}
       elseif n_vita == 2 then
         buff[targets[i]] = {sta={"-",3}}
-      else
+      elseif n_vita >= 3 then
         buff[targets[i]] = {atk={"-",2},def={"-",1},sta={"-",2}}
       end
     end

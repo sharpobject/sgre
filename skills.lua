@@ -3734,6 +3734,12 @@ end,
   end
 end,
 
+-- idk
+-- Crux Knight Oclette
+[1354] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+end,
+
 -- Guide Rio
 [1355] = function(player, my_idx, my_card)
   OneBuff(player, my_idx, {def={"+", 1}}):apply()

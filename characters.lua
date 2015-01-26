@@ -1678,7 +1678,7 @@ end,
   if player.hand[1] then
     local check = player.hand[1].faction == player.character.faction
     player:hand_to_top_deck(1)
-    if player.deck[1].faction == player.character.faction then
+    if check then
       idx = uniformly(player:field_idxs_with_preds(pred.follower))
       if idx then
         OneBuff(player, idx, {atk={"+", 1}}):apply()
@@ -1696,11 +1696,8 @@ end,
   if player.hand[1] then
     local check = player.hand[1].faction == player.character.faction
     player:hand_to_top_deck(1)
-    if player.deck[1].faction == player.character.faction then
-      idx = uniformly(player:field_idxs_with_preds(pred.follower))
-      if idx then
-        OneBuff(player, idx, {def={"+", 1}}):apply()
-      end
+    if check and idx then
+      OneBuff(player, idx, {def={"+", 1}}):apply()
     end
   end
 end,
@@ -1714,7 +1711,7 @@ end,
   if player.hand[1] then
     local check = player.hand[1].faction == player.character.faction
     player:hand_to_top_deck(1)
-    if player.deck[1].faction == player.character.faction then
+    if check then
       idx = uniformly(player:field_idxs_with_preds(pred.follower))
       if idx then
         OneBuff(player, idx, {sta={"+", 2}}):apply()
@@ -1823,7 +1820,6 @@ end,
 -- Santa Helena
 [100131] = function(player)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  local check = false
   if idx then
     local buff = {atk={"+", 2}, sta={"+", 2}}
     if pred.D(player.field[idx]) then
@@ -2180,7 +2176,11 @@ end,
     local idxs = player:deck_idxs_with_preds(pred.follower)
     local buff = GlobalBuff(player)
     for _, idx in ipairs(idxs) do
-      buff.deck[player][idx] = {sta={"+", pred.V(player.deck[idx]) and 5 or 4}}
+      if pred.V(player.deck[idx]) then
+        buff.deck[player][idx] = {atk={"+", 1},sta={"+", 4}}
+      else
+        buff.deck[player][idx] = {sta={"+", 4}}
+      end
     end
     buff:apply()
   end
@@ -5617,7 +5617,9 @@ end,
       buff.deck[player][idx] = {atk={"+", 2}, sta={"+", 2}}
     end
     buff:apply()
-    opponent.shuffles = opponent.shuffles - 1
+    if opponent.shuffles >= 1 then
+      opponent.shuffles = opponent.shuffles - 1
+    end
   end
   local buff = GlobalBuff(opponent)
   local idxs = opponent:field_idxs_with_preds(pred.follower)
@@ -5629,6 +5631,7 @@ end,
     buff.hand[opponent][idx] = {size={"+", 1}}
   end
   buff:apply()
+  OneBuff(opponent, 0, {life={"-",1}}):apply()
 end,
 
 -- Witch Queen Linia
