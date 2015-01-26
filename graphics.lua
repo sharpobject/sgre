@@ -877,6 +877,23 @@ function deck_card_list_button(id, upgrade, count, cb)
   return button
 end
 
+function card_count_thing(cards, cp, buffer_spaces)
+  local button = loveframes.Create("button")
+  button:SetHeight(13 * (1+buffer_spaces))
+  button.Draw = function(self)
+    local x = self:GetX()
+    local y = self:GetY()+13*buffer_spaces
+    local w, h = self:GetWidth(), self:GetHeight()
+    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.setFont(load_vera(10))
+    love.graphics.print(cards .. " Cards", x, y)
+    love.graphics.printf(cp.." CP", x, y, w, "right")
+  end
+  button.Update = function(self)
+  end
+  return button
+end
+
 function card_list_button(id, gray, count, cb)
   id = tonumber(id)
   local card = Card(id, upgrade)
