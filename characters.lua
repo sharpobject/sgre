@@ -3396,17 +3396,15 @@ end,
 
 -- Kitchen Maid
 [110065] = function(player, opponent, my_card)
-  buff_random(opponent, nil, nil, {size={"+",1},atk={"+",1},def={"+",1},sta={"+",2}})
+  buff_random(player, opponent, my_card, {size={"+",1},atk={"+",1},def={"+",1},sta={"+",2}})
 end,
 
 -- Cleaning Maid
 [110066] = function(player, opponent, my_card)
   local p = uniformly({player, opponent})
-  for i=1,2 do
-    local slot = p:first_empty_field_slot()
-    if #opponent.hand > 0 and slot then
-      p.field[slot] = opponent:remove_from_hand(1)
-    end
+  local slot = p:first_empty_field_slot()
+  if #opponent.hand > 0 and slot then
+    p.field[slot] = opponent:remove_from_hand(1)
   end
 end,
 
@@ -5662,6 +5660,12 @@ end,
     end
   end
   buff:apply()
+  if player.game.turn % 2 == 0 then
+    OneBuff(player,0,{life={"+",3}}):apply()
+  end
+  recycle_one(player)
+  recycle_one(player)
+  recycle_one(player)
 end
 
 

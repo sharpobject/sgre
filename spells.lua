@@ -4364,7 +4364,7 @@ If you have an Academy Character and your Field SIZE is at least 3, all cards on
 rearranged
 The number of movements will not exceed the total number of cards on the Field
 ]]
-[200306] = function(player, opponent)
+[200306] = function(player, opponent, my_idx, my_card)
   if not pred.A(player.character) or player:field_size() < 3 then
     return
   end
@@ -4377,19 +4377,25 @@ The number of movements will not exceed the total number of cards on the Field
     end
   end
   local mag = #card_locations
-  if mag > 1 then
-    for i=1,mag do
-      local a_card = uniformly(card_locations)
-      local b_card = a_card
-      while b_card == a_card do
-        b_card = uniformly(card_locations)
+  local old_arrangement = {}
+  for i=1,#card_locations do
+    old_arrangement[i] = card_locations[i][1].field[card_locations[i][2]]
+  end
+  local new_arrangement = shuffled(old_arrangement)
+  local impact = Impact(player)
+  for i=1,#card_locations do
+    if new_arrangement[i] ~= old_arrangement[i] then
+      local p, idx = card_locations[i][1], card_locations[i][2]
+      p.field[idx] = new_arrangement[i]
+      impact[p][idx] = true
+    end
+  end
+  impact:apply()
+  for _,p in pairs({player, player.opponent}) do
+    for i=1,5 do
+      if p.field[i] == my_card then
+        p:field_to_grave(i)
       end
-      local ap, ai, bp, bi = a_card[1], a_card[2], b_card[1], b_card[2]
-      local impact = Impact(player)
-      impact[ap][ai] = true
-      impact[bp][bi] = true
-      impact:apply()
-      ap.field[ai], bp.field[bi] = bp.field[bi], ap.field[ai]
     end
   end
 end,

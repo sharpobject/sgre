@@ -2924,7 +2924,7 @@ end,
 [1277] = function(player, my_idx, my_card, skill_idx, other_idx)
   local op = player.opponent
   local idx = op:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
-  if idx then
+  if idx and idx ~= other_idx then
     op.field[other_idx], op.field[idx] = op.field[idx], op.field[other_idx]
   end
   local card = op.field[other_idx]
