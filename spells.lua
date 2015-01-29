@@ -3504,7 +3504,8 @@ end,
   local my_guy = player:hand_idxs_with_preds(pred.follower)[1]
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if my_guy and target then
-    OneBuff(opponent, target, {sta={"-",player.hand[my_guy].atk}}):apply()
+    local amt = ceil(player.hand[my_guy].atk/2)
+    OneBuff(opponent, target, {sta={"-",amt}}):apply()
     halloween(player, opponent)
   end
 end,

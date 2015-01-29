@@ -3447,6 +3447,7 @@ end,
     end
     buff:apply()
   end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Power Change
