@@ -2297,8 +2297,15 @@ end,
       player:grave_to_field(idx)
       OneBuff(player, fidx, {atk={"+",2},sta={"+",2}}):apply()
     end
+  else
+    ep7_recycle(player)
   end
-  ep7_recycle(player)
+  local idx = player:hand_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local card = player.hand[idx]
+    player:hand_to_exile(idx)
+    table.insert(player.grave, 1, card)
+  end
 end,
 
 -- Horseback Rose

@@ -635,7 +635,7 @@ end,
   if other_card and pred.skill(other_card) then
     other_card.skills = {}
     my_card:remove_skill(skill_idx)
-    OneImpact(player, my_idx):apply()
+    OneImpact(player.opponent, other_idx):apply()
   end
 end,
 
@@ -3739,6 +3739,402 @@ end,
   OneBuff(player, my_idx, {def={"+", 1}}):apply()
 end,
 
+-- Student Council Press Hermes
+-- Equipment Rental!
+[1357] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {def={"+", 1}}):apply()
+  end
+end,
+
+-- Student Council Press Hermes
+-- Equipment Return!
+[1358] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.def >= 5 then
+    OneImpact(player.opponent, other_idx):apply()
+    player.opponent:field_to_grave(other_idx)
+  end
+end,
+
+-- Cook Club Apprentice Iri
+-- Charge!!
+[1359] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 1}}):apply()
+end,
+
+-- Restorative Infusion!
+-- Lady on the Water
+[1360] = function(player, my_idx, my_card)
+  local mag = Card(my_card.id).sta
+  if mag > my_card.sta then
+    OneBuff(player, my_idx, {sta={"=", mag}}):apply()
+  end
+end,
+
+-- Glasses Maid
+-- Genius Control!
+[1361] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and #other_card:squished_skills() then
+    OneImpact(player.opponent, other_idx):apply()
+    other_card:remove_skill_until_refresh(1)
+    other_card:remove_skill(2)
+    other_card:remove_skill(3)
+    OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Maid Producer
+-- Equivalent Exchange
+[1362] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local check = 0
+  local idx = my_idx - 1
+  if idx > 0 and player.field[idx] and pred.A(player.field[idx]) then
+    OneImpact(player, idx):apply()
+    player:field_to_bottom_deck(idx)
+    check = check + 1
+  end
+  idx = my_idx + 1
+  if idx < 6 and player.field[idx] and pred.A(player.field[idx]) then
+    OneImpact(player, idx):apply()
+    player:field_to_bottom_deck(idx)
+    check = check + 1
+  end
+  if other_card and check == 2 then
+    local impact = Impact(player)
+    impact[player.opponent][other_idx] = true
+    impact[player][my_idx] = true
+    impact:apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Lady Vid and Ron
+-- Trade!
+[1363] = function(player, my_idx, my_card, skill_idx)
+  local mag = 0
+  for i = 1, 4 do
+    if player.deck[1] then
+      if pred.A(player.deck[1]) and pred.spell(player.deck[1]) then
+        mag = mag + 1
+      end
+      player:deck_to_grave(1)
+    end
+  end
+  for i = 1, mag do
+    for i2 = 1, 2 do
+      local idx = uniformly(player:grave_idxs_with_preds(pred.A, pred.follower))
+      if idx then
+        player:grave_to_bottom_deck(idx)
+      end
+    end
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Blu e Rosso
+-- Submission!
+[1364] = function(player, my_idx, my_card, skill_idx)
+  local idx = player.opponent:first_empty_field_slot()
+  if idx then
+    OneImpact(player, my_idx):apply()
+    player.opponent.field[idx], player.field[my_idx] = my_card, nil
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Knight Guard
+-- Fair and Square
+[1365] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = Card(other_card.id).atk
+    OneBuff(player.opponent, other_idx, {atk={"=", mag}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Blue Cross L-eader
+-- Power of Concentration!
+[1366] = function(player, my_idx, my_card)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+    function(card) return card ~= my_card end))
+  if idx and #player.field[idx]:squished_skills() > 0 then
+    local mag = #player.field[idx]:squished_skills() + 1
+    local buff = OnePlayerBuff(player)
+    buff[idx] = {atk={"+", mag}, sta={"+", mag}}
+    buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
+    buff:apply()
+  end
+end,
+
+-- Blue Cross L-eader
+-- Tactical Training!
+[1367] = function(player, my_idx, my_card)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+    function(card) return card ~= my_card end))
+  if idx then
+    player.field[idx]:gain_skill(1055)
+  end
+end,
+
+-- Crescent Kris Flina
+-- There can only be one!
+[1368] = function(player, my_idx, my_card)
+  local pred_name = function(card) return card.name == my_card.name end
+  local idx = player:deck_idxs_with_preds(pred_name)
+  if idx then
+    player:deck_to_grave(idx)
+    local mag = #player:grave_idxs_with_preds(pred_name) + 3
+    OneBuff(player, my_idx, {sta={"+", mag}}):apply()
+  end
+end,
+
+-- Red Moon Aka Flina
+-- Sacrifice! Red Moon!
+[1369] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = #player:grave_idxs_with_preds(
+      function(card) return card.name == my_card.name end) + 1
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+  end
+end,
+
+-- Blue Moon Becky Flina
+-- Sacrifice! Blue Moon!
+[1370] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = math.abs(other_card.size - other_card.def)
+    local mag2 = math.ceil(mag / 2)
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+    OneBuff(player, my_idx, {atk={"+", mag2}, sta={"+", mag2}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Cook Club Apprentice Iri
+-- Prepare to Charge!
+[1371] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.def + other_card.sta <= my_card.atk then
+    my_card.skills[skill_idx] = 1359
+  end
+end,
+
+-- Student Council Secretary Fran
+-- Giant Growth
+[1372] = function(player, my_idx, my_card, skill_idx)
+  if my_card.size >= 4 then
+    my_card:remove_skill(skill_idx)
+  end
+  local mag = my_card.size
+  OneBuff(player, my_idx, {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Library Club Bernoulli
+-- Incompetence
+[1373] = function(player, my_idx)
+  local mag = 0
+  for i = 1, min(4, #player.deck) do
+    if pred.spell(player.deck[i]) then
+      mag = mag + 1
+    end
+  end
+  OneBuff(player, my_idx, {sta={"-", mag}}):apply()
+end,
+
+-- Nanai Highcastle
+-- Grave of All Creation
+[1374] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local check = {1=false, 2=false, 3=false, 4=false, 5=false,
+      6=false, 7=false, 8=false, 9=false, 10=false}
+    local mag = 1
+    for _, idx in ipairs(player.deck) do
+      if check[player.deck[idx].size] == false then
+        mag = mag + 1
+        check[player.deck[idx].size] = true
+      end
+    end
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+    if not player.opponent.field[other_idx] then
+      local idx = player:first_empty_field_slot()
+      if idx then
+        OneImpact(player, my_idx):apply()
+        player.field[idx], player.field[my_idx] = my_card, nil
+        my_card.active = true
+      end
+    else
+      local idx = uniformly(player:grave_idxs_with_preds())
+      if idx then
+        player:grave_to_exile(idx)
+      end
+    end
+  end
+end,
+
+-- Jackpot Maid
+-- Jackpot!
+[1375] = function(player, my_idx)
+  local check = uniformly({true, true, true, false, false,
+    false, false, false, false, false})
+  if check then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Jackpot Maid
+-- Jackpot!
+[1376] = function(player, my_idx)
+  local check = uniformly({true, true, true, false, false,
+    false, false, false, false, false})
+  if check then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Lonely Maid
+-- Discrimination
+[1377] = function(player, my_idx, my_card)
+  local check = #player:field_idxs_with_preds(pred.A,
+    function(card) return card ~= my_card end) == 0
+  if check then
+    OneBuff(player, my_idx, {sta={"+", 3}}):apply()
+  end
+end,
+
+-- Madness Maid
+-- Maid Maid!
+[1378] = function(player, my_idx)
+  local mag = #player:hand_idxs_with_preds(pred.maid)
+  OneBuff(player, my_idx, {atk={"+", mag}}):apply()
+end,
+
+-- Madness Maid
+-- Forced Sacrifice
+[1379] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk >= my_card.def + my_card.sta then
+    local idx = player:hand_idxs_with_preds(pred.follower, pred.maid)[1]
+    if idx then
+      OneBuff(player, my_idx, {sta={"+", player.hand[idx].sta}}):apply()
+      player:hand_to_grave(idx)
+    end
+  end
+end,
+
+-- Blue Cross Member
+-- Member's Protection
+[1380] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, 0, {life={"+", 2}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Flag Knight Frett
+-- Knight's Pride
+[1381] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag_def = #player:field_idxs_with_preds(pred.follower, pred.knight)
+    local mag_sta = mag_def + ((my_idx == 3) and 2 or 0)
+    OneBuff(player.opponent, other_idx, {def={"-", mag_def}, sta={"-", mag_sta}}):apply()
+    if pred.knight(player.character) then
+      OneBuff(player, my_idx, {def={"=", 2}}):apply()
+    end
+  end
+end,
+
+-- Undertaker
+-- Curse
+[1382] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.grave[1] and pred.D(player.grave[1]) then
+    local mag = math.ceil(player.grave[1].size / 2)
+    player:grave_to_exile(1)
+    OneBuff(player.opponent, other_idx, {atk={"-", mag}}):apply()
+  end
+end,
+
+-- Ire Flina
+-- Vampire Hunting
+[1383] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  player:to_grave(Card(300062))
+  local check = #player:grave_idxs_with_preds(pred.follower) >= 10
+  if check then
+    OneBuff(player, my_idx, {atk={"+", 1}}):apply()
+  end
+end,
+
+-- GS 5th Star
+-- Battlefield Ruler
+[1384] = function(player, my_idx, my_card, skill_idx)
+  if pred.D(player.character) then
+    if player.grave[1] then
+      player:grave_to_exile(1)
+    end
+    local mag = #player.grave
+    OneBuff(player, my_idx, {atk={"=", mag}, sta={"=", mag}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- White Whale Crevasse
+-- Holy Guardian's Power
+[1385] = function(player)
+  for i = 1, 5 do
+    local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {atk={"+", 1}}
+      buff:apply()
+    end
+  end
+end,
+
+-- White Whale Crevasse
+-- Holy Guardian's Blessing
+[1386] = function(player)
+  for i = 1, 5 do
+    local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {sta={"+", 1}}
+      buff:apply()
+    end
+  end
+end,
+
+-- 1st Anniversary Power
+[1387] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.def + other_card.sta <= my_card.atk then
+    player.opponent:to_top_deck(Card(200070))
+  end
+end,
+
+-- Cook Club Jamie
+-- Control Your Feelings
+[1388] = function(player, my_idx, my_card)
+  local orig = Card(my_card.id)
+  if my_card.size ~= orig.size then
+    local mag = math.abs(my_card.size - orig.size)
+    OneBuff(player, my_idx, {size={"=", orig.size}, atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- L. Esprit
+-- Quest for Truth
+[1389] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and #other_card:squished_skills() > 0 then
+    OneImpact(player.opponent, other_idx):apply()
+    other_card.skills = []
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- L. Esprit
+-- Quest for Truth
+[1390] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and #other_card:squished_skills() > 0 then
+    OneImpact(player.opponent, other_idx):apply()
+    other_card.skills = []
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
 -- l. esprit, quest for truth!
 [1389] = lesprit,
 
@@ -3827,6 +4223,11 @@ end,
       OneBuff(player.opponent, target, {sta={"-",amt}}):apply()
     end
   end
+end,
+
+-- Training
+[1571] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
 end,
 
 -- Cook Club Svia 
