@@ -3880,7 +3880,7 @@ end,
 -- There can only be one!
 [1368] = function(player, my_idx, my_card)
   local pred_name = function(card) return card.name == my_card.name end
-  local idx = player:deck_idxs_with_preds(pred_name)
+  local idx = player:deck_idxs_with_preds(pred_name)[1]
   if idx then
     player:deck_to_grave(idx)
     local mag = #player:grave_idxs_with_preds(pred_name) + 3
@@ -3944,13 +3944,12 @@ end,
 -- Grave of All Creation
 [1374] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    local check = {1=false, 2=false, 3=false, 4=false, 5=false,
-      6=false, 7=false, 8=false, 9=false, 10=false}
+    local check = {}
     local mag = 1
-    for _, idx in ipairs(player.deck) do
-      if check[player.deck[idx].size] == false then
+    for _, card in ipairs(player.deck) do
+      if not check[card.size] then
         mag = mag + 1
-        check[player.deck[idx].size] = true
+        check[card.size] = true
       end
     end
     OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
@@ -4120,7 +4119,7 @@ end,
 [1389] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and #other_card:squished_skills() > 0 then
     OneImpact(player.opponent, other_idx):apply()
-    other_card.skills = []
+    other_card.skills = {}
     OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
   end
 end,
@@ -4130,7 +4129,7 @@ end,
 [1390] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and #other_card:squished_skills() > 0 then
     OneImpact(player.opponent, other_idx):apply()
-    other_card.skills = []
+    other_card.skills = {}
     OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
   end
 end,
