@@ -96,7 +96,7 @@ local thorn_witch_rose = function(player)
     return
   end
   local target_idx = uniformly(nme_followers)
-  local buff_size = ceil(math.abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)/2)
+  local buff_size = ceil(abs(player.opponent.field[target_idx].size - player.opponent.field[target_idx].def)/2)
   OneBuff(player.opponent,target_idx,{atk={"-",buff_size},def={"-",1},sta={"-",buff_size}}):apply()
 end
 
@@ -282,7 +282,7 @@ characters_func = {
   if #player.hand == 0 then
     return
   end
-  local hand_idx = math.random(#player.hand)
+  local hand_idx = random(#player.hand)
   local buff = GlobalBuff(player) --stolen from Tower of Books
   buff.hand[player][hand_idx] = {size={"+",1}}
   buff:apply()
@@ -383,9 +383,9 @@ end,
   if #player.hand == 0 then
     max_size = 0
   elseif #player.hand == 1 then
-    max_size = math.ceil(player.hand[1].size/2)
+    max_size = ceil(player.hand[1].size/2)
   else
-    max_size = math.ceil((player.hand[1].size + player.hand[2].size)/2)
+    max_size = ceil((player.hand[1].size + player.hand[2].size)/2)
   end
   local target_idx = player.opponent:field_idxs_with_preds(pred.follower, function(card) return card.size <= max_size end)[1]
   if target_idx then
@@ -405,7 +405,7 @@ end,
     size2 = player.hand[2].size
   end
   local target_idxs = player:get_follower_idxs()
-  if math.abs(size1 - size2)%2 == 1 then
+  if abs(size1 - size2)%2 == 1 then
     for _,idx in ipairs(target_idxs) do
       buff[idx] = {sta={"+",2}}
     end
@@ -445,7 +445,7 @@ end,
   if player.hand[2] then
     size2 = player.hand[2].size
   end
-  local size_diff = math.abs(size1 - size2)
+  local size_diff = abs(size1 - size2)
   OneBuff(player,uniformly(target_idxs),{size={"-",min(size_diff,3)}}):apply()
 end,
 
@@ -474,9 +474,9 @@ end,
   end
   local buff_size = 0
   if player.field[4] then
-    buff_size = math.ceil((player.field[followers[1]].size + player.field[4].size)/2)
+    buff_size = ceil((player.field[followers[1]].size + player.field[4].size)/2)
   else
-    buff_size = math.ceil(player.field[followers[1]].size/2)
+    buff_size = ceil(player.field[followers[1]].size/2)
   end
   OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
 end,
@@ -512,7 +512,7 @@ end,
 --Team Manager Vernika
 [100019] = function(player)
   local hand_size = #player.hand
-  local buff_size = math.ceil(hand_size/2)
+  local buff_size = ceil(hand_size/2)
   if hand_size < 4 then
     local buff = GlobalBuff(player)
     for i=1,hand_size do
@@ -540,7 +540,7 @@ end,
   if (not hand_idx) or #nme_followers == 0 then
     return
   end
-  local def_lose = math.floor(player.hand[hand_idx].atk/2)
+  local def_lose = floor(player.hand[hand_idx].atk/2)
   OneBuff(player.opponent,uniformly(nme_followers),{def={"-",def_lose}}):apply()
 end,
 
@@ -602,7 +602,7 @@ end,
   if #player.opponent.hand < 2 or #player:get_follower_idxs() == 0 then
     return
   end
-  local new_size = math.abs(player.opponent.hand[1].size - player.opponent.hand[2].size)
+  local new_size = abs(player.opponent.hand[1].size - player.opponent.hand[2].size)
   local target_idx = player:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
   if target_idx then
     OneBuff(player,target_idx,{size={"=",new_size}}):apply()
@@ -650,7 +650,7 @@ end,
   end
   local crux_cards = #player.opponent:field_idxs_with_preds(pred.C) + #player.opponent:hand_idxs_with_preds(pred.C)
   local non_crux_cards = #player.opponent:field_idxs_with_preds() + #player.opponent.hand - crux_cards
-  OneBuff(player,uniformly(target_idxs),{sta={"+",math.max(crux_cards, non_crux_cards)}}):apply()
+  OneBuff(player,uniformly(target_idxs),{sta={"+",max(crux_cards, non_crux_cards)}}):apply()
 end,
 
 --Lovestruck Iri
@@ -665,7 +665,7 @@ end,
     end
   end
   if #factions > 1 and #player.hand > 0 then
-    local hand_idx = math.random(#player.hand)
+    local hand_idx = random(#player.hand)
     local buff = GlobalBuff(player)
     buff.hand[player][hand_idx] = {size={"-",2}}
     buff:apply()
@@ -749,7 +749,7 @@ end,
   if not idx then
     return
   end
-  local mag = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
+  local mag = ceil(abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
   OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
 end,
 
@@ -1513,7 +1513,8 @@ end,
     end
   else
     local target = uniformly(followers)
-    OneBuff(player, target, {atk={"+",nskills},sta={"+",nskills}}):apply()
+    local amt = floor(nskills/2)
+    OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
   end
 end,
 
@@ -2016,8 +2017,8 @@ end,
 [100146] = function(player)
   local idx = player:deck_idxs_with_preds(pred.follower)[1]
   if idx then
-    local atk_mag = math.random(0, 4)
-    local sta_mag = math.random(0, 4)
+    local atk_mag = random(0, 4)
+    local sta_mag = random(0, 4)
     local buff = GlobalBuff(player)
     buff.deck[player][idx] = {atk={"+", atk_mag}, sta={"+", sta_mag}}
     buff:apply()
@@ -2031,8 +2032,8 @@ end,
   if not idx then
     return
   end
-  local mag_atk = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
-  local mag_sta = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
+  local mag_atk = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
+  local mag_sta = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
   OneBuff(player, idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
 end,
 
@@ -2042,8 +2043,8 @@ end,
   if not idx then
     return
   end
-  local mag_atk = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
-  local mag_sta = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
+  local mag_atk = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
+  local mag_sta = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
   OneBuff(player, idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
 end,
 
@@ -2053,8 +2054,8 @@ end,
   if not idx then
     return
   end
-  local mag_atk = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
-  local mag_sta = 1 + (player.opponent:is_npc() and math.random(0, 2) or 0)
+  local mag_atk = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
+  local mag_sta = 1 + (player.opponent:is_npc() and random(0, 2) or 0)
   OneBuff(player, idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
 end,
 
@@ -2064,8 +2065,8 @@ end,
   if not idx then
     return
   end
-  local mag_atk = 1 + (opponent:is_npc() and math.random(0, 2) or 0)
-  local mag_sta = 1 + (opponent:is_npc() and math.random(0, 2) or 0)
+  local mag_atk = 1 + (opponent:is_npc() and random(0, 2) or 0)
+  local mag_sta = 1 + (opponent:is_npc() and random(0, 2) or 0)
   OneBuff(player, idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
 end,
 
@@ -2109,7 +2110,7 @@ end,
   end
   local card = player.field[idx]
   card:gain_skill(1003)
-  OneBuff(player, idx, {sta={"+", card.skills[3] and card.size or math.floor(card.size / 2)}}):apply()
+  OneBuff(player, idx, {sta={"+", card.skills[3] and card.size or floor(card.size / 2)}}):apply()
 end,
 
 -- Child Layna
@@ -2575,8 +2576,6 @@ end,
   if player.character.life < 12 then
     player.shuffles = 0
     return
-  elseif player.character.life == 12 then
-    return
   end
   local buff = OnePlayerBuff(opponent)
   for i = 1, 3 do
@@ -2600,8 +2599,6 @@ end,
   if player.character.life < 12 then
     player.shuffles = 0
     return
-  elseif player.character.life == 12 then
-    return
   end
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
@@ -2622,8 +2619,6 @@ end,
   if player.character.life < 12 then
     player.shuffles = 0
     return
-  elseif player.character.life == 12 then
-    return
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
@@ -2643,8 +2638,6 @@ end,
   end
   if player.character.life < 12 then
     player.shuffles = 0
-    return
-  elseif player.character.life == 12 then
     return
   end
   local buff = OnePlayerBuff(opponent)
@@ -2767,7 +2760,7 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     local card = player.field[idx]
-    local mag = math.floor(math.abs(card.atk - card.sta))
+    local mag = floor(abs(card.atk - card.sta))
     if card.atk > card.sta then
       OneBuff(player, idx, {sta={"+", mag}}):apply()
     elseif card.atk < card.sta then
@@ -2797,15 +2790,9 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     local mags = {atk=0, def=0, sta=0}
-    if math.random(1, 3) == 1 then
-      mags.atk = 2
-    elseif math.random(1, 2) == 1 then
-      mags.def = 2
-    else
-      mags.sta = 2
-    end
+    mags[uniformly({"atk", "def", "sta"})] = 2
     if pred.C(player.field[idx]) then
-      if math.random(1, 2) == 1 then
+      if random(1, 2) == 1 then
         mags.atk = mags.atk + 2
       else
         mags.sta = mags.sta + 2
@@ -2820,7 +2807,7 @@ end,
     OneBuff(player, idx, buff):apply()
   end
   if player.game.turn % 3 == 0 then
-    player.shuffles = math.random(0, 2)
+    player.shuffles = random(0, 2)
   end
 end,
 
@@ -2901,7 +2888,7 @@ end,
     return
   end
   local buff = GlobalBuff(player)
-  buff.hand[player][math.random(#player.hand)] = {size={"-",1}}
+  buff.hand[player][random(#player.hand)] = {size={"-",1}}
   buff:apply()
 end,
 
@@ -2939,7 +2926,7 @@ end,
 [110016] = function(player)
   if #player.hand == 1 then
     local buff = GlobalBuff(player)
-    buff.hand[player][math.random(#player.hand)] = {size={"-",1}}
+    buff.hand[player][random(#player.hand)] = {size={"-",1}}
     buff:apply()
   elseif #player.hand > 1 then
     local buff = GlobalBuff(player)
@@ -3141,7 +3128,7 @@ end,
 [110037] = function(player, opponent, my_card)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    local buff_amt = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def)/2)
+    local buff_amt = ceil(abs(opponent.field[idx].size - opponent.field[idx].def)/2)
     OneBuff(opponent,idx,{atk={"-",buff_amt},sta={"-",buff_amt}}):apply()
   end
 end,
@@ -3476,7 +3463,7 @@ end,
 [110082] = function(player, opponent, my_card)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    local buff_amt = ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def)/2)
+    local buff_amt = ceil(abs(opponent.field[idx].size - opponent.field[idx].def)/2)
     OneBuff(opponent,idx,{atk={"-",buff_amt},sta={"-",buff_amt}}):apply()
   end
 end,
@@ -3986,7 +3973,7 @@ end,
 -- Master Cleaning Maid
 [110127] = function(player, opponent)
   local cards = {}
-  local roll = math.random(1, 2)
+  local roll = random(1, 2)
   local targ = roll == 1 and player or opponent
   for i=1,2 do
     if opponent.hand[1] and targ:first_empty_field_slot() then
@@ -5125,7 +5112,7 @@ end,
 [110219] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = math.ceil(math.abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
+    local mag = ceil(abs(opponent.field[idx].size - opponent.field[idx].def) / 2)
     OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
   end
   OneBuff(player, 0, {life={"+", 1}}):apply()
@@ -5214,7 +5201,7 @@ end,
   local size1 = player.hand[1] and player.hand[1].size or 0
   local size2 = player.hand[2] and player.hand[2].size or 0
   local idx = opponent:field_idxs_with_preds(pred.follower, 
-      function(card) return card.size <= math.floor((size1 + size2) / 2) end)[1]
+      function(card) return card.size <= floor((size1 + size2) / 2) end)[1]
   if idx then
     OneBuff(opponent, idx, {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}):apply()
   end
@@ -5490,7 +5477,7 @@ end,
   end
   -- bug is here
   if #player.grave > 0 then
-    player:grave_to_bottom_deck(math.random(#player.grave))
+    player:grave_to_bottom_deck(random(#player.grave))
   end
   -- bug is here
   if player.character.life > 5 then
@@ -5599,7 +5586,7 @@ end,
     OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
   end
   for i = 1, 2 do
-    idx = math.random(1, #player.grave)
+    idx = random(1, #player.grave)
     if player.grave[idx] then
       player:grave_to_bottom_deck(idx)
     end

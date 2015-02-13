@@ -2587,11 +2587,16 @@ end,
 
 -- servant of clarice
 [200183] = function(player, opponent, my_idx, my_card)
-  if #player.deck > 0 then
+  if #player.deck > 1 then
     player:deck_to_grave(#player.deck)
-    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-    if target then
-      opponent:field_to_bottom_deck(target)
+    if #player.deck > 1 then
+      local card = player.deck[#player.deck]
+      player.deck[#player.deck] = nil
+      player:to_bottom_deck(card)
+      local target = uniformly(opponent:field_idxs_with_preds())
+      if target then
+        opponent:field_to_bottom_deck(target)
+      end
     end
   end
 end,
@@ -5913,7 +5918,7 @@ A random enemy Follower is sent to the bottom of their Deck
 This card is exiled
 ]]
 [200387] = function(player, opponent, my_idx)
-  if not pred.faction.V(player) then
+  if not pred.faction.V(player.character) then
     return
   end
   local buff = GlobalBuff(opponent)

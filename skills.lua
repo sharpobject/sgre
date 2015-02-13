@@ -1260,7 +1260,7 @@ end,
 [1108] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     local debuff_size = ceil(my_card.atk / 2)
-    local buff_size = floor(debuff_size / 2)
+    local buff_size = floor(min(debuff_size, other_card.sta) / 2)
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {sta={"-",debuff_size}}
     buff.field[player][my_idx] = {sta={"+",buff_size}}
@@ -3046,6 +3046,7 @@ end,
     return
   end
   other_card.id = 300139
+  other_card.faction = Card(300139).faction
   local amt = #player.opponent:field_idxs_with_preds(pred.rio)
   OneBuff(player.opponent, other_idx, {atk={"-",amt},def={"-",amt},sta={"-",amt}}):apply()
 end,
@@ -3744,6 +3745,18 @@ end,
 -- Guide Rio
 [1355] = function(player, my_idx, my_card)
   OneBuff(player, my_idx, {def={"+", 1}}):apply()
+end,
+
+-- Skill from Chance Meeting
+[1356] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local buff = {}
+  local orig = Card(my_card.id)
+  for _,attr in ipairs({"atk", "def"}) do
+    if my_card[attr] < orig[attr] then
+      buff[attr] = {"=", orig[attr]}
+    end
+  end
+  OneBuff(player, my_idx, buff):apply()
 end,
 
 -- l. esprit, quest for truth!
