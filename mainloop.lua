@@ -67,6 +67,9 @@ local function get_deck()
   t[1] = uniformly(char_ids)
   for i=2,31 do
     t[i] = uniformly(norm_ids)
+    while Card(t[i]).size == 0 do
+      t[i] = uniformly(norm_ids)
+    end
   end
   return t
 end
@@ -97,8 +100,8 @@ local from_login = nil
 local doing_login = false
 function main_login(email, password)
   network_init()
-  email = email or GLOBAL_EMAIL or ""
-  password = password or GLOBAL_PASSWORD or ""
+  email = email or GLOBAL_EMAIL or options.remember_me_email or ""
+  password = password or GLOBAL_PASSWORD or options.remember_me_password or ""
 
   if not frames.login then
     frames.login = {}
@@ -136,9 +139,12 @@ function main_login(email, password)
     loginbutton:SetWidth(290)
     loginbutton:SetText("Login to the SG~")
     loginbutton.OnClick = function()
+      email = textinput1:GetText()
+      password = textinput2:GetText()
       net_send({type="login",
-        email=textinput1:GetText(),
-        password=textinput2:GetText()})
+        email=email,
+        password=password})
+      
       doing_login = true
       frames.login.login_button.enabled = false
       frames.login.register_button.enabled = false
@@ -195,6 +201,9 @@ function main_login(email, password)
                     user_data.cafe = fix_num_keys(user_data.cafe)
                   end
                   doing_login = false
+                  options.remember_me_email = email
+                  options.remember_me_password = password 
+                  set_file("options.json", json.encode(options))
                   from_login = {main_select_faction}
                   break
                 end
@@ -1179,13 +1188,20 @@ function main_decks()
     function frames.decks.populate_deck_card_list(deck)
       frames.decks.deck = deck
       deck_card_list:Clear()
+      local cp = 0
+      local count = 0
+      local nbuttons = 0
       for k,v in spairs(deck, deck_cmp) do
+        count = count + v
+        cp = cp + v * Card(k).points
+        nbuttons = nbuttons + 1
         deck_card_list:AddItem(deck_card_list_button(k, 0, v, function()
           update_deck(frames.decks.deck, {[k]=-1})
           net_send({type="update_deck", idx=frames.decks.idx, diff={[k]=-1}})
           frames.decks.update_list()
         end))
       end
+      deck_card_list:AddItem(card_count_thing(count, cp, 32-nbuttons))
     end
 
     local card_list = loveframes.Create("list")
