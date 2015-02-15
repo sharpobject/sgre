@@ -1553,6 +1553,7 @@ end,
 -- council roroa, memory block
 [1131] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and pred.skill(other_card) then
+    OneImpact(player.opponent, other_idx):apply()
     other_card.skills = {1076}
     my_card:remove_skill_until_refresh(skill_idx)
   end
@@ -3734,6 +3735,11 @@ end,
   end
 end,
 
+-- Misfortune
+[1354] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+end,
+
 -- Guide Rio
 [1355] = function(player, my_idx, my_card)
   OneBuff(player, my_idx, {def={"+", 1}}):apply()
@@ -4041,7 +4047,7 @@ end,
 -- Undertaker
 -- Curse
 [1382] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if player.grave[1] and pred.D(player.grave[1]) then
+  if player.grave[1] and pred.D(player.grave[1]) and other_card then
     local mag = math.ceil(player.grave[1].size / 2)
     player:grave_to_exile(1)
     OneBuff(player.opponent, other_idx, {atk={"-", mag}}):apply()
@@ -4114,31 +4120,187 @@ end,
   end
 end,
 
--- L. Esprit
--- Quest for Truth
-[1389] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and #other_card:squished_skills() > 0 then
-    OneImpact(player.opponent, other_idx):apply()
-    other_card.skills = {}
-    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
-  end
-end,
-
--- L. Esprit
--- Quest for Truth
-[1390] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and #other_card:squished_skills() > 0 then
-    OneImpact(player.opponent, other_idx):apply()
-    other_card.skills = {}
-    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
-  end
-end,
-
 -- l. esprit, quest for truth!
 [1389] = lesprit,
 
 -- l. esprit, quest for truth!
 [1390] = lesprit,
+
+-- Cook Club Jamie
+-- Exploration Preparation
+[1391] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, my_idx, {size={"+", 1}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Library Club Rangers
+-- Awakening of Power!
+[1392] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, my_idx, {atk={"+", 2}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Library Club Rangers
+-- Applied Knowledge
+[1393] = function(player, my_idx, my_card)
+  local mag = 0
+  for i = 1, min(4, #player.deck) do
+    if pred.follower(player.deck[i]) then
+      mag = mag + 1
+    end
+  end
+  local idxs = player:field_idxs_with_preds(pred.follower)
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {sta={"+", mag}}
+  end
+  buff:apply()
+  if mag >= 2 then
+    my_card:refresh()
+  end
+end,
+
+-- Rich Lady
+-- Hire Maids!
+[1394] = function(player, my_idx, my_card, skill_idx)
+  local idx = uniformly(player:grave_idxs_with_preds(pred.maid))
+  if idx and #player.hand < 5 then
+    local card = player.grave[idx]
+    table.remove(player.grave, idx)
+    player.hand[#player.hand + 1] = card
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Broker Lady
+-- Breach of Contract
+[1395] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.character.life <= 8 then
+    local impact = Impact(player)
+    if other_card then
+      impact[player.opponent][other_idx] = true
+    end
+    impact[player][my_idx] = true
+    impact:apply()
+    if other_card then
+      player.opponent:field_to_grave(other_idx)
+    end
+    player:field_to_grave(my_idx)
+  end
+end,
+
+-- Dress Up Lady Linus
+-- Dress Up Time~
+[1396] = function(player, my_idx, my_card, skill_idx)
+  local idx = reverse(player:hand_idxs_with_preds(pred.dress_up))[1]
+  if idx then
+    local mag = player.hand[idx].size
+    player:hand_to_bottom_deck(idx)
+    local impact = Impact(player)
+    local idxs = shuffle(player:field_idxs_with_preds(pred.neg(pred.dress_up)))
+    for _, idx in ipairs(idxs) do
+      impact[player][idx] = true
+      player.field[idx].active = false
+    end
+    idxs = shuffle(player.opponent:field_idxs_with_preds(pred.neg(pred.dress_up)))
+    for _, idx in ipairs(idxs) do
+      impact[player.opponent][idx] = true
+      player.opponent.field[idx].active = false
+    end
+    impact:apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Knight Lancer Shane
+-- Power Thrust
+[1397] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.size < my_card.size then
+    player.opponent:field_to_grave(other_idx)
+  else
+    player:field_to_grave(my_idx)
+  end
+end,
+
+-- Seeker Melissa
+-- Attack Stance
+[1398] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", 1}, sta={"-", 1}}):apply()
+end,
+
+-- Seeker Melissa
+-- Defensive Stance
+[1399] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"-", 1}, def={"+", 1}}):apply()
+end,
+
+-- Knight Captain Eisenwane
+-- Assimilate!
+[1400] = function(player, my_idx)
+  local mag = player.field[uniformly(player:field_idxs_with_preds(pred.follower))].atk + 1
+  OneBuff(player, my_idx, {atk={"=", mag}}):apply()
+end,
+
+-- Knight Captain Eisenwane
+-- Assimilate!
+[1401] = function(player, my_idx)
+  local mag = player.field[uniformly(player:field_idxs_with_preds(pred.follower))].def
+  OneBuff(player, my_idx, {def={"=", mag}}):apply()
+end,
+
+-- Apostle Red Sun
+-- Doubt
+[1402] = function(player, my_idx, my_card, skill_idx)
+  local check = #player.opponent:field_idxs_with_preds(pred.active) == 0
+  if check then
+    local mag = #player.opponent:empty_field_slots() + 1
+    OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Witch Herionne
+-- Control Time
+[1403] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and pred[player.opponent.character.faction](other_card) then
+    local buff = GlobalBuff(player)
+    local mag = my_card.size
+    buff.field[player.opponent][other_idx] = {atk={"-", mag}, sta={"-", mag}}
+    mag = math.floor(mag /  2)
+    buff.field[player][my_idx] = {atk={"+", mag}, sta={"+", mag}}
+    buff:apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Head Luna Flina
+-- Master's Resolve
+[1404] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local check = #player:field_idxs_with_preds(pred.follower,
+      function(card) return card ~= my_card end) > 0
+  if check then
+    local idx = uniformly(player:empty_field_slots())
+    if idx then
+      OneImpact(player, my_idx):apply()
+      player.field[my_idx], player.field[idx] = nil, my_card
+      if other_card then
+        local buff = GlobalBuff(player)
+        buff.field[player.opponent][other_idx] = {atk={"-", idx}}
+        buff.field[player][idx] = {sta={"+", idx}}
+        buff:apply()
+      end
+    end
+  end
+end,
+
+-- Trace of Kana
+-- Absorb Power
+[1407] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    my_card.skills[skill_idx] = other_card.skills[1]
+    other_card:remove_skill(1)
+  end
+end,
 
 -- resistance
 [1408] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -4146,6 +4308,189 @@ end,
     OneBuff(player, my_idx, {sta={"+",floor(other_card.atk/2)}}):apply()
   end
   my_card:remove_skill(skill_idx)
+end,
+
+-- Cook Club Sylphie
+-- Neutralize Defense
+[1409] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {def={"=", 0}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Student Council Weekly Weekly
+-- Terror
+[1410] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {atk={"-", 1}}):apply()
+  end
+end,
+
+-- Student Council Kingmakers
+-- Trial of Strength
+[1411] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player, my_idx, {atk={"=", other_card.def}}):apply()
+  end
+end,
+
+-- Student Council KingMakers
+-- Student Council's Potential
+[1412] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local idx = player:hand_idxs_with_preds(pred.follower, pred.V)[1]
+    local mag = 3 + ((idx and math.ceil(player.hand[idx].atk / 2)) or 0)
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+  end
+end,
+
+-- Maid Lesnoa
+-- Maid Knowledge
+[1413] = function(player, my_idx)
+  local mag = #player:hand_idxs_with_preds(pred.maid)
+  OneBuff(player, my_idx, {atk={"+", mag}}):apply()
+end,
+
+-- Maid Fio
+-- Maintain Stamina
+[1414] = function(player, my_idx)
+  local mag = #player:empty_hand_slots()
+  OneBuff(player, my_idx, {sta={"+", mag}}):apply()
+  while (not player.hand[4]) and player.deck[1] do
+    player:deck_to_hand(#player.deck)
+  end
+end,
+
+-- Muzisitter Lady Sevia
+-- Emergency Recovery
+[1415] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    if my_card.atk <= other_card.def + other_card.sta then
+      local buff = GlobalBuff(player)
+      local mag = other_card.size - 1
+      buff.field[player.opponent][other_idx] = {size={"=", 1}}
+      buff.field[player][0] = {life={"+", mag}}
+      mag = math.ceil(mag / 2)
+      buff.field[player][my_idx] = {atk={"+", mag}, sta={"+", mag}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Knight Marksman
+-- Knight's Lesson
+[1416] = function(player, my_idx, my_card, skill_idx)
+  local idxs = player:field_idxs_with_preds(pred.follower, pred.knight)
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {sta={"+", 2}}
+  end
+  buff:apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Crux Knight Sillit
+-- Counterattack
+[1417] = function(player, my_idx, my_card, skill_idx)
+  if not my_card.active then
+    OneBuff(player, my_idx, {sta={"+", 3}}):apply()
+    my_card.active = true
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Crux Knight Lukif
+-- Fine Tuning
+[1418] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk >= 1 then
+    OneBuff(player, my_idx, {sta={"=", other_card.atk}}):apply()
+  end
+end,
+
+-- Aletheian G-NUSA
+-- Seeds of Misfortune
+[1419] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.sta >= Card(other_card.id).sta and
+      other_card.skills[1] ~= 1354 and other_card.skills[2] ~= 1354 and other_card.skills[3] ~= 1354 then
+    OneImpact(player.opponent, other_idx):apply()
+    other_card:gain_skill(1354)
+  end
+end,
+
+-- GS 7th Star
+-- Restrained Fury
+[1420] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.sta > my_card.atk then
+    local mag = 1 + other_card.def - my_card.sta
+    OneBuff(player, my_idx, {atk={"+", mag}, sta={"-", mag}}):apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Dark Sword Master A-GA
+-- Dark Sword
+[1421] = function(player, my_idx, my_card)
+  local buff = GlobalBuff(player)
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  local mag = 0
+  for _, idx in ipairs(idxs) do
+    buff.field[player.opponent][idx] = {atk={"-", 1}}
+    mag = mag + 1
+  end
+  buff.field[player][my_idx] = {atk={"+", mag}}
+  buff:apply()
+  buff = OnePlayerBuff(player)
+  idxs = player:field_idxs_with_preds(pred.follower)
+  local mag = math.floor(my_card.atk / 10) % 10
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {sta={"+", mag}}
+  end
+  buff:apply()
+end,
+
+-- Tigress Felpix
+-- I'm on your side.
+[1422] = function(player, my_idx, my_card)
+  local idx = player.opponent:first_empty_field_slot()
+  if my_card.size <= 4 and idx then
+    OneBuff(player, my_idx, {size={"=", 7}, sta={"+", 2}}):apply()
+    player.field[my_idx], player.opponent.field[idx] = nil, my_card
+    my_card.active = false
+  end
+end,
+
+-- Tigress Felpix
+-- Sorry. That was a mistake
+[1423] = function(player, my_idx, my_card)
+  local idx = player.opponent:first_empty_field_slot()
+  if my_card.size >= 5 and idx then
+    local idxs = player:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff[idx] = {atk={"-", 2}, sta={"-", 2}}
+    end
+    buff[my_idx] = {size={"=", 3}}
+    buff:apply()
+    player.field[my_idx], player.opponent.field[idx] = nil, my_card
+    my_card.active = false
+  end
+end,
+
+-- L. Sita, Cinia, Luthica, Iri
+-- Cocoon
+[1424] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local check = false
+    for i = 1, 3 do
+      if skill_id_to_type[other_card.skills[i]] == "attack" then
+        check = true
+      end
+    end
+    if check and pred[player.character.faction](my_card) then
+      OneBuff(player, my_idx, {sta={"+", other_card.atk}}):apply()
+    end
+  end
 end,
 
 -- girls' harmony, chrysalis!

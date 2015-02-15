@@ -5411,6 +5411,7 @@ end,
     end
     OneBuff(player, idx, buff):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
   
 -- Wedding Dress Clarice
@@ -5425,6 +5426,7 @@ end,
     player.field[idx] = Card(300201)
     OneBuff(player, idx, {size={"=", 1}, atk={"=", 5}, def={"=", 0}, sta={"=", 5}}):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
 
 -- Wedding Dress Rianna
@@ -5444,6 +5446,7 @@ end,
     end
     OneBuff(player, slot, buff):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
 
 -- Wedding Dress Layna
@@ -5453,6 +5456,7 @@ end,
     OneBuff(player, idx, {sta={"+", 3}}):apply()
     player:field_to_top_deck(idx)
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
   
 -- Linia's Tailor
