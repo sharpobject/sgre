@@ -2795,10 +2795,9 @@ end,
 
 -- query
 [200198] = function(player, opponent, my_idx, my_card)
-  --[[ nerf!
-  if my_card.size > 5 then
-    my_card.size = 5
-  end --]]
+  if my_card.size > 3 then
+    my_card.size = 3
+  end
   OneBuff(opponent, 0, {life={"-",my_card.size}}):apply()
   if my_card.size == 1 then
     player.send_spell_to_grave = false
@@ -3850,19 +3849,21 @@ end,
 
 -- elbert impact
 [200269] = function(player, opponent, my_idx, my_card)
-  local targets = opponent:field_idxs_with_preds(pred.spell)
-  for _,idx in ipairs(targets) do
-    opponent:field_to_bottom_deck(idx)
-  end
-  for i=1,#targets + 1 do
-    local idx = opponent:first_empty_field_slot()
-    if idx then
-      opponent.field[idx] = Card(200071)
-      opponent.field[idx].active = false
+  if pred.A(player.character) then
+    local targets = opponent:field_idxs_with_preds(pred.spell)
+    for _,idx in ipairs(targets) do
+      opponent:field_to_bottom_deck(idx)
     end
+    for i=1,max(#targets + 1, 1) do
+      local idx = opponent:first_empty_field_slot()
+      if idx then
+        opponent.field[idx] = Card(200071)
+        opponent.field[idx].active = false
+      end
+    end
+    player.send_spell_to_grave = false
+    player.field[my_idx] = nil
   end
-  player.send_spell_to_grave = false
-  player.field[my_idx] = nil
 end,
 
 -- artificer
@@ -6419,10 +6420,12 @@ Butterfly Brand
   if not pred.D(player.character) then
     return
   end
+  local impact = Impact(player)
   local idxs = opponent:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
     for i=1,3 do
-      if opponent.field[idx].skills[i] and skill_id_to_type[opponent.field[idx].skills[i]] ~= 2 then
+      if opponent.field[idx].skills[i] and skill_id_to_type[opponent.field[idx].skills[i]] ~= "defend" then
+        impact[player.opponent][idx] = true
         opponent.field[idx].skills[i] = 1201
       end
     end
@@ -6430,15 +6433,18 @@ Butterfly Brand
   idxs = player:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
     if player.field[idx]:first_empty_skill_slot() then
+      impact[player][idx] = true
       player.field[idx]:gain_skill(1003)
     end
   end
   idxs = player:hand_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
     if player.hand[idx]:first_empty_skill_slot() then
+      impact[player][idx] = true
       player.hand[idx]:gain_skill(1003)
     end
   end
+  impact:apply()
 end,
 
 --[[
