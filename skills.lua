@@ -2326,6 +2326,7 @@ end,
 [1222] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     if other_card.atk <= #player:grave_idxs_with_preds(pred.follower, pred.V) then
+      OneImpact(player.opponent, other_idx):apply()
       player.opponent:field_to_grave(other_idx)
     end
   end
@@ -4513,6 +4514,16 @@ end,
   if other_card and pred.skill(other_card) then
     OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
   end
+end,
+
+-- Situation Resolved
+-- Attack Reversal
+[1457] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = ceil(other_card.atk / 2)
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Defense

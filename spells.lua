@@ -5952,6 +5952,7 @@ If you have an Academy Character, do it again
   for i=1,pred.A(player.character) and 2 or 1 do
     local idx = uniformly(opponent:field_idxs_with_preds())
     if idx then
+      OneImpact(opponent, idx):apply()
       opponent.field[idx].active = false
     end
   end
@@ -7201,6 +7202,7 @@ Following Memory
   local pred_def = function(card) return card.def == mag end
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_def))
   if idx then
+    OneImpact(opponent, idx):apply()
     opponent:field_to_bottom_deck(idx)
   end
 end,
@@ -7229,32 +7231,34 @@ Talentium Veritas
 ]]
 [200455] = function(player, opponent)
   OneBuff(player, 0, {life={"+",2}}):apply()
-  local rolls = {[1]=1,[2]=2,[3]=3,[4]=4,[5]=5}
-  for i=1,2 do
-    local roll = uniformly(rolls)
-    table.remove(rolls, roll)
-    if roll == 1 then
-      for i2=1,min(3,#player.grave) do
-        player:grave_to_bottom_deck(1)
-      end
-    elseif roll == 2 then
-      local buff = OnePlayerBuff(player)
-      for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-        buff[idx] = {atk={"+",3},sta={"+",3}}
-      end
-      buff:apply()
-    elseif roll == 3 then
-      OneBuff(opponent, 0, {life={"-",2}}):apply()
-    elseif roll == 4 then
-      local buff = OnePlayerBuff(opponent)
-      for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
-        buff[idx] = {atk={"-",3},sta={"-",3}}
-      end
-      buff:apply()
-    else
-      local idx = opponent:field_idxs_with_preds()[1]
-      if idx then
-        opponent:field_to_exile(idx)
+  if pred.V(player.character) then
+    local rolls = {1, 2, 3, 4, 5}
+    for i = 1, 2 do
+      local roll = uniformly(rolls)
+      table.remove(rolls, roll)
+      if roll == 1 then
+        for i2 = 1, min(3, #player.grave) do
+          player:grave_to_bottom_deck(1)
+        end
+      elseif roll == 2 then
+        local buff = OnePlayerBuff(player)
+        for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+          buff[idx] = {atk={"+",3},sta={"+",3}}
+        end
+        buff:apply()
+      elseif roll == 3 then
+        OneBuff(opponent, 0, {life={"-",2}}):apply()
+      elseif roll == 4 then
+        local buff = OnePlayerBuff(opponent)
+        for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+          buff[idx] = {atk={"-",3},sta={"-",3}}
+        end
+        buff:apply()
+      else
+        local idx = opponent:field_idxs_with_preds()[1]
+        if idx then
+          opponent:field_to_exile(idx)
+        end
       end
     end
   end
@@ -7283,11 +7287,11 @@ Rift
 ]]
 [200457] = function(player, opponent, my_idx, my_card)
   if my_card.size >= 3 then
-    local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
-    local buff = OnePlayerBuff(opponent)
-    buff[0] = {life={"+",2}}
-    for i=1,min(2,#idxs) do
-      buff[idxs[i]] = {atk={"-",2},sta={"-",2}}
+    local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+    local buff = GlobalBuff(player)
+    buff.field[opponent][0] = {life={"+", 2}}
+    for i = 1, min(2, #idxs) do
+      buff.field[player][idxs[i]] = {atk={"-", 2}, sta={"-", 2}}
     end
     buff:apply()
   else
@@ -7296,7 +7300,7 @@ Rift
       return
     end
     player.field[my_idx], opponent.field[idx] = nil, my_card
-    OneBuff(opponent, idx, {size={"+",random(2)}}):apply()
+    OneBuff(opponent, idx, {size={"+", random(2)}}):apply()
     my_card.active = false
   end
 end,
@@ -7314,11 +7318,11 @@ Covert Operation
   if not pred.A(player.character) then
     return
   end
-  local mag = max(4,#player:field_idxs_with_preds(pred.A) + #opponent:field_idxs_with_preds(pred.A))
+  local mag = max(4, #player:field_idxs_with_preds(pred.A, pred.follower) + #opponent:field_idxs_with_preds(pred.A, pred.follower))
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
-  for i=1,min(2,#idxs) do
-    buff[idxs[i]] = {atk={"+",mag},sta={"+",mag}}
+  for i = 1, min(2, #idxs) do
+    buff[idxs[i]] = {atk={"+", mag}, sta={"+", mag}}
   end
   buff:apply()
 end,
@@ -7362,17 +7366,17 @@ Backup
     return
   end
   local mag = 0
-  for i=1,#opponent.hand do
-    local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
-    if opponent.hand[idx] then
-      opponent:hand_to_top_deck(idx)
-      mag = mag + 1
-    end
-  end
   for i=1,5 do
     local idx = opponent:field_idxs_with_preds(pred.spell)[1]
     if idx then
       opponent:field_to_top_deck(idx)
+      mag = mag + 1
+    end
+  end
+  for i=1,#opponent.hand do
+    local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+    if opponent.hand[idx] then
+      opponent:hand_to_top_deck(idx)
       mag = mag + 1
     end
   end
@@ -7412,17 +7416,24 @@ end,
 Gossip
 ]]
 [200463] = function(player, opponent)
-  local idxs = player:field_idxs_with_preds(pred.follower)
-  table.remove(idxs, 1)
-  local mag = 1
-  for _,idx in ipairs(idxs) do
-    player:field_to_top_deck(idx)
-    mag = mag + 1
+  local pl_idxs = player:field_idxs_with_preds(pred.follower)
+  table.remove(pl_idxs, 1)
+  local mag = 1 + #pl_idxs
+  local impact = Impact(player)
+  for _, idx in ipairs(pl_idxs) do
+    impact[player][idx] = true
   end
-  idxs = opponent:field_idxs_with_preds(pred.follower)
-  table.remove(idxs, 1)
-  for i=1,min(mag,#idxs) do
-    opponent:field_to_top_deck(idxs[i])
+  local op_idxs = player:field_idxs_with_preds(pred.follower)
+  table.remove(op_idxs, 1)
+  for i = 1, math.min(mag, op_idxs) do
+    impact[opponent][op_idxs[i]] = true
+  end
+  impact:apply()
+  for _, idx in ipairs(pl_idxs) do
+    player:field_to_top_deck(idx)
+  end
+  for i = 1, math.min(mag, op_idxs) do
+    opponent:field_to_top_deck(op_idxs[i])
   end
 end,
 
@@ -7479,28 +7490,155 @@ World is Cake
   buff:apply()
 end,
 
+--[[
+Investigation Progress
+]]
+[200470] = function(player, opponent)
+  for i = 1, 5 do
+    local card = opponent.field[i]
+    if card then
+      local pred_name = function(card2) return card.name == card.name end
+      local idxs = opponent:field_idxs_with_preds(pred_name)
+      if idxs[2] then
+        local impact = Impact(opponent)
+        for _, idx in ipairs(idxs) do
+          impact[opponent][idx] = true
+        end
+        impact:apply()
+        for _, idx in ipairs(idxs) do
+          opponent:field_to_grave(idx)
+        end
+      end
+    end
+  end
+end,
 
+--[[
+  Maid Vacancy
+]]
+[200471] = function(player, opponent)
+  local mag = 0
+  for i = 0, 4 do
+    local idx = opponent:grave_idxs_with_preds(pred.spell)[1]
+    if idx and idx > #opponent.grave - 5 + i do
+      opponent:grave_to_exile(idx)
+      mag = mag + 1
+    end
+  end
+  OneBuff(opponent, 0, {life={"-", mag}}):apply()
+end,
 
+--[[
+  Parliament
+]]
+[200472] = function(player, opponent)
+  for i = 1, 2 do
+    if i == 2 and not pred.A(player.character) then return end
+    local idx1 = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    local idx2 = uniformly(opponent:empty_field_slots())
+    if idx1 and idx2 then
+      opponent.field[idx1], opponent.field[idx2] = nil, opponent.field[idx1]
+      local mag = abs(idx1 - idx2)
+      OneBuff(opponent, idx2, {atk={"-", mag}, sta={"-", mag}}):apply()
+    end
+  end
+end,
 
+--[[
+  Linia's Counterattack
+]]
+[200473] = function(player, opponent)
+  local check = player:field_idxs_with_preds(pred.follower)[1]
+  if check then
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
+        function(card) return #card:squished_skills() >= 2 end))
+    if idx then
+      OneImpact(opponent, idx):apply()
+      opponent:field_to_bottom_deck(idx)
+      OneBuff(player, 0, {life={"-", 1}}):apply()
+    end
+  end
+end,
 
+--[[
+  Situation Resolved
+]]
+[200474] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.C, pred.follower)
+  if idx then
+    OneImpact(player, idx):apply()
+    player.field[idx]:gain_skill(1457)
+  end
+end,
 
+--[[
+  Sudden Turn
+]]
+[200475] = function(player)
+  local idx = player:field_idxs_with_preds(pred.follower, 
+      function(card) return card.atk <= 5 end)[1]
+  if idx then
+    local mag = player.field[idx].atk * 2
+    OneBuff(player, idx, {atk={"=", mag}}):apply()
+  end
+end,
 
+--[[
+  Party Time
+]]
+[200476] = function(player)
+  local mag = 1
+  while (not player.hand[4]) and player.deck[1] do
+    player:deck_to_hand(#player.deck)
+    mag = mag + 1
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {def={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
 
+--[[
+  Congregation Expansion
+]]
+[200477] = function(player, opponent)
+  if player:field_idxs_with_preds(pred.follower)[1] then
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(opponent, idx, {def={"+", 1}}):apply()
+      local idx2 = player:first_empty_field_slot()
+      if opponent.field[idx].def >= 5 and idx2 then
+        opponent.field[idx], player.field[idx2] = nil, opponent.field[idx]
+        player.field[idx2].active = false
+      end
+    end
+  end
+end,
 
+--[[
+  Witness of Miracles
+]]
+[200478] = function(player, opponent)
+  local idx1 = uniformly(player:hand_idxs_with_preds(pred.spell, function(card) return card.id ~= 200478 end))
+  local idx2 = player:first_empty_field_slot()
+  if player:field_idxs_with_preds(pred.follower)[1] and player:field_idxs_with_preds(pred.spell)[2] 
+      and opponent:field_idxs_with_preds(pred.spell)[1] and idx1 and idx2 then
+    player.field[idx2] = Card(player.hand[idx1].id)
+  end
+end,
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+--[[
+  Agent of God
+]]
+[200479] = function(player, opponent)
+  local idx1 = opponent:grave_idxs_with_preds(pred.follower)[1]
+  local idx2 = player:field_idxs_with_preds(pred.follower)[1]
+  local idx3 = player:first_empty_field_slot()
+  if idx1 and idx2 and idx3 and opponent.grave[idx1].size == player.field[idx2].size then
+    local card = table.remove(opponent.grave, idx1)
+    player.field[idx2] = card
+  end
+end,
 
 [200655] = function(player, opponent, my_idx, my_card)
   if pred.D(player.character) then
