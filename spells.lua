@@ -6604,10 +6604,10 @@ Head Knight's Rest
   local op_knight = #opponent:field_idxs_with_preds(pred.knight)
   local buff = GlobalBuff(player)
   for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff.field[player][idx] = {size={"-",pl_knight},sta={"-",pl_non-pl_knight}}
+    buff.field[player][idx] = {size={"-",pl_knight},sta={"-",pl_non}}
   end
   for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
-    buff.field[opponent][idx] = {size={"-",op_knight},sta={"-",op_non-op_knight}}
+    buff.field[opponent][idx] = {size={"-",op_knight},sta={"-",op_non}}
   end
   buff:apply()
 end,

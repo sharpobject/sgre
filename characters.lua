@@ -2999,7 +2999,7 @@ end,
   buff:apply()
   for i = 1, min(3, #idxs) do
     local card = table.remove(player.deck, idxs[i])
-    table.insert(player.deck, i, card)
+    player:to_top_deck(card)
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
@@ -3019,7 +3019,7 @@ end,
   buff:apply()
   for i = 1, min(3, #idxs) do
     local card = table.remove(player.deck, idxs[i])
-    table.insert(player.deck, i, card)
+    player:to_top_deck(card)
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
@@ -3039,7 +3039,7 @@ end,
   buff:apply()
   for i = 1, min(3, #idxs) do
     local card = table.remove(player.deck, idxs[i])
-    table.insert(player.deck, i, card)
+    player:to_top_deck(card)
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
@@ -3059,7 +3059,7 @@ end,
   buff:apply()
   for i = 1, min(3, #idxs) do
     local card = table.remove(player.deck, idxs[i])
-    table.insert(player.deck, i, card)
+    player:to_top_deck(card)
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
