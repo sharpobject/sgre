@@ -6637,7 +6637,7 @@ end,
 Elusion
 ]]
 [200423] = function(player, opponent, my_idx)
-  if pred.C(player.character) then
+  if not pred.C(player.character) then
     return
   end
   if not opponent.deck[1] or not opponent:first_empty_field_slot() then
