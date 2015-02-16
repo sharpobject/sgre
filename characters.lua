@@ -2375,6 +2375,17 @@ end,
   end
 end,
 
+-- Chief Seresty
+[100181] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {sta={"-", 2}}):apply()
+    if opponent.field[idx] then
+      opponent:field_to_top_deck(idx)
+    end
+  end
+end,
+
 -- hero sita
 [100182] = hanbok_sita,
 
@@ -2386,6 +2397,103 @@ end,
 
 -- hero iri
 [100185] = hanbok_iri,
+
+-- Onsen Asmis
+[100186] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+  if player.game.turn % 2 == 0 and player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+  end
+  if player.game.turn % 3 == 0 and player.shuffles == 0 then
+    player.shuffles = player.shuffles + 1
+  end
+end,
+
+-- Onsen Linus
+[100187] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+  if player.game.turn % 2 == 0 and player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+  end
+  if player.game.turn % 3 == 0 and player.shuffles == 0 then
+    player.shuffles = player.shuffles + 1
+  end
+end,
+
+-- Onsen Rose
+[100188] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+  if player.game.turn % 2 == 0 and player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+  end
+  if player.game.turn % 3 == 0 and player.shuffles == 0 then
+    player.shuffles = player.shuffles + 1
+  end
+end,
+
+-- Onsen Helena
+[100189] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    buff:apply()
+  end
+  if player.game.turn % 2 == 0 and player.character.life < opponent.character.life then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+  end
+  if player.game.turn % 3 == 0 and player.shuffles == 0 then
+    player.shuffles = player.shuffles + 1
+  end
+end,
+
+-- Training Sita
+[100190] = function(player, opponent, my_card)
+  for i = 1, 3 do
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(opponent, idx, {sta={"-", 1}}):apply()
+    end
+  end
+  if #player:field_idxs_with_preds() == 0 then
+    local idxs = opponent:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(opponent)
+    for _, idx in ipairs(idxs) do
+      buff[idx] = {sta={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Tigress Felpix
+[100191] = function(player, opponent, my_card)
+  local idx = opponent:first_empty_field_slot()
+  if idx then
+    opponent.field[idx] = Card(300236)
+    OneBuff(opponent, idx, {atk={"=", 4}, def={"=", 0}, sta={"=", 4}}):apply()
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+      buff:apply()
+    end
+  end
+end,
 
 -- Dress Rose
 [100193] = function(player, opponent, my_card)
@@ -5795,7 +5903,7 @@ end,
 end,
 
 -- GS 5th Star
-[110248] = function(player, opponent, my_card)
+[110249] = function(player, opponent, my_card)
   if #opponent.grave >= 15 then
     for i = 1, 2 do
       local idx = uniformly(opponent:hand_idxs_with_preds())
@@ -5803,6 +5911,76 @@ end,
         opponent:hand_to_grave(idx)
       end
     end
+  end
+end,
+
+-- Royle Police Constable
+[110250] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag = math.ceil(opponent.field[idx].size / 2)
+    OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+  end
+end,
+
+-- Constable E-ROMA
+[110251] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag = math.ceil(opponent.field[idx].size / 2)
+    OneBuff(opponent, idx, {def={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Royle Police Corporal
+[110252] = function(player, opponent, my_card)
+  local idx = opponent:field_idxs_with_most_and_preds(pred.sta, pred.follower)[1]
+  if idx then
+    local mag = math.floor(opponent.field[idx].size / 2)
+    opponent:field_to_top_deck(idx)
+    idx = reverse(player:hand_idxs_with_preds(pred.follower))[1]
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {sta={"+", mag}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Corporal Vedia
+[110253] = function(player, opponent, my_card)
+  local idx = opponent:field_idxs_with_most_and_preds(pred.sta, pred.follower)[1]
+  if idx then
+    local mag = math.floor(opponent.field[idx].size / 2)
+    opponent:field_to_top_deck(idx)
+    idx = reverse(player:hand_idxs_with_preds(pred.follower))[1]
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", mag}, sta={"+", mag}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Royle Police Sergeant
+[110254] = function(player, opponent, my_card)
+  local idx1 = player:deck_idxs_with_preds(pred.follower)[1]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:deck_to_field(idx1, idx2)
+    local mag = math.ceil(player.field[idx2].size / 2)
+    OneBuff(player, idx2, {size={"=", mag}}):apply()
+  end
+end,
+
+-- Sergeant Sisela
+[110255] = function(player, opponent, my_card)
+  local idx1 = player:deck_idxs_with_preds(pred.follower)[1]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:deck_to_field(idx1, idx2)
+    local mag = math.ceil(player.field[idx2].size / 2)
+    OneBuff(player, idx2, {size={"=", mag}, atk={"+", 2}}):apply()
   end
 end,
 
@@ -6171,6 +6349,24 @@ end,
   if #player.deck <= 5 then
     for i = 1, min(5, #opponent.hand) do
       opponent:hand_to_grave(1)
+    end
+  end
+end,
+
+-- Royle Police Chief
+[120025] = function(player, opponent, my_card)
+  local idx1 = player:deck_idxs_with_preds(pred.follower)[1]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:deck_to_field(idx1, idx2)
+    local mag = math.ceil(player.field[idx2].size / 2)
+    OneBuff(player, idx2, {size={"=", mag}}):apply()
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+      if opponent.field[idx] then
+        opponent:field_to_top_deck(idx)
+      end
     end
   end
 end
