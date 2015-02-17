@@ -841,6 +841,7 @@ end,
   local card1 = opponent.field[1] or fake
   local card2 = opponent.field[2]
   if card2 and card1.size + card2.size >= 6 then
+    OneImpact(opponent, 2):apply()
     opponent:destroy(2)
   end
 end,
@@ -3108,7 +3109,7 @@ end,
 [200218] = function(player, opponent, my_idx, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.faction.D))
   if target then
-    OneBuff(player, target, {def={"+",1},sta={"+",3}}):apply()
+    OneBuff(player, target, {def={"+",1},sta={"+",4}}):apply()
   end
 end,
 
@@ -6754,7 +6755,7 @@ Window Shopping
     opponent:deck_to_bottom_deck(idxs[i] + offset)
     offset = offset + 1
   end
-  idxs = opponent:hand_idxs_with_preds(pred.spell)
+  idxs = opponent:hand_idxs_with_preds()
   offset = 0
   for i=1,min(5,#idxs) do
     opponent:hand_to_bottom_deck(idxs[i] - offset)
@@ -6794,7 +6795,7 @@ Down with the Queen
     player:field_to_exile(my_idx)
     return
   end
-  local idx = opponent:first_empty_field_slot()
+  local idx = opponent:last_empty_field_slot()
   if not idx then
     return
   end
@@ -6894,9 +6895,8 @@ end,
   end
   buff:apply()
   if my_card.size < 2 and #player.hand < 5 then
-    my_card.size = my_card.size + 1
-    player.hand[#player.hand+1] = my_card
-    player.field[my_idx] = nil
+    OneBuff(player, my_idx, {size={"+", 1}}):apply()
+    player:field_to_hand(my_idx)
   end
 end,
 
@@ -6905,14 +6905,12 @@ Trance
 ]]
 [200437] = function(player, opponent, my_idx)
   local idx = player:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
-  if not idx then
-  player:field_to_exile(my_idx)
-    return
-  end
-  player:field_to_exile(idx)
-  idx = uniformly(player:grave_idxs_with_preds(pred.follower))
   if idx then
-    player:grave_to_field(idx)
+    player:field_to_exile(idx)
+    idx = uniformly(player:grave_idxs_with_preds(pred.follower))
+    if idx then
+      player:grave_to_field(idx)
+    end
   end
   player:field_to_exile(my_idx)
 end,
@@ -6939,18 +6937,16 @@ Dark Sword Menelgart
 end,
 
 --[[
-Land and Sea
+The day when the earth and sea switched places
 ]]
 [200439] = function(player, opponent)
   OneBuff(player, 0, {life={"+",4}}):apply()
   opponent.shuffles = max(opponent.shuffles - 1, 0)
   local mag = player.character.life
   if mag >= 31 then
-    for i=1,2 do
-      local idx = uniformly(opponent:hand_idxs_with_preds())
-      if idx then
-        opponent:hand_to_grave(idx)
-      end
+    local idxs = shuffle(opponent:hand_idxs_with_preds())
+    for i = 1, min(2, #idxs) do
+      opponent:hand_to_grave(idxs[i])
     end
   elseif mag >= 12 and mag <= 27 then
     local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
@@ -6979,7 +6975,7 @@ end,
 Student Council
 ]]
 [200441] = function(player, opponent)
-  local idx = player:field_idxs_with_preds({pred.follower, pred.student_council})[1]
+  local idx = player:field_idxs_with_preds(pred.follower, pred.student_council)[1]
   if not idx then
     return
   end
@@ -6987,15 +6983,16 @@ Student Council
   idx = opponent:field_idxs_with_preds(pred.follower, 
       function(card) return card.atk < player.field[idx].atk end)[1]
   if idx then
+    OneImpact(opponent, idx):apply()
     opponent.field[idx].active = false
   end
 end,
 
 --[[
-Faltering
+Indecision
 ]]
 [200442] = function(player)
-  local mag = random(2) * 2 + 1
+  local mag = uniformly({3, 5})
   local buff = OnePlayerBuff(player)
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   for i=1,min(2,#idxs) do
@@ -7005,7 +7002,7 @@ Faltering
 end,
 
 --[[
-Satisfaction
+Satisfactory Results
 ]]
 [200443] = function(player)
   local pred_faction = pred[player.character.faction]
@@ -7038,6 +7035,13 @@ Everyone's Enemy
     if not idx then
       return
     end
+    local mag = {atk={"-", 0}, def={"-", 0}, sta={"-", 0}}
+    for i = 1, 4 do
+      local stat = uniformly({"atk", "def", "sta"})
+      mag[stat][2] = mag[stat][2] + 1
+    end
+    OneBuff(opponent, idx, mag):apply()
+    --[[
     local a_mag = 0
     local d_mag = 0
     local s_mag = 0
@@ -7052,6 +7056,7 @@ Everyone's Enemy
       end
     end
     OneBuff(opponent, idx, {atk={"-",a_mag},def={"-",d_mag},sta={"-",s_mag}}):apply()
+    ]]
   end
 end,
 
@@ -7080,10 +7085,10 @@ end,
 Discovery
 ]]
 [200447] = function(player)
-  while not player.hand[4] and player.deck[1] do
+  while (not player.hand[4]) and player.deck[1] do
     player:deck_to_hand(#player.deck)
   end
-  local mag = #player:hand_idxs_with_preds(pred.follower, pred.blue_cross)
+  local mag = #player:hand_idxs_with_preds(pred.blue_cross)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
     buff[idx] = {sta={"+",mag}}
@@ -7132,7 +7137,7 @@ GS 5th Star's Strength
   local mag = 0
   local mag2 = 0
   for i=1,min(3,#player.grave) do
-    if pred.D(player.grave[#player.grave + 1 - i]) then
+    if pred[player.character.faction](player.grave[#player.grave + 1 - i]) then
       mag = mag + 1
     end
     if pred.gs(player.grave[#player.grave + 1 - i]) then
@@ -7155,22 +7160,20 @@ end,
 The Battle Begins
 ]]
 [200451] = function(player, opponent)
+  local impact = Impact(player)
   for _,idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    for i=1,3 do
-      player.field[idx]:remove_skill(i)
-    end
-    player.field[idx]:gain_skill(1076)
+    player.field[idx].skills = {1076}
+    impact[player][idx] = true
   end
   for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
-    for i=1,3 do
-      opponent.field[idx]:remove_skill(i)
-    end
-    opponent.field[idx]:gain_skill(1076)
+    opponent.field[idx].skills = {1076}
+    impact[opponent][idx] = true
   end
+  impact:apply()
 end,
 
 --[[
-Clash
+Engagement
 ]]
 [200452] = function(player, opponent)
   if not pred.D(player.character) then

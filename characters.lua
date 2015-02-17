@@ -2187,6 +2187,25 @@ end,
   end
 end,
 
+-- Soma
+[100168] = function(player)
+  local buff = GlobalBuff(player)
+  if player.field[2] and pred.follower(player.field[2]) then
+    buff.field[player][2] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  if player.field[4] and pred.follower(player.field[4]) then
+    buff.field[player][4] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  if #player.hand % 2 == 1 then
+    for i = 1, min(5, #player.hand) do
+      if pred.follower(player.hand[i]) then
+        buff.hand[player][i] = {atk={"+", 1}, sta={"+", 1}}
+      end
+    end
+  end
+  buff:apply()
+end,
+
 -- Dress Asmis
 [100169] = function(player, opponent, my_card)
   if #opponent.deck > 0 then
@@ -2237,6 +2256,124 @@ end,
 
 -- wafuku iri
 [100174] = hanbok_iri,
+
+-- Lunia Scentriver
+[100175] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+  if idx then
+    opponent.hand[idx].skills = {1076}
+  end
+  idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Swimwear Anj Inyghem
+[100176] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+  end
+  local check = {}
+  local life = "" .. my_card.life
+  for i = 1, #life do
+    check[i + 0] = true
+  end
+  if check[3] then
+    idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+    end
+  end
+  if check[2] then
+    OneBuff(opponent, 0, {life={"-", 1}}):apply()
+  end
+  if check[1] then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+  end
+end,
+
+-- Child Asmis
+[100177] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.V)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {size={"-", 1}}
+    buff:apply()
+    if pred.follower(player.deck[idx]) then
+      idx = uniformly(opponent:hand_idxs_with_preds(pred.spell))
+      if idx then
+        opponent:hand_to_bottom_deck(idx)
+      end
+      idx = player:deck_idxs_with_preds(pred.follower)[1]
+      if idx then
+        buff = GlobalBuff(player)
+        buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+        buff:apply()
+      end
+    else
+      idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
+      if idx then
+        buff = GlobalBuff(opponent)
+        buff.hand[opponent][idx] = {size={"+", 1}}
+        buff:apply()
+      end
+    end
+  end
+end,
+
+-- Child Linus
+[100178] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:deck_idxs_with_preds(pred.follower))
+  if idx then
+    local mag_atk = uniformly({0, 1, 2, 3})
+    local mag_sta = min(3 - mag_atk, opponent.deck[idx].sta - 1)
+    local buff = GlobalBuff(opponent)
+    buff.deck[opponent][idx] = {atk={"-", mag_atk}, sta={"-", mag_sta}}
+    buff:apply()
+  end
+  idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag_atk = uniformly({0, 1, 2})
+    local mag_sta = 2 - mag_atk
+    OneBuff(opponent, idx, {atk={"-", mag_atk}, sta={"-", mag_sta}}):apply()
+  end
+end,
+
+-- Child Rose
+[100179] = function(player, opponent, my_card)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 2}}):apply()
+  else
+    idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+    local idx2 = player:first_empty_field_slot()
+    if idx and idx2 then
+      player:hand_to_field(idx)
+      if pred.C(player.field[idx2]) then
+        OneBuff(player, idx2, {size={"-", 1}, atk={"+", 1}, def={"+", 1}, sta={"+", 1}}):apply()
+      else
+        OneBuff(player, idx2, {size={"-", 1}}):apply()
+      end
+    end
+  end
+end,
+
+-- Child Helena
+[100180] = function(player, opponent, my_card)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local mag_sta = 10 - math.ceil((player.game.turn % 10) / 2)
+    local mag_atk = 1 + math.floor(player.game.turn / 10) - (math.floor(player.game.turn / 100) * 10)
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", mag_atk}, sta={"+", mag_sta}}
+    buff:apply()
+    if pred.D(player.deck[idx]) then
+      table.insert(player.grave, 1, Card(300346))
+    end
+  end
+end,
 
 -- hero sita
 [100182] = hanbok_sita,
@@ -2302,8 +2439,15 @@ end,
       player:grave_to_field(idx)
       OneBuff(player, fidx, {atk={"+",2},sta={"+",2}}):apply()
     end
+  else
+    ep7_recycle(player)
   end
-  ep7_recycle(player)
+  local idx = player:hand_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local card = player.hand[idx]
+    player:hand_to_exile(idx)
+    table.insert(player.grave, 1, card)
+  end
 end,
 
 -- Horseback Rose
@@ -2824,6 +2968,134 @@ end,
   buff:apply()
   if not check then
     OneBuff(opponent, 0, {life={"-", 1}}):apply()
+  end
+end,
+
+-- Amrita
+[100161] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    if opponent.field[idx].faction == opponent.character.faction then
+      OneBuff(opponent, idx, {def={"-", 1}}):apply()
+      opponent:field_to_top_deck(idx)
+    else
+      OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+      if opponent.field[idx] then
+        opponent:field_to_bottom_deck(idx)
+      end
+    end
+  end
+end,
+
+-- Master Vilosa
+[100162] = function(player)
+  local idxs = player:deck_idxs_with_preds(pred.V)
+  local buff = GlobalBuff(player)
+  for i = 1, min(3, #idxs) do
+    if pred.follower(player.deck[idxs[i]]) then
+      buff.deck[player][idxs[i]] = {sta={"+", 2}}
+    end
+  end
+  buff:apply()
+  for i = 1, min(3, #idxs) do
+    local card = table.remove(player.deck, idxs[i])
+    table.insert(player.deck, i, card)
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Empress Pacifica
+[100163] = function(player)
+  local idxs = player:deck_idxs_with_preds(pred.A)
+  local buff = GlobalBuff(player)
+  for i = 1, min(3, #idxs) do
+    if pred.follower(player.deck[idxs[i]]) then
+      buff.deck[player][idxs[i]] = {sta={"+", 2}}
+    end
+  end
+  buff:apply()
+  for i = 1, min(3, #idxs) do
+    local card = table.remove(player.deck, idxs[i])
+    table.insert(player.deck, i, card)
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Flores Altheim
+[100164] = function(player)
+  local idxs = player:deck_idxs_with_preds(pred.C)
+  local buff = GlobalBuff(player)
+  for i = 1, min(3, #idxs) do
+    if pred.follower(player.deck[idxs[i]]) then
+      buff.deck[player][idxs[i]] = {sta={"+", 2}}
+    end
+  end
+  buff:apply()
+  for i = 1, min(3, #idxs) do
+    local card = table.remove(player.deck, idxs[i])
+    table.insert(player.deck, i, card)
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- First Blood
+[100165] = function(player)
+  local idxs = player:deck_idxs_with_preds(pred.D)
+  local buff = GlobalBuff(player)
+  for i = 1, min(3, #idxs) do
+    if pred.follower(player.deck[idxs[i]]) then
+      buff.deck[player][idxs[i]] = {sta={"+", 2}}
+    end
+  end
+  buff:apply()
+  for i = 1, min(3, #idxs) do
+    local card = table.remove(player.deck, idxs[i])
+    table.insert(player.deck, i, card)
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Tea Time Cinia
+[100166] = function(player, opponent)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+  if opponent:is_npc() then
+    local buff = GlobalBuff(player)
+    idx = opponent:deck_idxs_with_preds(pred.follower)[1]
+    if idx then
+      buff.deck[opponent][idx] = {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Cooking Iri
+[100167] = function(player, opponent)
+  local mag = min(3, player.character.life % 10)
+  if mag > 0 then
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+    end
+  else
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 2}}):apply()
+    end
   end
 end,
 
@@ -5128,6 +5400,7 @@ end,
     end
     OneBuff(player, idx, buff):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
   
 -- Wedding Dress Clarice
@@ -5142,6 +5415,7 @@ end,
     player.field[idx] = Card(300201)
     OneBuff(player, idx, {size={"=", 1}, atk={"=", 5}, def={"=", 0}, sta={"=", 5}}):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
 
 -- Wedding Dress Rianna
@@ -5161,6 +5435,7 @@ end,
     end
     OneBuff(player, slot, buff):apply()
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
 
 -- Wedding Dress Layna
@@ -5170,6 +5445,7 @@ end,
     OneBuff(player, idx, {sta={"+", 3}}):apply()
     player:field_to_top_deck(idx)
   end
+  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
   
 -- Linia's Tailor
@@ -5340,6 +5616,192 @@ end,
       OneBuff(player, idx, {atk={"+", 1}, sta={"+", 2}}):apply()
     elseif #player:field_idxs_with_preds(pred.follower, pred.D) >= 2 then
       OneBuff(player, idx, {size={"-", 1}, atk={"+", 1}, sta={"+", 2}}):apply()
+    end
+  end
+end,
+
+-- Library Club Explorer Jia
+[110236] = function(player, opponent)
+  local idx = opponent:field_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local idx2 = opponent:hand_idxs_with_preds(pred.spell)[1]
+    if idx2 then
+      local buff = GlobalBuff(player)
+      opponent.field[idx], opponent.hand[idx2] = opponent.hand[idx2], opponent.field[idx]
+      buff.hand[opponent][idx2] = {atk={"-", 1}, sta={"-", 1}}
+      buff:apply()
+    end
+  end
+end,
+      
+-- Explorer Jia Free
+[110237] = function(player, opponent)
+  local idx = opponent:field_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local idx2 = opponent:hand_idxs_with_preds(pred.spell)[1]
+    if idx2 then
+      local buff = GlobalBuff(player)
+      opponent.field[idx], opponent.hand[idx2] = opponent.hand[idx2], opponent.field[idx]
+      buff.hand[opponent][idx2] = {atk={"-", 1}, sta={"-", 1}}
+      buff.field[opponent][idx] = {size={"+", 1}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Library Club Explorer Sia
+[110238] = function(player, opponent)
+  local mag = 0
+  for i = 1, 2 do
+    local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+    if idx then
+      opponent:hand_to_bottom_deck(idx)
+      mag = mag + 1
+    end
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Explorer Sia Aka
+[110239] = function(player, opponent)
+  local mag = 0
+  for i = 1, 2 do
+    local idx = opponent:hand_idxs_with_preds(pred.follower)[1]
+    if idx then
+      opponent:hand_to_bottom_deck(idx)
+      mag = mag + 1
+    end
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Library Club Explorer Kanea
+[110240] = function(player, opponent)
+  local mag1 = 2 - opponent.shuffles 
+  local mag2 = 1 + opponent.shuffles
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", mag1}, sta={"-", mag1}}):apply()
+  end
+  idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", mag2}, sta={"+", mag2}}):apply()
+  end
+end,
+
+-- Explorer Shon Kanea
+[110241] = function(player, opponent)
+  local mag1 = 2 - opponent.shuffles 
+  local mag2 = 1 + opponent.shuffles
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", mag1}, def={"-", mag1}, sta={"-", mag1}}):apply()
+  end
+  idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", mag2}, def={"+", mag2}, sta={"+", mag2}}):apply()
+  end
+end,
+
+-- Library Club Explorer
+[110242] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag = 0
+    for i = 1, min(2, #player.deck) do
+      if pred.follower(player.deck[i]) then
+        mag = mag + 1
+      end
+    end
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Library Club Explorer Ritana
+[110243] = function(player, opponent, my_card)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag = 0
+    for i = 1, min(3, #player.deck) do
+      if pred.follower(player.deck[i]) then
+        mag = mag + 1
+      end
+    end
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Knight Tactician
+[110244] = function(player, opponent, my_card)
+  local idxs = player:deck_idxs_with_preds(pred.follower)
+  if #idxs > 0 then
+    local idx = idxs[#idxs]
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 4}, sta={"+", 4}}
+    buff:apply()
+  end
+  for i = 1, min(5, #player.hand) do
+    player:hand_to_bottom_deck(1)
+  end
+end,
+
+-- Tactician Bermin
+[110245] = function(player, opponent, my_card)
+  local idxs = player:deck_idxs_with_preds(pred.follower)
+  if #idxs > 0 then
+    local idx = idxs[#idxs]
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 4}, sta={"+", 4}}
+    buff:apply()
+  end
+  local mag = math.floor(#player.hand / 2)
+  for i = 1, min(5, #player.hand) do
+    player:hand_to_bottom_deck(1)
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Witch Cadet
+[110246] = function(player, opponent, my_card)
+  if #opponent.deck <= 20 then
+    OneBuff(opponent, 0, {life={"-", 2}}):apply()
+  end
+end,
+
+-- Witch Cadet Zislana
+[110247] = function(player, opponent, my_card)
+  if #opponent.deck <= 18 then
+    OneBuff(opponent, 0, {life={"-", 3}}):apply()
+  end
+end,
+
+-- GS 5th Star
+[110248] = function(player, opponent, my_card)
+  if #opponent.grave >= 12 then
+    local idx = uniformly(opponent:hand_idxs_with_preds())
+    if idx then
+      opponent:hand_to_grave(idx)
+    end
+  end
+end,
+
+-- GS 5th Star
+[110248] = function(player, opponent, my_card)
+  if #opponent.grave >= 15 then
+    for i = 1, 2 do
+      local idx = uniformly(opponent:hand_idxs_with_preds())
+      if idx then
+        opponent:hand_to_grave(idx)
+      end
     end
   end
 end,
@@ -5653,8 +6115,65 @@ end,
   recycle_one(player)
   recycle_one(player)
   recycle_one(player)
-end
+end,
 
+-- The Spirit Amrita
+[120023] = function(player, opponent)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    end
+    buff:apply()
+  end
+  if not opponent:field_idxs_with_preds(pred.follower)[1] then
+    OneBuff(player, 0, {life={"+", 1}}):apply()
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      local mag_atk = math.random(0, 3)
+      local mag_sta = math.random(0, 3)
+      OneBuff(player, idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
+    end
+    idx = uniformly(opponent:hand_idxs_with_preds(pred.spell))
+    if idx then
+      opponent:hand_to_bottom_deck(idx)
+    end
+    for i = 1, 3 do
+      local idx = uniformly(player:grave_idxs_with_preds())
+      if idx then
+        player:grave_to_bottom_deck(idx)
+      end
+    end
+  end
+end,
+
+-- Soma
+[120024] = function(player, opponent, my_card)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {atk={"+", 2}, def={"+", 1}, sta={"+", 2}}
+    end
+    buff:apply()
+  end
+  local mag = 0
+  for i = 1, min(3, #player.deck) do
+    mag = mag + (pred.follower(player.deck[i]) and 1 or 0)
+  end
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i = 1, min(2, #idxs) do
+    buff[idxs[i]] = {atk={"-", mag}, sta={"-", mag}}
+  end
+  buff:apply()
+  if #player.deck <= 5 then
+    for i = 1, min(5, #opponent.hand) do
+      opponent:hand_to_grave(1)
+    end
+  end
+end
 
 -- Do not touch that curly brace!
 }
