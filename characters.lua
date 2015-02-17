@@ -2778,9 +2778,9 @@ end,
     if idx == 1 then
       OneBuff(player, idx, {size={"-", 1}, atk={"+", 1}, sta={"+", 2}}):apply()
     elseif idx % 2 == 1 then
-      OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}}):apply()
-    else
       OneBuff(player, idx, {size={"-", 1}, sta={"+", 1}}):apply()
+    else
+      OneBuff(player, idx, {atk={"+", 1}, def={"+", 1}}):apply()
     end
   end
 end,
