@@ -50,6 +50,7 @@ local dungeon_mats = {
   210033, -- pass
   210034, -- receipt (ep9)
   210036, -- cat paw stamp (ex3)
+  210038, -- library card (ep10)
 }
 local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}
