@@ -3007,7 +3007,7 @@ end,
   end
 end,
 
--- Empress Pacifica
+-- Enpress Pacifica
 [100163] = function(player)
   local idxs = player:deck_idxs_with_preds(pred.A)
   local buff = GlobalBuff(player)

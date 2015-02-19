@@ -3854,8 +3854,8 @@ end,
     for _,idx in ipairs(targets) do
       opponent:field_to_bottom_deck(idx)
     end
-    for i=1,max(#targets + 1, 1) do
-      local idx = opponent:first_empty_field_slot()
+    for i=1,max(#targets, 1) do
+      local idx = opponent:last_empty_field_slot()
       if idx then
         opponent.field[idx] = Card(200071)
         opponent.field[idx].active = false
@@ -5369,14 +5369,15 @@ This card is exiled
   player:field_to_exile(my_idx)
 end,
 
+-- sanctuary trip
 [200358] = function(player, opponent, my_idx, my_card)
   if my_card.size > 3 then
     my_card.size = 3
   end
-  OneBuff(player, 0, {life={"+", my_card.size + 1}}):apply()
+  OneBuff(player, 0, {life={"+", my_card.size}}):apply()
   if my_card.size > 1 then
     player.send_spell_to_grave = false
-    my_card.size = my_card.size - 1
+    my_card.size = 1
     my_card.active = false
   end
 end,
@@ -5767,7 +5768,7 @@ The second Good Job is deactivated
 [200379] = function(player, opponent)
   opponent:to_top_deck(Card(200069))
   opponent:to_bottom_deck(Card(200069))
-  if not pred.D(player.character.faction) then
+  if not pred.D(player.character) then
     return
   end
   local idx = opponent:first_empty_field_slot()
@@ -6222,7 +6223,7 @@ Lib. Assistant
 [200401] = function(player, opponent, my_idx)
   player:field_to_exile(my_idx)
   player.field[my_idx] = Card(300016) --300206
-  OneBuff(player, my_idx, {size={"=",my_idx},atk={"+",my_idx*2},sta={"+",my_idx*2}}):apply()
+  OneBuff(player, my_idx, {size={"=",my_idx},atk={"=",my_idx*2},sta={"=",my_idx*2}}):apply()
 end,
 
 --[[
