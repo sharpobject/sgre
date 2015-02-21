@@ -708,6 +708,9 @@ function Connection:crash_and_burn()
 end
 
 function Connection:set_active_deck(idx, silent)
+  if uid_waiting_for_fight == self.uid then
+    uid_waiting_for_fight = nil
+  end
   local char,other=0,0
   local data = uid_to_data[self.uid]
   if not idx then return false end
