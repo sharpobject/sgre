@@ -771,15 +771,17 @@ end,
 
 -- no turning back
 [200055] = function(player, opponent)
-  local my_guys = player:field_idxs_with_preds(pred.follower)
-  local his_guys = opponent:field_idxs_with_preds(pred.follower)
-  if #my_guys > 0 then
+  local idx1 = uniformly(player:field_idxs_with_preds(pred.follower))
+  local idx2 = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx1 then
     if opponent:field_size() % 2 == 1 then
-      if #his_guys > 0 then
-        opponent:destroy(uniformly(his_guys))
+      if idx2 then
+        OneImpact(opponent, idx2):apply()
+        opponent:destroy(idx2)
       end
     else
-      player:field_to_grave(uniformly(my_guys))
+      OneImpact(player, idx1):apply()
+      player:field_to_grave(idx1)
     end
   end
 end,
@@ -5454,8 +5456,7 @@ of the Deck if it is a Follower, or sent to the Grave if it is a Spell
     player.field[idx].active = false
     mag = mag + 1
   end
-  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
-      function(card) return card.size <= mag end))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(function(card) return card.size <= mag end))
   if not op_idx then
     return
   end
@@ -6582,17 +6583,22 @@ Cosmo Drive
 end,
 
 --[[
-Strega in Exile
+  Exiled Witch
 ]]
 [200420] = function(player, opponent, my_idx, my_card)
-  local idx = player:field_idxs_with_preds(function(card) return card ~= my_card end)[1]
-  if not idx then
-    return
-  end
-  player:destroy(idx)
-  idx = opponent:field_idxs_with_preds(function(card) return card.size <= 10 end)[1]
-  if idx then
-    opponent:destroy(idx)
+  local idx1 = player:field_idxs_with_preds(function(card) return card ~= my_card end)[1]
+  if idx1 then
+    local impact = Impact(player)
+    impact[player][idx1] = true
+    local idx2 = opponent:field_idxs_with_preds(function(card) return card.size <= 10 end)[1]
+    if idx2 then
+      impact[opponent][idx2] = true
+      impact:apply()
+      opponent:destroy(idx2)
+    else
+      impact:apply()
+    end
+    player:destroy(idx1)
   end
 end,
 
@@ -7425,14 +7431,14 @@ Gossip
   end
   local op_idxs = player:field_idxs_with_preds(pred.follower)
   table.remove(op_idxs, 1)
-  for i = 1, math.min(mag, op_idxs) do
+  for i = 1, math.min(mag, #op_idxs) do
     impact[opponent][op_idxs[i]] = true
   end
   impact:apply()
   for _, idx in ipairs(pl_idxs) do
     player:field_to_top_deck(idx)
   end
-  for i = 1, math.min(mag, op_idxs) do
+  for i = 1, math.min(mag, #op_idxs) do
     opponent:field_to_top_deck(op_idxs[i])
   end
 end,
@@ -7520,7 +7526,7 @@ end,
   local mag = 0
   for i = 0, 4 do
     local idx = opponent:grave_idxs_with_preds(pred.spell)[1]
-    if idx and idx > #opponent.grave - 5 + i do
+    if idx and idx > #opponent.grave - 5 + i then
       opponent:grave_to_exile(idx)
       mag = mag + 1
     end
@@ -7564,7 +7570,7 @@ end,
   Situation Resolved
 ]]
 [200474] = function(player)
-  local idx = uniformly(player:field_idxs_with_preds(pred.C, pred.follower)
+  local idx = uniformly(player:field_idxs_with_preds(pred.C, pred.follower))
   if idx then
     OneImpact(player, idx):apply()
     player.field[idx]:gain_skill(1457)
