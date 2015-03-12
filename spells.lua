@@ -4511,7 +4511,7 @@ Its skills become Break and Death
   end
   local card = player.field[pl_idx]
   player.field[pl_idx], opponent.field[op_idx] = nil, player.field[pl_idx]
-  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)+card.sta}}):apply()
+  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)}}):apply()
   card:remove_skill(1)
   card:remove_skill(2)
   card:remove_skill(3)
