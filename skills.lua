@@ -4243,6 +4243,7 @@ end,
   else
     player:field_to_grave(my_idx)
   end
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Seeker Melissa
