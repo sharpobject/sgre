@@ -6863,7 +6863,7 @@ Opposition
   for i=1,min(2, #idxs) do
     local mag = ceil((player.field[idxs[1]].size + 
         (player.field[idxs[2]] or player.field[idxs[1]]).size)/2)
-    buff[idxs[i]] = {atk={"+",mag}}
+    buff[idxs[i]] = {atk={"+",mag}, def={"=", 0}}
   end
   buff:apply()
 end,
