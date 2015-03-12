@@ -4527,7 +4527,7 @@ end,
 [1427] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card:squished_skills()[1] then
     OneImpact(player.opponent, other_idx):apply()
-    other_card.skills = []
+    other_card.skills = {}
   end
 end,
 
@@ -4628,11 +4628,12 @@ end,
     if player.opponent.deck[1] and idx then
       player.opponent:deck_to_hand(#player.opponent.deck)
       local buff = GlobalBuff(player)
-      if player.opponent.hand[idx] then
+      if pred.follower(player.opponent.hand[idx]) then
         buff.hand[player.opponent][idx] = {def={"-", 1}}
       else
         buff.field[player][0] = {life={"+", 1}}
       end
+      buff:apply()
     end
   end
 end,
@@ -4661,9 +4662,9 @@ end,
 
 -- Apostle Red Sun
 -- Proof of Miracles
-[1438] = function(player, my_idx, my_card. skill_idx, other_idx, other_card)
+[1438] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.active then
-    OneBuff(opponent, other_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+    OneBuff(player.opponent, other_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   else
     OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
   end
@@ -4733,7 +4734,7 @@ end,
     buff[my_idx] = {size={"=", 1}, atk={"-", 1}, sta={"-", 1}}
     buff:apply()
     local idx = player.opponent:first_empty_field_slot()
-    if idx then
+    if idx and player.field[my_idx] then
       player.field[my_idx], player.opponent.field[idx] = nil, my_card
     end
     my_card:remove_skill(skill_idx)
@@ -4744,10 +4745,11 @@ end,
 -- Waiting
 [1445] = function(player, my_idx, my_card, skill_idx)
   local idxs = player:field_idxs_with_preds(pred.follower)
-  local buff = OneplayerBuff(player)
+  local buff = OnePlayerBuff(player)
   for _, idx in ipairs(idxs) do
     buff[idx] = {atk={"+", 1}, sta={"+", 1}}
   end
+  buff:apply()
   my_card:remove_skill_until_refresh(skill_idx)
 end,
 
@@ -4848,7 +4850,7 @@ end,
       buff.field[player.opponent][other_idx] = {}
       buff.field[player][my_idx] = {atk={"+", 1}, sta={"+", 1}}
       buff:apply()
-      opponent:field_to_grave(other_idx)
+      player.opponent:field_to_grave(other_idx)
     else
       OneBuff(player, my_idx, {sta={"+", 1 + abs(my_card.size - other_card.size)}}):apply()
     end
@@ -4859,11 +4861,13 @@ end,
 -- Reflection
 [1456] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
+    local idx = player.opponent:field_idxs_with_most_and_preds(
+        function(card) return card.atk + card.def + card.sta end, pred.follower)
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"=", other_card.atk}, def={"=", other_card.def}, sta={"=", other_card.sta}}
     buff.field[player.opponent][other_idx] = {atk={"=", my_card.atk}, def={"=", my_card.def}, sta={"=", my_card.sta}}
     buff:apply()
-    my_card.skill, other_card.skills = other_card.skills, []
+    my_card.skill, other_card.skills = other_card.skills, {}
   end
 end,
 
