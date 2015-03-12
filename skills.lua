@@ -2621,10 +2621,10 @@ end,
         OneBuff(player, slot, {size={"=",my_card.size+1}}):apply()
         new_card.active = false
         local buff = OnePlayerBuff(player)
-        local targets = player:field_idxs_with_preds(pred.follower,
-            function(card) return card ~= new_card end)
-        for _,idx in ipairs(targets) do
-          buff[idx] = {size={"-",2}}
+        local target = uniformly(player:field_idxs_with_preds(pred.follower,
+            function(card) return card ~= new_card and card.size >= 2 end))
+        if target then
+          buff[target] = {size={"-",2}}
         end
         buff:apply()
       end
@@ -3941,6 +3941,7 @@ end,
 -- Cook Club Apprentice Iri
 -- Prepare to Charge!
 [1371] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"+",1}}):apply()
   if other_card and other_card.def + other_card.sta <= my_card.atk then
     my_card.skills[skill_idx] = 1359
   end
