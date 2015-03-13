@@ -868,9 +868,9 @@ end,
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#targets) do
     if amt == 1 then
-      buff[targets[i]] = {atk={"+",amt}}
-    else
       buff[targets[i]] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    else
+      buff[targets[i]] = {atk={"+", amt}}
     end
   end
   buff:apply()
@@ -1123,7 +1123,17 @@ end,
 [100070] = clarice("turn"),
 
 -- assistant clarice
-[100071] = clarice({1,0,9}),
+[100071] = function(player)
+  local to_kill = player:field_idxs_with_preds(function(card) return card.id == 300201 end)
+  for _,idx in ipairs(to_kill) do
+    player:field_to_exile(idx)
+  end
+  local slot = player:last_empty_field_slot()
+  if slot then
+    player.field[slot] = Card(300201)
+    OneBuff(player, slot, {atk={"=",1},def={"=",0},sta={"=",9}}):apply()
+  end
+end,
 
 -- swimwear clarice
 [100072] = clarice({7,0,2}),
@@ -2582,6 +2592,7 @@ end,
   if idx then
     local card = player.hand[idx]
     player:hand_to_exile(idx)
+    card:reset()
     table.insert(player.grave, 1, card)
   end
 end,

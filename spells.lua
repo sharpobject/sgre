@@ -412,11 +412,10 @@ end,
   local target_idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
-    while(#player.grave > 0) do
-      player.grave[#player.grave] = nil
-    end
   end
-
+  while(#player.grave > 0) do
+    player.grave[#player.grave] = nil
+  end
 end,
 
 -- pacifism
@@ -7090,6 +7089,7 @@ Lady Maid Dream
   end
   local idx = uniformly(opponent:field_idxs_with_preds())
   if not idx then return end
+  opponent.field[idx]:reset()
   table.insert(opponent.grave, 1, opponent.field[idx])
   opponent.field[idx] = nil
   idx = opponent:first_empty_field_slot()

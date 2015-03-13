@@ -1,6 +1,9 @@
 require "gradient"
 local love = love
 
+local generic_text_color = {155, 94, 33, 255}
+local cardinfo_text_color = {128, 82, 36}
+
 do
   local font_map = {}
   local font_to_str = {
@@ -41,27 +44,6 @@ do
   end
 end
 
-function load_img(s)
-  s = love.image.newImageData("swordgirlsimages/"..s)
-  local w, h = s:getWidth(), s:getHeight()
-  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
-  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
-  if wp ~= w or hp ~= h then
-    local padded = love.image.newImageData(wp, hp)
-    padded:paste(s, 0, 0)
-    s = padded
-  end
-  local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", 0)
-  s:mapPixel(function(x,y,r,g,b,a)
-      local ret = (r+g+b)/3
-      return ret,ret,ret,a
-    end)
-  local gray = love.graphics.newImage(s)
-  gray:setMipmapFilter("linear", 0)
-  return ret,gray,w,h
-end
-
 do
   local asset_map = {}
   function load_asset(s)
@@ -75,34 +57,158 @@ do
   end
 end
 
-do
-  local real_load_img = load_img
-  load_img = function(s)
-    local status,a,b,c,d = pcall(function()
-        return real_load_img(s)
-      end)
-    if status then
-      return a,b,c,d
-    end
-    return real_load_img("200033L.jpg")
-  end
-end
-
 local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
+local texture_width, texture_height
+local supports_mipmaps
 
 local fonts = {}
 
+local load_img_async_func
+
+function load_backface()
+  local s = love.image.newImageData("swordgirlsimages/900000L.jpg")
+  local w, h = s:getWidth(), s:getHeight()
+  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+  if wp ~= w or hp ~= h then
+    local padded = love.image.newImageData(wp, hp)
+    padded:paste(s, 0, 0)
+    s = padded
+  end
+  local ret = love.graphics.newImage(s)
+  if supports_mipmaps then
+    ret:setMipmapFilter("linear", 0)
+  else
+    ret:setFilter("linear", "linear")
+  end
+  s:mapPixel(function(x,y,r,g,b,a)
+      local ret = (r+g+b)/3
+      return ret,ret,ret,a
+    end)
+  local gray = love.graphics.newImage(s)
+  if supports_mipmaps then
+    gray:setMipmapFilter("linear", 0)
+  else
+    gray:setFilter("linear", "linear")
+  end
+  return ret,gray,w,h,wp,hp
+end
+
+function acquire_img(id)
+  local max_cards_in_mem = 64
+  local tstamps = IMG_tstamps
+  local img_arr = IMG_card
+  local img_g_arr = IMG_gray_card
+  local ready_arr = IMG_rdy
+  if img_arr[id] then
+    tstamps[id] = IMG_tstamp
+  else
+    img_arr[id], img_g_arr[id] = load_img(id)
+    IMG_count = IMG_count + 1
+    if IMG_count > max_cards_in_mem then
+      local smallest = IMG_tstamp
+      local del_id = 0
+      for idx, stamp in pairs(tstamps) do
+        if stamp < smallest then
+          del_id = idx
+          smallest = stamp
+        end
+      end
+      img_arr[del_id], img_g_arr[del_id] = nil
+      ready_arr[del_id] = false
+      tstamps[del_id] = nil
+      IMG_count = IMG_count - 1
+    end
+  end
+  IMG_tstamp = IMG_tstamp + 1
+end
+
+function load_img(id)
+  function async_callback(id, tex, tex_gray)
+    if IMG_card[id] then
+      local img_ref = IMG_card[id]
+      img_ref:getData():paste(tex, 0, 0)
+      img_ref:refresh()
+      local img_gray_ref = IMG_gray_card[id]
+      img_gray_ref:getData():paste(tex_gray, 0, 0)
+      img_gray_ref:refresh()
+      IMG_rdy[id] = true
+    end
+  end
+
+  local s = love.image.newImageData(texture_width, texture_height)
+  local s2 = love.image.newImageData(texture_width, texture_height)
+  local ret = love.graphics.newImage(s)
+  if supports_mipmaps then
+    ret:setMipmapFilter("linear", 0)
+  else
+    ret:setFilter("linear", "linear")
+  end
+  local gray = love.graphics.newImage(s2)
+  if supports_mipmaps then
+    gray:setMipmapFilter("linear", 0)
+  else
+    gray:setFilter("linear", "linear")
+  end
+  load_img_async_func(async_callback, id)
+  return ret,gray,texture_width,texture_height
+end
+
+function async_load(id)
+  collectgarbage("collect")
+  love = require "love"
+  require "love.image"
+
+  -- tries to grab image, returns predefined placeholder otherwise
+  function load_img_data(id)
+    local status, tex = pcall(function()
+        return love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
+      end)
+    if status then
+      return tex
+    end
+    return love.image.newImageData("swordgirlsimages/900000L.jpg")
+  end
+  
+  local tex = load_img_data(id)
+  local w, h = tex:getWidth(), tex:getHeight()
+  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+  if wp ~= w or hp ~= h then
+    local padded = love.image.newImageData(wp, hp)
+    padded:paste(tex, 0, 0)
+    tex = padded
+  end
+  local tex_gray = love.image.newImageData(wp, hp)
+  tex_gray:paste(tex, 0, 0)
+  tex_gray:mapPixel(function(x,y,r,g,b,a)
+      local ret = (r+g+b)/3
+      return ret,ret,ret,a
+    end)
+  return id,tex,tex_gray
+end
+
+
 function graphics_init()
+  IMG_rdy = {}
   IMG_card = {}
   IMG_gray_card = {}
-  for _,v in ipairs({300249}) do
-    IMG_card[v], IMG_gray_card[v], card_width, card_height =
-      load_img(v.."L.jpg")
-  end
+
+  IMG_tstamps = {}
+  IMG_tstamp = 1
+  IMG_count = 0
+
+  supports_mipmaps = love.graphics.isSupported("mipmap")
+
+  IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
+    texture_width, texture_height = load_backface()
+
   card_width = card_width * card_scale
   card_height = card_height * card_scale
+
+  load_img_async_func = async.define("load_img_async", async_load)
 end
 
 function draw_hover_card(text_obj)
@@ -111,13 +217,14 @@ function draw_hover_card(text_obj)
     card = Card(card)
   end
 
-  draw_hover_frame()
+  local fx, fy, fw, fh = prepare_hover_frame()
   love.graphics.setColor(255, 255, 255)
   local id = card.id
-  if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
-  end
-  local x,y = 612,15
+  acquire_img(id)
+  local x,y = 612,21
+  local card_bg = load_asset("cardframe.png")
+  love.graphics.draw(card_bg, x-7, y-7, 0, 1, 1)
+  draw_border_hover(fx, fy, fw, fh)
   love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
   local card_width = card_width*2
   local card_height = card_height*2
@@ -148,31 +255,40 @@ function draw_hover_card(text_obj)
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
   love.graphics.setColor(28 ,28 ,28)
-  local text = card.name.."\n".."Limit "..card.limit.."      "..
+  local name_obj, stats_obj, eff_obj, quote_obj = text_obj[1], text_obj[2], text_obj[3], text_obj[4]
+  local eff1_obj, eff2_obj, eff3_obj = eff_obj[1], eff_obj[2], eff_obj[3]
+  name_obj:SetText(card.name)
+  stats_obj:SetText("Limit "..card.limit.."      "..
     card.points.."pt      "..card.rarity.."      "..
-    card.episode.." ".."\n\n"
-  text = text .. (skill_text[card.id] or "")
+    card.episode)
   if card.type == "follower" then
     local skills = card.skills or {}
     for i=1,3 do
+      local text
       if skills[i] then
         if skill_text[skills[i]] then
-          text = text .. skill_text[skills[i]]
+          text = skill_text[skills[i]]
         else
-          text = text .. "Unknown skill with id " .. skills[i]
+          text = "Unknown skill with id " .. skills[i]
         end
       else
-        text = text .. "-"
+        text = ""
       end
-      if i < 3 then
-        text = text .. "\n\n"
-      end
+      -- TODO: scrub the json file instead of scrubbing here
+      text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
+      eff_obj[i]:SetText(text:gsub("\n"," \n "):gsub("Turn Start:","TURN START:")
+        :gsub("Attack:","ATTACK:")
+        :gsub("Defend:","DEFEND:"))
     end
+  else
+    local text = (skill_text[card.id] or "")
+    -- TODO: scrub the json file instead of scrubbing here
+    text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
+    eff_obj[1]:SetText(text:gsub("\n"," \n "):gsub("Turn Start:","TURN START:"))
+    eff_obj[2]:SetText("")
+    eff_obj[3]:SetText("")
   end
-  text = text.."\n\n"..card.flavor
-  -- TODO: scrub the json file instead of scrubbing here
-  text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
-  text_obj:SetText(text:gsub("\n"," \n "))
+  quote_obj:SetText(card.flavor:gsub("\n"," \n "))
 end
 
 local bkg_grad, bkg_batch = nil, nil
@@ -225,6 +341,12 @@ function draw_border_hover(x,y,w,h)
   love.graphics.draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
 end
 
+function limit_string(text, maxlen)
+  local ret = string.len(text) < maxlen and text
+      or string.sub(text, 1, maxlen).."…"
+  return ret
+end
+
 field_x, field_y = 16, 10
 local field_x, field_y = field_x, field_y
 function Game:draw_field()
@@ -234,20 +356,20 @@ function Game:draw_field()
   love.graphics.draw(load_asset("field_hud.png"), fx+4, fy+340)
   local p1_name, p2_name, nw, nh =
       load_asset("name-red.png"), load_asset("name-blue.png")
-  local left_text, right_text = self.P1.name, self.P2.name
+  local left_text, right_text = limit_string(self.P1.name, 12), limit_string(self.P2.name, 12)
   if self.P1.side ~= "left" then
     p1_name, p2_name = p2_name, p1_name
     left_text, right_text = right_text, left_text
   end
   love.graphics.draw(p1_name, fx+7, fy+fh-6-nh)
   love.graphics.draw(p2_name, fx+fw-7-nw, fy+fh-6-nh)
-  love.graphics.setFont(load_vera(12))
-  love.graphics.printf(left_text, fx+7+4, fy+fh-6-nh+2, nw-8, "left")
-  love.graphics.printf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+2, nw-8, "right")
+  love.graphics.setFont(load_vera(11))
+  love.graphics.printf(left_text, fx+7+4, fy+fh-6-nh+3, nw-8, "left")
+  love.graphics.printf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+3, nw-8, "right")
   draw_border(fx, fy, fw, fh)
 end
 
-function draw_hover_frame(x,y,w,h)
+function draw_hover_frame(x,y,w,h,title)
   if not x then
     local junk, fw = load_asset("field.png")
     x = field_x+fw+4+13+4
@@ -256,7 +378,33 @@ function draw_hover_frame(x,y,w,h)
   end
   love.graphics.setColor(254, 226, 106)
   love.graphics.rectangle("fill", x, y, w, h)
+  if title then
+    local title_bg = load_asset("title_bg.png")
+    love.graphics.draw(title_bg, x, y, 0, w, 1)
+    love.graphics.setColor(253, 233, 94)
+    love.graphics.setFont(load_vera(14))
+    love.graphics.printf(title, 60, y+5, 100, "center")
+  end
   draw_border_hover(x, y, w, h)
+end
+
+function prepare_hover_frame(x,y,w,h,title)
+  if not x then
+    local junk, fw = load_asset("field.png")
+    x = field_x+fw+4+13+4
+    y = field_y
+    w, h = 800 - field_x - x, 600 - field_y - y
+  end
+  love.graphics.setColor(254, 226, 106)
+  love.graphics.rectangle("fill", x, y, w, h)
+  if title then
+    local title_bg = load_asset("title_bg.png")
+    love.graphics.draw(title_bg, x, y, 0, w, 1)
+    love.graphics.setColor(253, 233, 94)
+    love.graphics.setFont(load_vera(14))
+    love.graphics.printf(title, 60, y+5, 100, "center")
+  end
+  return x, y, w, h
 end
 
 function left_hover_frame_pos()
@@ -314,11 +462,9 @@ local slot_to_dxdy = {
 function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
-    id = 200099
+    id = 900000
   end
-  if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
-  end
+  acquire_img(id)
   if card.type == "character" or card.active then
     love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
   else
@@ -332,7 +478,7 @@ function draw_card(card, x, y, lighten_frame, text)
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
   love.graphics.setColor(255, 255, 255)
-  if not card.hidden then
+  if not card.hidden and IMG_rdy[id] then
     if card.type == "follower" then
       love.graphics.setFont(load_font("sg_assets/fonts/statwan_s.png"))
       love.graphics.printf(card.atk, x, y+102, card_width/3, "center")
@@ -385,6 +531,106 @@ function set_buff_font(kind)
   end
 end
 
+function anim_layer()
+  local layer = loveframes.Create("image")
+  layer:SetSize(0, 0)
+  layer:SetX(0)
+  layer:SetY(0)
+  layer:SetState("playing")
+  layer.Draw = function(self)
+    for i=0,11 do
+      local animation = self.anims[i]
+      if animation then
+        local img = load_asset(animation.filename)
+        local dx = animation.dx - math.floor((img:getWidth() - 80)/2)
+        local dy = animation.dy - math.floor((img:getHeight() - 120)/2)
+        local pos = self.slotpos[i]
+        love.graphics.draw(img, pos.x+dx, pos.y+dy)
+      end
+    end
+    if self.coin_flip then
+      local imgname, alpha = unpack(self.coin_frameset)
+      local coin_img = load_asset("animations/coin_flip/"..imgname..".png")
+      if self.coin_frame > 16 and self.coin_frame < 28 then
+        local spin_img = load_asset("animations/coin_flip/flip_bg.png")
+        love.graphics.draw(spin_img, 221, 144)
+      end
+      love.graphics.setColor(255,255,255,alpha)
+      love.graphics.draw(coin_img, 221, 144)
+      love.graphics.setColor(255,255,255,255)
+    end
+  end
+  layer.Update = function(self)
+    for i=0,5 do
+      local player = game.P1
+      if player.side == "right" then player = player.opponent end
+      if side == "right" then player = player.opponent end
+      local animation = player.animation[i]
+      if animation then
+        local frame = math.floor(animation.frame)..""
+        while frame:len() < 3 do frame = "0"..frame end
+        self.anims[i] = {
+            filename = "animations/"..animation.kind.."/"..frame..".png",
+            dx = animation.dx,
+            dy = animation.dy,
+          }
+        animation.frame = animation.frame + .45
+        if animation.frame >= animation.framecount then
+          player.animation[i] = nil
+          self.anims[i] = nil
+        end
+      end
+      local opponent = player.opponent
+      animation = opponent.animation[i]
+      if animation then
+        local frame = math.floor(animation.frame)..""
+        while frame:len() < 3 do frame = "0"..frame end
+        self.anims[i+6] = {
+            filename = "animations/"..animation.kind.."/"..frame..".png",
+            dx = animation.dx,
+            dy = animation.dy,
+          }
+        animation.frame = animation.frame + .45
+        if animation.frame >= animation.framecount then
+          opponent.animation[i] = nil
+          self.anims[i+6] = nil
+        end
+      end
+    end
+
+    if game.coin_flip then
+      self.coin_flip = true
+      local frame = math.floor(self.coin_frame)
+      if frame == 5 and self.coin_lf < 5 then
+        play_sound("coin_start")
+      elseif frame == 36 and self.coin_lf < 36 then
+        play_sound("coin_end")
+      end
+      self.coin_lf = frame
+      self.coin_frameset = game.coin_anim[frame]
+      self.coin_frame = self.coin_frame + .5
+      if self.coin_frame >= 54 then
+        game.coin_flip = false
+        self.coin_flip = false
+        self.coin_frame = 1
+      end
+    end
+  end
+  layer.anims = {}
+  layer.slotpos = {}
+  layer.coin_frame = 1
+  layer.coin_flip = false
+  for _,side in ipairs({"left", "right"}) do
+    for i=0,5 do
+      local origx = slot_to_dxdy[side][i][1] + field_x
+      local origy = slot_to_dxdy[side][i][2] + field_y
+      local offset = side == "left" and 0 or 6
+      layer.slotpos[i+offset] = {x = origx, y = origy}
+    end
+  end
+  return anim_layer
+end
+
 function card_button(side,idx,x,y)
   local button = loveframes.Create("imagebutton")
   button:SetSize(80, 120)
@@ -423,13 +669,6 @@ function card_button(side,idx,x,y)
       draw_card(self.card, x, y, hover_frame, text)
     end
 
-    if self.animation then
-      local img = load_asset(self.animation.filename)
-      local dx = self.animation.dx - math.floor((img:getWidth() - 80)/2)
-      local dy = self.animation.dy - math.floor((img:getHeight() - 120)/2)
-      love.graphics.draw(img, x+dx, y+dy)
-    end
-
     if self.buff_animation then
       local frame = self.buff_animation.frame
       local stat_to_dxdy = {size = {card_width*2/3 + 3, 2},
@@ -456,28 +695,11 @@ function card_button(side,idx,x,y)
     if hand then
       member = "hand"
     else
-      local animation = player.animation[idx]
-      if animation then
-        local frame = math.floor(animation.frame)..""
-        while frame:len() < 3 do frame = "0"..frame end
-        self.animation = {
-            filename = "animations/"..animation.kind.."/"..frame..".png",
-            dx = animation.dx,
-            dy = animation.dy,
-          }
-        animation.frame = animation.frame + .5
-        if animation.frame == animation.framecount then
-          player.animation[idx] = nil
-        end
-      else
-        self.animation = nil
-      end
-
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
         self.buff_animation = buff_animation
         buff_animation.frame = buff_animation.frame + .5
-        if buff_animation.frame == 20 then
+        if buff_animation.frame >= 20 then
           player.buff_animation[idx] = nil
         end
       else
@@ -531,6 +753,7 @@ function faction_button(faction, x, y)
     end
   end
   button.OnClick = function(self)
+    play_button_sound()
     net_send({type="select_faction",faction=faction})
   end
   return button
@@ -630,30 +853,29 @@ end
 function make_player_info(frame)
 	--tried4's TODO: don't hardcode frame position and size
 	local player_panel = loveframes.Create("frame",frame)
-    local x,y,w,h = left_hover_frame_pos()
-    player_panel:SetPos(764-w,-10)
-    player_panel:SetSize(w,h)
-    player_panel:ShowCloseButton(false)
-    player_panel:SetDraggable(false)
-    player_panel.Draw = function(self)
-      draw_hover_frame(self.x, self.y, self.width, self.height)
-	  love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
-	  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
-	  local id = get_active_char() or 100089
-	  if not IMG_card[id] then
-		IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
-	  end
-	  love.graphics.draw(IMG_card[id], 800-w-4, 80, 0, .5, .5)
-	  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 80)
-	  love.graphics.draw(load_asset("nick_name.png"),788-w-4, 330)
-	  love.graphics.setColor(144, 103, 55, 255)
-	  love.graphics.printf(user_data.username, 800-w*2/3-4, 340, 38, "center")
-	  love.graphics.setFont(load_font("sg_assets/fonts/lifewan.png"))
-	  love.graphics.setColor(255, 255, 255, 255)
-	  local card = Card(id)
-      love.graphics.printf(math.max(card.life, 0), 800-w/2+16, h/2, 50, "center")
-	  draw_faction(card.faction, 800-w-4, 80, 0, 1, 1)  
-    end
+  local x,y,w,h = left_hover_frame_pos()
+  player_panel:SetPos(764-w,-10)
+  player_panel:SetSize(w,h)
+  player_panel:ShowCloseButton(false)
+  player_panel:SetDraggable(false)
+  player_panel.Draw = function(self)
+  draw_hover_frame(self.x, self.y, self.width, self.height)
+  love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
+  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
+  local id = get_active_char() or 100089
+  acquire_img(id)
+  love.graphics.draw(load_asset("cardframe.png"), 800-w-11, 80)
+  love.graphics.draw(IMG_card[id], 800-w-4, 87, 0, .5, .5)
+  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 87)
+  love.graphics.draw(load_asset("nick_name.png"),788-w-4, 337)
+  love.graphics.setColor(144, 103, 55, 255)
+  love.graphics.printf(user_data.username, 800-w*2/3-4, 347, 38, "center")
+  love.graphics.setFont(load_font("sg_assets/fonts/lifewan.png"))
+  love.graphics.setColor(255, 255, 255, 255)
+  local card = Card(id)
+  love.graphics.printf(math.max(card.life, 0), 800-w/2+17, h/2+4, 50, "center")
+  draw_faction(card.faction, 800-w-1, 90, 0, 1, 1)  
+  end
 end
  
 
@@ -673,6 +895,7 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   frame:SetState(loveframes.GetState())
   
   local ptext = loveframes.Create("text", frame)
+  ptext:SetDefaultColor(generic_text_color)
   ptext:SetText(prompt)
   ptext:Center()
   ptext:SetY(35)
@@ -681,13 +904,21 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   lb:SetPos(5, 60)
   lb:SetWidth(143)
   lb:SetText(lt)
-  lb.OnClick = function() lcb() frame:Remove() end
+  lb.OnClick = function()
+    play_button_sound()
+    lcb()
+    frame:Remove()
+  end
 
   local rb = loveframes.Create("button", frame)
   rb:SetPos(152, 60)
   rb:SetWidth(143)
   rb:SetText(rt)
-  rb.OnClick = function() rcb() frame:Remove() end
+  rb.OnClick = function()
+    play_cancel_sound()
+    rcb()
+    frame:Remove()
+  end
   
   frame:SetModal(true)
 end
@@ -697,16 +928,49 @@ function get_hover_list_text(state)
 
   local list = loveframes.Create("list")
   list:SetState(state)
-  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+5)
+  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+18)
   list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
   list:SetPadding(5)
   list:SetSpacing(5)
+
+  local name = loveframes.Create("text")
+  name:SetDefaultColor(cardinfo_text_color)
+  name:SetText("Sword Girl")
+  name:SetFont(load_vera(11))
+  list:AddItem(name)
+
+  local stats = loveframes.Create("text")
+  stats:SetDefaultColor(cardinfo_text_color)
+  stats:SetText("Limit: over 9000")
+  stats:SetFont(load_vera(10))
+  list:AddItem(stats)
   
-  local text = loveframes.Create("text")
-  text:SetText("assy cron")
-  text:SetFont(load_vera(10))
-  list:AddItem(text)
-  return list, text
+  local eff1 = loveframes.Create("text")
+  eff1:SetDefaultColor(cardinfo_text_color)
+  eff1:SetText("TURN START:")
+  eff1:SetFont(load_vera(10))
+  list:AddItem(eff1)
+
+  local eff2 = loveframes.Create("text")
+  eff2:SetDefaultColor(cardinfo_text_color)
+  eff2:SetText("ATTACK:")
+  eff2:SetFont(load_vera(10))
+  list:AddItem(eff2)
+
+  local eff3 = loveframes.Create("text")
+  eff3:SetDefaultColor(cardinfo_text_color)
+  eff3:SetText("DEFEND:")
+  eff3:SetFont(load_vera(10))
+  list:AddItem(eff3)
+
+  local text = {eff1, eff2, eff3}
+
+  local quote = loveframes.Create("text")
+  quote:SetDefaultColor(cardinfo_text_color)
+  quote:SetText("[The moe is strong with this one]")
+  quote:SetFont(load_vera(10))
+  list:AddItem(quote)
+  return list, name, stats, text, quote
 end
 
 function Game:draw()
@@ -738,6 +1002,10 @@ function Game:draw()
       end
     end
 
+    if not self.anim_layer then
+      self.anim_layer = anim_layer()
+    end
+
     local ready = loveframes.Create("button")
     local ready_sz = 78
     local shuffle_sz = 122 - ready_sz - 2
@@ -746,6 +1014,7 @@ function Game:draw()
     ready:SetSize(50, ready_sz)
     ready:SetState("playing")
     ready.OnClick = function()
+        play_button_sound()
         if game.client then
           net_send({type="ready"})
           game.act_buttons = false
@@ -763,6 +1032,7 @@ function Game:draw()
     shuffle:SetSize(50, shuffle_sz)
     shuffle:SetState("playing")
     shuffle.OnClick = function()
+        play_button_sound()
         if self.client then
           net_send({type="shuffle"})
           self.act_buttons = false
@@ -777,7 +1047,7 @@ function Game:draw()
     self.loveframes_buttons.ready = ready
     self.loveframes_buttons.shuffle = shuffle
 
-    local list, text = get_hover_list_text("playing")
+    local list, name, stats, text, quote = get_hover_list_text("playing")
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("playing")
@@ -787,6 +1057,7 @@ function Game:draw()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       modal_choice("Really forfeit?", "Yes", "No", function()
           net_send({type="forfeit"})
         end)
@@ -797,7 +1068,7 @@ function Game:draw()
     
 
     self.loveframes_buttons.card_text_list = list
-    self.loveframes_buttons.card_text = text
+    self.loveframes_buttons.card_text = {name, stats, text, quote}
   end
 
   local ldeck, rdeck, lgrave, rgrave = left.deck, right.deck, left.grave, right.grave
@@ -811,18 +1082,18 @@ function Game:draw()
     --self.loveframes_buttons.shuffle:SetY(457+ready_sz+2)
   draw_hand_frame()
 
-  love.graphics.setColor(28, 28, 28)
-  love.graphics.setFont(load_vera(12))
+  love.graphics.setColor(99, 71, 19)
+  love.graphics.setFont(load_vera(11))
   --love.graphics.print("deck "..ldeck.."    grave "..lgrave, 45, 425)
   --love.graphics.print("turn "..self.turn, 260, 425)
   --love.graphics.print("deck "..rdeck.."    grave "..rgrave, 405, 425)
-  local field_hud_left_start_x, field_hud_y = 135 + field_x, 400 + field_y
-  local field_hud_right_start_x = 372 + field_x
+  local field_hud_left_start_x, field_hud_y = 135 + field_x, 401 + field_y
+  local field_hud_right_start_x = 371 + field_x
   love.graphics.print(ldeck, field_hud_left_start_x, field_hud_y)
-  love.graphics.print(lgrave, field_hud_left_start_x + 38, field_hud_y)
+  love.graphics.print(lgrave, field_hud_left_start_x + 36, field_hud_y)
   love.graphics.print(left.shuffles, field_hud_left_start_x + 70, field_hud_y)
   love.graphics.print(rdeck, field_hud_right_start_x, field_hud_y)
-  love.graphics.print(rgrave, field_hud_right_start_x + 38, field_hud_y)
+  love.graphics.print(rgrave, field_hud_right_start_x + 36, field_hud_y)
   love.graphics.print(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(load_font("sg_assets/fonts/turnwan.png"))
@@ -832,15 +1103,32 @@ function Game:draw()
   love.graphics.printf(draw_turn[2], field_x+282, 358+field_y, 999)
   --love.graphics.setColor(28, 28, 28)
   --love.graphics.setFont(load_vera(12))
-  love.graphics.setFont(load_font("sg_assets/fonts/equalwan.png"))
   local time_remaining = self.time_remaining
   if time_remaining < 0.1 then time_remaining = 0 end
-  if self.game_type == "pve" then time_remaining = 99 end
-  love.graphics.printf(time_remaining, 447+50, 532, field_x+fw-447-50, "center")
-  love.graphics.printf("size "..left:field_size(), 447+50, 457 + 3, field_x+fw-447-50, "center")
+  if self.game_type == "pve" then time_remaining = "∞" end
+  love.graphics.setFont(load_vera(32))
+  draw_outlined_text(left:field_size(), "right", 497+48, 457+20, 100)
+  love.graphics.setFont(load_vera(16))
+  draw_outlined_text("/", "right", 497+48+6, 457+20+18, 100)
+  love.graphics.setFont(load_vera(12))
+  draw_outlined_text("10", "right", 497+48+24, 457+20+26, 100)
+  love.graphics.setFont(load_vera(32))
+  draw_outlined_text(time_remaining, "center", 497+42, 538, 100)
   if self.hover_card then
     G_hover_card = self.hover_card
   end
+end
+
+function draw_outlined_text(text, align, x, y, limit)
+  love.graphics.setColor(174, 120, 21)
+  local base_x = align == "center" and x-limit/2 or align == "right" and x-limit or x
+  love.graphics.printf(text, base_x-1, y-1, limit, align)
+  love.graphics.printf(text, base_x+1, y-1, limit, align)
+  love.graphics.printf(text, base_x-1, y+1, limit, align)
+  love.graphics.printf(text, base_x+1, y+1, limit, align)
+
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.printf(text, base_x, y, limit, align)
 end
 
 function deck_card_list_button(id, upgrade, count, cb)
@@ -861,9 +1149,11 @@ function deck_card_list_button(id, upgrade, count, cb)
       love.graphics.setColor(220, 220, 255, 220)
       love.graphics.rectangle("fill", x,y,w,h)
     end
-    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.setColor(generic_text_color)
     love.graphics.setFont(load_vera(10))
-    love.graphics.print(id_to_canonical_card[id].name, x, y)
+    local name = id_to_canonical_card[id].name
+    name = limit_string(name, 28)
+    love.graphics.print(name, x, y)
     if type(count) == "number" then
       love.graphics.printf(count, x, y, w, "right")
     end
@@ -878,19 +1168,30 @@ function deck_card_list_button(id, upgrade, count, cb)
   return button
 end
 
-function card_count_thing(cards, cp, buffer_spaces)
-  local button = loveframes.Create("button")
-  button:SetHeight(13 * (1+buffer_spaces))
+function card_count_thing(count, points, parent)
+  local button = loveframes.Create("button", parent)
+  --button:SetHeight(13 * (1+buffer_spaces))
   button.Draw = function(self)
     local x = self:GetX()
-    local y = self:GetY()+13*buffer_spaces
+    local y = self:GetY()
     local w, h = self:GetWidth(), self:GetHeight()
-    love.graphics.setColor(0, 0, 0, 255)
-    love.graphics.setFont(load_vera(10))
-    love.graphics.print(cards .. " Cards", x, y)
-    love.graphics.printf(cp.." CP", x, y, w, "right")
+    local cards_img = load_asset("deck_ct.png")
+    local points_img = load_asset("deck_pt.png")
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.draw(cards_img, x, y, 0, 1, 1)
+    love.graphics.draw(points_img, x+w-30-25, y, 0, 1, 1)
+    love.graphics.setColor(generic_text_color)
+    love.graphics.setFont(load_vera(11))
+    love.graphics.print(count, x+22, y+1)
+    love.graphics.print(points, x+w-30, y+1)
   end
   button.Update = function(self)
+  end
+  function button:set_count(n)
+    count = n
+  end
+  function button:set_points(n)
+    points = n
   end
   return button
 end
@@ -921,7 +1222,7 @@ function card_list_button(id, gray, count, cb)
       if type(count) ~= "nil" and type(count) ~= "table" then
         love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
         love.graphics.setFont(load_vera(10))
-        love.graphics.setColor(0, 0, 0, 255)
+        love.graphics.setColor(generic_text_color)
         love.graphics.printf(tostring(count), x, y+83, 66, "right")
       end
     end

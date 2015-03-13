@@ -2,6 +2,7 @@ require "cards"
 local recipes = recipes
 local ceil = math.ceil
 local xmutable = require "xmutable"
+local generic_text_color = {155, 94, 33, 255}
 
 function wait(n)
   n = n or 1
@@ -116,6 +117,7 @@ function main_login(email, password)
     
     local text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
+    text1:SetDefaultColor(generic_text_color)
     text1:SetText("E-mail")
     
     local textinput1 = loveframes.Create("textinput", frame)
@@ -125,6 +127,7 @@ function main_login(email, password)
     
     local text2 = loveframes.Create("text", frame)
     text2:SetPos(5, 65)
+    text2:SetDefaultColor(generic_text_color)
     text2:SetText("Password")
     
     local textinput2 = loveframes.Create("textinput", frame)
@@ -139,6 +142,7 @@ function main_login(email, password)
     loginbutton:SetWidth(290)
     loginbutton:SetText("Login to the SG~")
     loginbutton.OnClick = function()
+      play_button_sound()
       email = textinput1:GetText()
       password = textinput2:GetText()
       net_send({type="login",
@@ -157,6 +161,7 @@ function main_login(email, password)
     donebutton:SetWidth(143)
     donebutton:SetText("Register")
     donebutton.OnClick = function()
+      play_button_sound()
       from_login = {main_register, {textinput1:GetText(),
         textinput2:GetText()}}
     end
@@ -167,6 +172,7 @@ function main_login(email, password)
     clearbutton:SetWidth(143)
     clearbutton:SetText("Forgot Password")
     clearbutton.OnClick = function()
+      play_button_sound()
       from_login = {main_forgot_password, {textinput1:GetText(),
         textinput2:GetText()}}
     end
@@ -251,6 +257,7 @@ function main_register(email, password)
     
     text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
+    text1:SetDefaultColor(generic_text_color)
     text1:SetText("Username")
     
     textinput1 = loveframes.Create("textinput", frame)
@@ -259,6 +266,7 @@ function main_register(email, password)
     
     text2 = loveframes.Create("text", frame)
     text2:SetPos(5, 65)
+    text2:SetDefaultColor(generic_text_color)
     text2:SetText("E-mail")
     
     textinput2 = loveframes.Create("textinput", frame)
@@ -268,6 +276,7 @@ function main_register(email, password)
 
     text3 = loveframes.Create("text", frame)
     text3:SetPos(5, 95)
+    text3:SetDefaultColor(generic_text_color)
     text3:SetText("Password")
     
     textinput3 = loveframes.Create("textinput", frame)
@@ -282,6 +291,7 @@ function main_register(email, password)
     backbutton:SetWidth(143)
     backbutton:SetText("Back")
     backbutton.OnClick = function()
+      play_cancel_sound()
       from_register = {main_login, {textinput2:GetText(), textinput3:GetText()}}
     end
     frames.register.back_button = backbutton
@@ -291,6 +301,7 @@ function main_register(email, password)
     registerbutton:SetWidth(143)
     registerbutton:SetText("Register forrealz")
     registerbutton.OnClick = function(self)
+      play_button_sound()
       net_send({type="register",
         username=textinput1:GetText(),
         email=textinput2:GetText(),
@@ -353,6 +364,7 @@ function main_forgot_password(email, password)
     
     local text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
+    text1:SetDefaultColor(generic_text_color)
     text1:SetText("E-mail")
     
     local textinput1 = loveframes.Create("textinput", frame)
@@ -365,6 +377,7 @@ function main_forgot_password(email, password)
     donebutton:SetWidth(143)
     donebutton:SetText("Back")
     donebutton.OnClick = function()
+      play_cancel_sound()
       from_forgot_password = {main_login, {textinput1:GetText(),
         frames.forgot_password.password}}
     end
@@ -374,6 +387,7 @@ function main_forgot_password(email, password)
     clearbutton:SetWidth(143)
     clearbutton:SetText("Request New Password")
     clearbutton.OnClick = function()
+      play_button_sound()
       local modal = loveframes.Create("frame")
       modal:SetName("sorry-m9")
       modal:SetSize(300, 120)
@@ -384,11 +398,13 @@ function main_forgot_password(email, password)
       modal:SetModal(true)
       
       local modaltext = loveframes.Create("text", modal)
+      modaltext:SetDefaultColor(generic_text_color)
       modaltext:SetText("Password reset is not implemented :(")
       modaltext:Center()
       modaltext:SetY(35)
 
       local modaltext2 = loveframes.Create("text", modal)
+      modaltext2:SetDefaultColor(generic_text_color)
       modaltext2:SetText("Email sharpobject@swordgirls.net for help")
       modaltext2:Center()
       modaltext2:SetY(65)
@@ -398,6 +414,7 @@ function main_forgot_password(email, password)
       loginbutton:SetWidth(290)
       loginbutton:SetText("Back")
       loginbutton.OnClick = function()
+        play_cancel_sound()
         modal:Remove()
         from_forgot_password = {main_login, {textinput1:GetText(),
           frames.forgot_password.password}}
@@ -433,6 +450,7 @@ function main_modal_notice(text, to_ret)
     frame:SetState("modal_notice")
     
     local text1 = loveframes.Create("text", frame)
+    text1:SetDefaultColor(generic_text_color)
     frames.modal_notice.text = text1
     
     local okbutton = loveframes.Create("button", frame)
@@ -446,6 +464,7 @@ function main_modal_notice(text, to_ret)
   frames.modal_notice.text:SetY(35)
   frames.modal_notice.ok_button:SetText("OK")
   frames.modal_notice.ok_button.OnClick = function()
+    play_button_sound()
     from_modal_notice = to_ret
   end
   loveframes.SetState("modal_notice")
@@ -476,6 +495,7 @@ function rewards(data)
   
   -- make text in frame
   local text1 = loveframes.Create("text", frame)
+  text1:SetDefaultColor(generic_text_color)
   text1:SetText("Rewards:")
   text1:Center()
   text1:SetY(35)
@@ -487,11 +507,13 @@ function rewards(data)
   okbutton:SetY(250)
   okbutton:SetText("OK!")
   okbutton.OnClick = function()
+    play_button_sound()
     close = true
   end
 
   -- spit out rewards received from msg.  if there are too many rewards, let it scroll
   local rewards_list = loveframes.Create("list", frame)
+  function rewards_list:Draw() end
   local test_button = card_list_button(300001, false, 1, function() end)
   local card_width = test_button:GetWidth()
   local spacing = 5
@@ -593,7 +615,7 @@ function main_lobby()
 	
     frames.lobby.game_buttons = {}
 	--tried4's TODO: don't hardcode frame position and size
-	local menuX = 497
+	local menuX = 495
 	local menuY = 0
 	local offsetX = 13
 	local offsetY = 105
@@ -604,12 +626,14 @@ function main_lobby()
 	
 	local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)	
 	button.OnClick = function()
+    play_button_sound()
 		from_lobby = {main_dungeon}
     end
     table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_fight_button(menuX+offsetX,menuY+offsetY+spacing)	
 	button.OnClick = function()
+    play_button_sound()
 		net_send({type="join_fight"})
 		net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
     end
@@ -682,6 +706,7 @@ function main_lobby()
     button:SetText("OPTIONS")
     button:SetState("lobby")
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_options}
     end
 --    table.insert(frames.lobby.game_buttons, button)
@@ -689,6 +714,7 @@ function main_lobby()
 	-- == Lobby Buttons, continued == --
 	local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)	
     button.OnClick = function()
+      play_button_sound()
       if frames.cafe then
         frames.cafe.populate_cafe_card_list()
         frames.cafe.update_feeding_list()
@@ -700,18 +726,21 @@ function main_lobby()
 	
 	local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)	
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_decks}
     end
 --	table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)	
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_craft}
     end
 --    table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)	
     button.OnClick = function()
+      play_button_sound()
       if frames.xmute then
         frames.xmute.xmute_type = nil
         frames.xmute.populate_xmutable_card_list()
@@ -800,9 +829,9 @@ function main_craft()
     frames.craft.page_num = 1
     frames.craft.stack = {}
 
-    local list, text = get_hover_list_text("craft")
+    local list, name, stats, text, quote = get_hover_list_text("craft")
     frames.craft.card_text_list = list
-    frames.craft.card_text = text
+    frames.craft.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("craft")
@@ -812,6 +841,7 @@ function main_craft()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_craft = {main_lobby}
     end
 
@@ -823,16 +853,16 @@ function main_craft()
     craft_pane:ShowCloseButton(false)
     craft_pane:SetDraggable(false)
     craft_pane.Draw = function(self)
-      draw_hover_frame(self.x, self.y, self.width, self.height)
+      draw_hover_frame(self.x, self.y, self.width, self.height, "Lab")
     end
   
 
     local text_card_list = loveframes.Create("list", craft_pane)
     text_card_list:SetWidth(w-12)
     text_card_list:Center()
-    text_card_list:SetY(60)
-    text_card_list:SetHeight(480)
-    text_card_list:SetPadding(0)
+    text_card_list:SetY(64)
+    text_card_list:SetHeight(508)
+    text_card_list:SetPadding(2)
     text_card_list:SetSpacing(0)
     function text_card_list:Draw() end
 
@@ -849,12 +879,16 @@ function main_craft()
     end
 
     function frames.craft.spawn_craft_frame(id)
+      local str_len_limit = 32
       if frames.craft.craft_frame then
         return
       end
+      local name = id_to_canonical_card[id].name
+      name = string.len(name) < str_len_limit and name
+        or string.sub(name, 1, str_len_limit).."…"
       local frame = loveframes.Create("frame")
       frames.craft.craft_frame = frame
-      frame:SetName("Let's craft the "..id_to_canonical_card[id].name)
+      frame:SetName("Let's craft the "..name)
       frame:SetSize(400, 400)
       frame:ShowCloseButton(false)
       frame:SetDraggable(false)
@@ -911,6 +945,7 @@ function main_craft()
       craft_button:SetX(out_card:GetStaticX()+spacing+card_width)
       craft_button:SetY(out_card:GetStaticY()+card_height/4)
       craft_button.OnClick = function()
+        play_button_sound()
         net_send({type="craft", id=id})
         function frames.craft.enable_buttons()
           craft_button:SetEnabled(true)
@@ -953,6 +988,7 @@ function main_craft()
       back_button:SetX(out_card:GetStaticX()+2*spacing+2*card_width)
       back_button:SetY(out_card:GetStaticY()+card_height/4)
       back_button.OnClick = function()
+        play_cancel_sound()
         frame:SetModal(false)
         frame:Remove()
         frames.craft.craft_frame = nil
@@ -1025,6 +1061,7 @@ function main_craft()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.craft.page_num = frames.craft.page_num - 1
       frames.craft.update_list()
     end
@@ -1036,6 +1073,7 @@ function main_craft()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.craft.page_num = frames.craft.page_num + 1
       frames.craft.update_list()
     end
@@ -1143,9 +1181,9 @@ function main_decks()
     frames.decks = {}
     frames.decks.page_num = 1
 
-    local list, text = get_hover_list_text("decks")
+    local list, name, stats, text, quote = get_hover_list_text("decks")
     frames.decks.card_text_list = list
-    frames.decks.card_text = text
+    frames.decks.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("decks")
@@ -1155,6 +1193,7 @@ function main_decks()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_decks = {main_lobby}
     end
 
@@ -1166,15 +1205,15 @@ function main_decks()
     deck_pane:ShowCloseButton(false)
     deck_pane:SetDraggable(false)
     deck_pane.Draw = function(self)
-      draw_hover_frame(self.x, self.y, self.width, self.height)
+      draw_hover_frame(self.x, self.y, self.width, self.height, "Deck")
     end
 
     local deck_card_list = loveframes.Create("list", deck_pane)
     deck_card_list:SetWidth(w-12)
     deck_card_list:Center()
-    deck_card_list:SetY(60)
+    deck_card_list:SetY(82)
     deck_card_list:SetHeight(480)
-    deck_card_list:SetPadding(0)
+    deck_card_list:SetPadding(2)
     deck_card_list:SetSpacing(0)
     function deck_card_list:Draw() end
 
@@ -1184,6 +1223,14 @@ function main_decks()
       frames.decks.populate_card_list(collection_ex_deck(
           user_data.collection, frames.decks.deck))
     end
+
+    local deck_stats = card_count_thing(0, 0, deck_pane)
+    deck_stats:SetState("decks")
+    deck_stats:SetWidth(100)
+    deck_stats:SetHeight(20)
+    deck_stats:SetX(6)
+    deck_stats:SetY(62)
+    frames.decks.deck_stats = deck_stats
 
     function frames.decks.populate_deck_card_list(deck)
       frames.decks.deck = deck
@@ -1201,7 +1248,9 @@ function main_decks()
           frames.decks.update_list()
         end))
       end
-      deck_card_list:AddItem(card_count_thing(count, cp, 32-nbuttons))
+      local deck_stats = frames.decks.deck_stats
+      deck_stats:set_count(count)
+      deck_stats:set_points(cp)
     end
 
     local card_list = loveframes.Create("list")
@@ -1222,6 +1271,7 @@ function main_decks()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.decks.page_num = frames.decks.page_num - 1
       frames.decks.update_list()
     end
@@ -1233,6 +1283,7 @@ function main_decks()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.decks.page_num = frames.decks.page_num + 1
       frames.decks.update_list()
     end
@@ -1301,7 +1352,7 @@ function main_decks()
 
     local multichoice = loveframes.Create("multichoice", deck_pane)
     multichoice:SetWidth(w - 12)
-    multichoice:SetPos(6, 6)
+    multichoice:SetPos(6, 33)
     local nums = arr_to_set(procat("0123456789"))
     function multichoice:OnChoiceSelected(choice)
       if choice[1] ~= "D" then
@@ -1356,9 +1407,9 @@ function main_cafe()
     frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
 
     -- list of cafe cards on the left
-    local list, text = get_hover_list_text("cafe")
+    local list, name, stats, text, quote = get_hover_list_text("cafe")
     frames.cafe.card_text_list = list
-    frames.cafe.card_text = text
+    frames.cafe.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("cafe")
@@ -1368,6 +1419,7 @@ function main_cafe()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_cafe = {main_lobby}
     end
 
@@ -1379,16 +1431,17 @@ function main_cafe()
     cafe_pane:ShowCloseButton(false)
     cafe_pane:SetDraggable(false)
     cafe_pane.Draw = function(self)
-      draw_hover_frame(self.x, self.y, self.width, self.height)
+      draw_hover_frame(self.x, self.y, self.width, self.height, "Cafe")
     end
 
     local cafe_card_list = loveframes.Create("list", cafe_pane)
     cafe_card_list:SetWidth(w-12)
     cafe_card_list:Center()
-    cafe_card_list:SetY(60)
+    cafe_card_list:SetY(33)
     cafe_card_list:SetHeight(480)
-    cafe_card_list:SetPadding(0)
+    cafe_card_list:SetPadding(2)
     cafe_card_list:SetSpacing(0)
+    function cafe_card_list:Draw() end
 
     function frames.cafe.populate_cafe_card_list()
       cafe_card_list:Clear()
@@ -1402,7 +1455,8 @@ function main_cafe()
         end
       end
       local separator = loveframes.Create("text")
-      separator:SetText("--------------------------------------------")
+      separator:SetDefaultColor(generic_text_color)
+      separator:SetText("------------------------------------------")
       cafe_card_list:AddItem(separator)
       for card_id, number in spairs(user_data.collection) do
         if giftable[card_id] then
@@ -1436,14 +1490,15 @@ function main_cafe()
       local maximums = {500, 500, 500, 500, 100}
       for i=1,5 do
         local text = loveframes.Create("text", stats_pane)
+        text:SetDefaultColor(generic_text_color)
         text:SetText(texts[i])
         text:SetX(stats_pane:GetWidth()/2)
-        text:SetY(30*i)
+        text:SetY(32*i)
         local progressbar = loveframes.Create("progressbar", stats_pane)
         progressbar:SetX(stats_pane:GetWidth()/2)
-        progressbar:SetY(15+30*i)
+        progressbar:SetY(15+32*i)
         progressbar:SetWidth(stats_pane:GetWidth()/2-10)
-        progressbar:SetHeight(10)
+        progressbar:SetHeight(12)
         progressbar:SetMax(maximums[i])
         progressbar:SetValue(stats[i])
       end
@@ -1458,8 +1513,8 @@ function main_cafe()
           love.graphics.setColor(255, 255, 255, 255)
           draw_card(self.card, x, y, function() end)
         end
-        image:SetX(40)
-        image:CenterY()
+        image:SetX(56)
+        image:SetY(52)
       end
     end
 
@@ -1498,6 +1553,7 @@ function main_cafe()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.cafe.page_num = frames.cafe.page_num - 1
       frames.cafe.update_feeding_list()
     end
@@ -1509,6 +1565,7 @@ function main_cafe()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.cafe.page_num = frames.cafe.page_num + 1
       frames.cafe.update_feeding_list()
     end
@@ -1563,14 +1620,18 @@ function main_cafe()
             no_button:CenterY()
             no_button:SetX(confirm_box:GetWidth()-65)
             no_button:SetText("No")
-            no_button.OnClick = function() confirm_box:Remove() end
+            no_button.OnClick = function()
+              play_cancel_sound()
+              confirm_box:Remove()
+            end
             local yes_button = loveframes.Create("button", confirm_box)
             yes_button:SetWidth(40)
             yes_button:SetHeight(20)
             yes_button:CenterY()
             yes_button:SetX(25)
             yes_button:SetText("Yes")
-            yes_button.OnClick = function()  
+            yes_button.OnClick = function() 
+              play_button_sound() 
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
               confirm_box:Remove()
@@ -1594,6 +1655,7 @@ function main_cafe()
       notification:ShowCloseButton(false)
 
       local text = loveframes.Create("text", notification)
+      text:SetDefaultColor(generic_text_color)
       text:SetText(message)
       text:Center()
 
@@ -1603,7 +1665,10 @@ function main_cafe()
       ok_button:SetY(120)
       ok_button:CenterX()
       ok_button:SetText("Okay")
-      ok_button.OnClick = function() notification:Remove() end
+      ok_button.OnClick = function()
+        play_button_sound()
+        notification:Remove()
+      end
     end
   end
 
@@ -1623,52 +1688,76 @@ local from_options = nil
 function main_options()
   if not frames.options then
     frames.options = {}
-
-    local lobby_button = loveframes.Create("button")
-    frames.options.lobby_button = lobby_button
-    lobby_button:SetState("options")
-    lobby_button:SetY(515)
-    lobby_button:SetX(605)
-    lobby_button:SetWidth(174)
-    lobby_button:SetText("Lobby")
-    lobby_button:SetHeight(70)
-    function lobby_button:OnClick()
-      from_options = {main_lobby}
-    end
-
-    local options_pane = loveframes.Create("frame")
-    frames.options.options_pane = options_pane
-    options_pane:SetName("Let's adjust the SG~~")
-    options_pane:SetState("options")
-    options_pane:SetPos(50, 50)
-    options_pane:SetSize(700, 460)
-    options_pane:ShowCloseButton(false)
-    options_pane:SetDraggable(false)
-
-    local music_volume_text = loveframes.Create("text", options_pane)
-    music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
-    music_volume_text:SetPos(10, 30)
-
-    local music_volume_slider = loveframes.Create("slider", options_pane)
-    music_volume_slider:SetPos(10, 50)
-    music_volume_slider:SetWidth(200)
-    music_volume_slider:SetMinMax(0.0, 1.0)
-    music_volume_slider:SetDecimals(2)
-    music_volume_slider:SetValue(options.music_volume)
-    music_volume_slider.OnValueChanged = function(object)
-      options.music_volume = object:GetValue()
-      music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
-      bgm:setVolume(options.music_volume)
-      set_file("options.json", json.encode(options))
-    end
-
   end
-  loveframes.SetState("options")
+
+  local options_pane = loveframes.Create("frame")
+  frames.options.options_pane = options_pane
+  options_pane:SetName("Let's adjust the SG~~")
+  options_pane:SetState("lobby")
+  options_pane:SetSize(300, 460)
+  options_pane:Center()
+  options_pane:SetModal(true)
+  options_pane:ShowCloseButton(false)
+  options_pane:SetDraggable(false)
+
+  local lobby_button = loveframes.Create("button", options_pane)
+  frames.options.lobby_button = lobby_button
+  lobby_button:SetY(420)
+  lobby_button:SetX(210)
+  lobby_button:SetWidth(80)
+  lobby_button:SetText("Close")
+  lobby_button:SetHeight(30)
+  function lobby_button:OnClick()
+	play_cancel_sound()
+    from_options = {main_lobby}
+  end
+
+  local music_volume_text = loveframes.Create("text", options_pane)
+  music_volume_text:SetDefaultColor(generic_text_color)
+  music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
+  music_volume_text:SetPos(10, 30)
+
+  local music_volume_slider = loveframes.Create("slider", options_pane)
+  music_volume_slider:SetPos(10, 50)
+  music_volume_slider:SetWidth(200)
+  music_volume_slider:SetMinMax(0.0, 1.0)
+  music_volume_slider:SetDecimals(2)
+  music_volume_slider:SetValue(options.music_volume)
+  music_volume_slider.OnValueChanged = function(object)
+    options.music_volume = object:GetValue()
+    music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
+    bgm:setVolume(options.music_volume)
+    set_file("options.json", json.encode(options))
+  end
+
+
+  local sfx_volume_text = loveframes.Create("text", options_pane)
+  sfx_volume_text:SetDefaultColor(generic_text_color)
+  sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+  sfx_volume_text:SetPos(10, 80)
+
+  local sfx_volume_slider = loveframes.Create("slider", options_pane)
+  sfx_volume_slider:SetPos(10, 100)
+  sfx_volume_slider:SetWidth(200)
+  sfx_volume_slider:SetMinMax(0.0, 1.0)
+  sfx_volume_slider:SetDecimals(2)
+  sfx_volume_slider:SetValue(options.sfx_volume)
+  sfx_volume_slider.OnValueChanged = function(object)
+    options.sfx_volume = object:GetValue()
+    sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+    set_file("options.json", json.encode(options))
+  end
+  sfx_volume_slider.OnRelease = function(object)
+    play_button_sound()
+  end
+
   while true do
     wait()
     if from_options then
       local ret = from_options
       from_options = nil
+      local options_pane = frames.options.options_pane
+      options_pane:Remove()
       return unpack(ret)
     end
   end
@@ -1682,9 +1771,9 @@ function main_xmute()
     frames.xmute.xmute_type = nil
 
     -- set up buttons and hover area
-    local list, text = get_hover_list_text("xmute")
+    local list, name, stats, text, quote = get_hover_list_text("xmute")
     frames.xmute.card_text_list = list
-    frames.xmute.card_text = text
+    frames.xmute.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     frames.xmute.lobby_button = lobby_button
@@ -1695,6 +1784,7 @@ function main_xmute()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_xmute = {main_lobby}
     end
 
@@ -1706,7 +1796,7 @@ function main_xmute()
     xmute_pane:ShowCloseButton(false)
     xmute_pane:SetDraggable(false)
     xmute_pane.Draw = function(self)
-      draw_hover_frame(self.x, self.y, self.width, self.height)
+      draw_hover_frame(self.x, self.y, self.width, self.height, "Transmute")
     end
 
     local dr_button = loveframes.Create("button", xmute_pane)
@@ -1717,6 +1807,7 @@ function main_xmute()
     dr_button:SetY(math.ceil(h*0.15))
     dr_button:SetText("Double Rares")
     function dr_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "DR"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1729,6 +1820,7 @@ function main_xmute()
     accessories_button:SetY(math.ceil(h*0.45))
     accessories_button:SetText("Accessories")
     function accessories_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "accessory"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1741,6 +1833,7 @@ function main_xmute()
     ore_button:SetY(math.ceil(h*0.75))
     ore_button:SetText("Ores")
     function ore_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "ore"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1837,11 +1930,12 @@ function main_xmute()
       preview_pane:SetDraggable(false)
 
       local arrow = loveframes.Create("text", preview_pane)
+      arrow:SetDefaultColor(generic_text_color)
       arrow:SetText("->")
-      arrow:SetPos(130, 80)
+      arrow:SetPos(130, 95)
 
       local xmute_numberbox = loveframes.Create("numberbox", preview_pane)
-      xmute_numberbox:SetPos(280, 50)
+      xmute_numberbox:SetPos(280, 60)
       xmute_numberbox:SetValue(1)
       xmute_numberbox:SetMin(0)
       xmute_numberbox:SetMax(100)
@@ -1853,10 +1947,11 @@ function main_xmute()
 
       local xmute_button = loveframes.Create("button", preview_pane)
       frames.xmute.xmute_button = xmute_button
-      xmute_button:SetPos(280, 90)
+      xmute_button:SetPos(280, 100)
       xmute_button:SetSize(80, 40)
       xmute_button:SetText("Transmute!")
       xmute_button.OnClick = function() 
+        play_button_sound()
         local value = xmute_numberbox:GetValue()
         if not (frames.xmute.collection and from_card_id and to_card_id) then
           return
@@ -1876,14 +1971,14 @@ function main_xmute()
       if from_card_id then
         local button = card_list_button(from_card_id, false, nil, function() end)
         button:SetParent(frames.xmute.preview_pane)
-        button:SetPos(30, 30)
+        button:SetPos(30, 42)
         if frames.xmute.from_card_button then frames.xmute.from_card_button:Remove() end
         frames.xmute.from_card_button = button
       end
       if to_card_id then
         local button = card_list_button(to_card_id, false, nil, function() end)
         button:SetParent(frames.xmute.preview_pane)
-        button:SetPos(160, 30)
+        button:SetPos(160, 42)
         if frames.xmute.to_card_id then frames.xmute.to_card_id:Remove() end
         frames.xmute.to_card_id = button
       end
@@ -1891,14 +1986,16 @@ function main_xmute()
       if from_card_id and to_card_id then
         if from_card_number then
           local number = loveframes.Create("text", frames.xmute.preview_pane)
-          number:SetPos(60, 155)
+          number:SetDefaultColor(generic_text_color)
+          number:SetPos(60, 170)
           number:SetText("x"..tostring(from_card_number))
           if frames.xmute.from_card_number then frames.xmute.from_card_number:Remove() end
           frames.xmute.from_card_number = number
         end
         if to_card_number then
           local number = loveframes.Create("text", frames.xmute.preview_pane)
-          number:SetPos(190, 155)
+          number:SetDefaultColor(generic_text_color)
+          number:SetPos(190, 170)
           number:SetText("x"..tostring(to_card_number))
           if frames.xmute.to_card_number then frames.xmute.to_card_number:Remove() end
           frames.xmute.to_card_number = number
@@ -2050,7 +2147,7 @@ function main_dungeon()
   local frame = loveframes.Create("frame")
   frame:SetName("Dungeons")
   frame:SetState("lobby")
-  frame:SetSize(600, 450)
+  frame:SetSize(600, 410)
   frame:ShowCloseButton(false)
   frame:SetDraggable(false)
   frame:Center()
@@ -2059,10 +2156,11 @@ function main_dungeon()
   play_bgm("dungeon")
 
   local prevbutton = loveframes.Create("button", frame)
-  prevbutton:SetPos(10, 400)
+  prevbutton:SetPos(20, 360)
   prevbutton:SetSize(30, 30)
   prevbutton:SetText("<")
   function prevbutton:OnClick()
+    play_button_sound()
     if frames.dungeon.page_num > 1 then
       frames.dungeon.page_num = frames.dungeon.page_num - 1
     end
@@ -2070,10 +2168,11 @@ function main_dungeon()
   end
     
   local nextbutton = loveframes.Create("button", frame)
-  nextbutton:SetPos(70, 400)
+  nextbutton:SetPos(80, 360)
   nextbutton:SetSize(30, 30)
   nextbutton:SetText(">")
   function nextbutton:OnClick()
+    play_button_sound()
     if frames.dungeon.page_num < ceil(#frames.dungeon.difficulty / 4) then
       frames.dungeon.page_num = frames.dungeon.page_num + 1
     end
@@ -2082,41 +2181,45 @@ function main_dungeon()
     
   local easybutton, normalbutton, hardbutton
   easybutton = loveframes.Create("button", frame)
-  easybutton:SetPos(135, 400)
+  easybutton:SetPos(150, 360)
   easybutton:SetSize(80, 30)
   easybutton:SetText("EASY")
   easybutton:SetEnabled(false)
   function easybutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = easy_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
     
   normalbutton = loveframes.Create("button", frame)
-  normalbutton:SetPos(245, 400)
+  normalbutton:SetPos(260, 360)
   normalbutton:SetSize(80, 30)
   normalbutton:SetText("NORMAL")
   function normalbutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = normal_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
     
   hardbutton = loveframes.Create("button", frame)
-  hardbutton:SetPos(355, 400)
+  hardbutton:SetPos(370, 360)
   hardbutton:SetSize(80, 30)
   hardbutton:SetText("HARD")
   function hardbutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = hard_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
     
   local closebutton = loveframes.Create("button", frame)
-  closebutton:SetPos(520, 400)
+  closebutton:SetPos(520, 360)
   closebutton:SetSize(60, 30)
   closebutton:SetText("CLOSE")
-  function closebutton:OnClick() 
+  function closebutton:OnClick()
+    play_cancel_sound() 
     from_dungeon = {main_lobby}
     close = true
   end 
@@ -2155,9 +2258,10 @@ function main_dungeon()
         img_filename = "en_dungeon_icon_"..img_filename..".png"
         local image = loveframes.Create("button", frame)
         image:SetSize(121, 255)
-        image:SetX(28 + 136 * (index - 1))
-        image:CenterY()
+        image:SetX(28 + 141 * (index - 1))
+        image:SetY(50)
         image.OnClick = function()
+          play_button_sound()
           from_dungeon = "start game"
           net_send({type="dungeon", idx=dungeon_id})
         end
@@ -2171,13 +2275,15 @@ function main_dungeon()
         local text = loveframes.Create("text", frame)
         local text2 = loveframes.Create("text", frame)
         
+        text:SetDefaultColor(generic_text_color)
         text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
-        text:SetX(63 + 136 * (index - 1))
-        text:SetY(355)
+        text:SetX(63 + 141 * (index - 1))
+        text:SetY(316)
       
+        text2:SetDefaultColor(generic_text_color)
         text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
-        text2:SetX(62 + 136 * (index - 1))
-        text2:SetY(370)
+        text2:SetX(62 + 141 * (index - 1))
+        text2:SetY(332)
         
         frames.dungeon.showing[#frames.dungeon.showing+1] = image
         frames.dungeon.showing[#frames.dungeon.showing+1] = text
@@ -2189,7 +2295,8 @@ function main_dungeon()
       end
     end
     local pagetext = loveframes.Create("text", frame)
-    pagetext:SetPos(45, 410)
+    pagetext:SetDefaultColor(generic_text_color)
+    pagetext:SetPos(55, 369)
     pagetext:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
     frames.dungeon.showing[#frames.dungeon.showing+1] = pagetext
   end 
