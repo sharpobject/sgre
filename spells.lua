@@ -7409,23 +7409,27 @@ Gossip
 ]]
 [200463] = function(player, opponent)
   local pl_idxs = player:field_idxs_with_preds(pred.follower)
-  table.remove(pl_idxs, 1)
-  local mag = 1 + #pl_idxs
-  local impact = Impact(player)
-  for _, idx in ipairs(pl_idxs) do
-    impact[player][idx] = true
-  end
-  local op_idxs = player:field_idxs_with_preds(pred.follower)
-  table.remove(op_idxs, 1)
-  for i = 1, math.min(mag, #op_idxs) do
-    impact[opponent][op_idxs[i]] = true
-  end
-  impact:apply()
-  for _, idx in ipairs(pl_idxs) do
-    player:field_to_top_deck(idx)
-  end
-  for i = 1, math.min(mag, #op_idxs) do
-    opponent:field_to_top_deck(op_idxs[i])
+  if #pl_idxs > 0 then
+    table.remove(pl_idxs, 1)
+    local mag = 1 + #pl_idxs
+    local impact = Impact(player)
+    for _, idx in ipairs(pl_idxs) do
+      impact[player][idx] = true
+    end
+    local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+    table.remove(op_idxs, 1)
+    for i = 1, math.min(mag, #op_idxs) do
+      if op_idxs[i] then
+        impact[opponent][op_idxs[i]] = true
+      end
+    end
+    impact:apply()
+    for _, idx in ipairs(pl_idxs) do
+      player:field_to_top_deck(idx)
+    end
+    for i = 1, math.min(mag, #op_idxs) do
+      opponent:field_to_top_deck(op_idxs[i])
+    end
   end
 end,
 
