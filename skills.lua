@@ -4592,7 +4592,7 @@ end,
   if other_card then
     local mag_atk = other_card.sta
     local mag_sta = other_card.atk
-    OneBuff(player.opponent, other_idx, {atk={"=", mag_atk}, sta={"=", mag_atk}}):apply()
+    OneBuff(player.opponent, other_idx, {atk={"=", mag_atk}, sta={"=", mag_sta}}):apply()
   end
   my_card:remove_skill_until_refresh(skill_idx)
 end,
