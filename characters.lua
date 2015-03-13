@@ -6595,6 +6595,73 @@ end,
       end
     end
   end
+end,
+
+-- Penguin Suit Rianna
+[120026] = function(player, opponent, my_card)
+  local idx1 = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local idx2 = uniformly(opponent:empty_field_slots())
+  if idx1 and idx2 then
+    OneImpact(opponent, idx1):apply()
+    opponent.field[idx1], opponent.field[idx2] = nil, opponent.field[idx1]
+    if idx2 == 1 then
+      OneImpact(opponent, 1):apply()
+      opponent:destroy(1)
+    elseif idx2 == 5 then
+      if #opponent.field[idx2]:squished_skills() > 0 then
+        local buff = GlobalBuff(player)
+        buff.field[player][0] = {life={"+", 3}}
+        buff.field[opponent][idx2] = {}
+        buff:apply()
+        opponent.field[idx2].skills = {}
+      end
+    else
+      local impact = OnePlayerImpact(opponent)
+      local idxs = player:field_idxs_with_preds()
+      for _, idx in ipairs(idxs) do
+        impact[idx] = true
+      end
+      impact:apply()
+      for _, idx in ipairs(idxs) do
+        player:field_to_bottom_deck(idx)
+      end
+    end
+  end
+end,
+
+-- The Black Lion
+[120026] = function(player, opponent, my_card)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {atk={"+", 3}, sta={"+", 3}}
+    end
+    buff:apply()
+  end
+  if player.game.turn % 2 == 1 then
+    local idx = 1
+    while idx <= 5 and opponent.hand[idx] do
+      if pred.spell(opponent.hand[idx]) then
+        opponent:hand_to_grave(idx)
+      else
+        idx = idx + 1
+      end
+    end
+  else
+    local impact = Impact(opponent)
+    local idxs = opponent:field_idxs_with_preds()
+    for _, idx in ipairs(idxs) do
+      impact[opponent][idx] = true
+    end
+    impact:apply()
+    for _, idx in ipairs(idxs) do
+      opponent:field_to_bottom_deck(idx)
+    end
+  end
+  if player.game.turn >= 10 then
+    OneBuff(opponent, 0, {life={"=", 0}}):apply()
+  end
 end
 
 -- Do not touch that curly brace!

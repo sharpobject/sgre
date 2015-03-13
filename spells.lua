@@ -7670,5 +7670,265 @@ end,
     player:field_to_top_deck(my_idx)
   end
 end,
+
+--[[
+  Library Club Member's Rest
+]]
+[200480] = function(player)
+  local idxs = player:field_idxs_with_preds(pred.follower)
+  local mag = 0
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
+  end
+  buff:apply()
+  idxs = reverse(player:deck_idxs_with_preds(pred.follower))
+  buff = GlobalBuff(player)
+  for i = 1, mag do
+    if idxs[i] then
+      buff.deck[player][idxs[i]] = {size={"+", 1}, atk={"-", 2}, sta={"-", 2}}
+    end
+  end
+  buff:apply()
+end,
+
+--[[
+  Student Council President and Morals Committee Leader
+]]
+[200481] = function(player)
+  local idx1 = player:field_idxs_with_preds(pred.follower)[1]
+  local idx2 = reverse(player:field_idxs_with_preds(pred.follower))[1]
+  if idx1 and idx2 and idx1 ~= idx2 then
+    local mag = abs(idx1 - idx2)
+    local buff = OnePlayerBuff(player)
+    buff[idx1] = {size={"-", mag}}
+    buff[idx2] = {size={"-", mag}}
+    buff:apply()
+    player.field[idx1], player.field[idx2] = player.field[idx2], player.field[idx1]
+  end
+end,
+
+--[[
+  Sita's Delivery
+]]
+[200482] = function(player)
+  if player.deck[7] and pred.V(player.deck[5]) and pred.V(player.deck[7]) then
+    local idx1 = 5
+    for i = 1, 2 do
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        if i == 2 then
+          idx1 = 7
+        end
+        player.field[idx2] = deepcpy(player.deck[idx1])
+      end
+    end
+    if not player.hand[5] and player.deck[9] and pred.V(player.deck[9]) then
+      player.hand[#player.hand] = deepcpy(player.deck[9])
+    end
+  end
+end,
+
+--[[
+  Barter
+]]
+[200483] = function(player, opponent)
+  local pl_idx = player:field_idxs_with_preds(pred.follower)[1]
+  local op_idx = opponent:field_idxs_with_preds(pred.follower)[1]
+  if pl_idx and op_idx then
+    local mag = abs(player.field[pl_idx].size - opponent.field[op_idx].size)
+    local buff = GlobalBuff(player)
+    buff.field[player][pl_idx] = {size={"=", opponent.field[op_idx].size}, atk={"+", mag}, sta={"+", mag}}
+    buff.field[opponent][op_idx] = {size={"=", player.field[pl_idx].size}}
+    buff:apply()
+  end
+end,
+
+--[[
+  Private Room
+]]
+[200484] = function(player, opponent)
+  local pl_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local pred_def = function(card) return card.def >= 0 end
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_def))
+  if pl_idx and op_idx then
+    local mag = opponent.field[op_idx].def * 2
+    OneBuff(player, pl_idx, {atk={"+", mag}}):apply()
+  end
+end,
+
+--[[
+  Muzisitter's Song
+]]
+[200485] = function(player, opponent)
+  if pred.A(player.character) then
+    for i = 0, 2 do
+      local pl_idx = i * 2 + 1
+      local op_idx = opponent:first_empty_field_slot()
+      if player.field[pl_idx] and op_idx then
+        OneImpact(player, pl_idx):apply()
+        player.field[pl_idx], opponent.field[op_idx] = nil, player.field[pl_idx]
+      end
+    end
+    for i = 1, 2 do
+      local op_idx = i * 2
+      local pl_idx = player:first_empty_field_slot()
+      if opponent.field[op_idx] and pl_idx then
+        OneImpact(opponent, op_idx):apply()
+        opponent.field[op_idx], player.field[pl_idx] = nil, opponent.field[op_idx]
+      end
+    end
+  end
+end,
+
+--[[
+  Meat Shield
+]]
+[200486] = function(player, opponent)
+  local idx = opponent:field_idxs_with_most_and_preds(pred.size, pred.follower, pred.active)[1]
+  if #player:field_idxs_with_preds(pred.follower) >= 2 and idx then
+    OneImpact(opponent, idx):apply()
+    opponent.field[idx].skills = {1076}
+    opponent.field[idx].active = false
+  end
+end,
+
+--[[
+  Youngest's Resolve
+]]
+[200487] = function(player, opponent)
+  local idx = player:field_idxs_with_most_and_preds(pred.def, pred.follower)[1]
+  if idx then
+    local mag = player.field[idx].def * 2
+    local mag2 = min(player.field[idx].def * 2, 5)
+    local buff = GlobalBuff(player)
+    buff.field[player][idx] = {def={"-", mag}}
+    idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      buff.field[opponent][idx] = {atk={"-", mag2}, sta={"-", mag2}}
+    end
+    buff:apply()
+  end
+end,
+
+--[[
+  Awakening
+]]
+[200488] = function(player)
+  player.shuffles = player.shuffles + 2
+  if pred.C(player.character) then
+    local mag = min(floor(player.shuffles / 2), 2)
+    local buff = GlobalBuff(player)
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {def={"+", mag}}
+    end
+    buff:apply()
+  end
+end,
+
+--[[
+  GS Executive's Command
+]]
+[200489] = function(player, opponent, my_idx, my_card)
+  local pred_size = function(card) return card.size == my_card.size end
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred_size)
+  local buff = GlobalBuff(player)
+  for _, idx in ipairs(idxs) do
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  buff:apply()
+end,
+
+--[[
+  Undertaker's Visit
+]]
+[200490] = function(player, opponent)
+  local idx = opponent:deck_idxs_with_most_and_preds(pred.size, pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[opponent][idx] = {atk={"-", 3}, sta={"-", 3}}
+    buff:apply()
+  end
+end,
+
+--[[
+  I WANT YOU
+]]
+[200491] = function(player, opponent)
+  if pred.D(player.character) and opponent.hand[4] then
+    for i = 1, 2 do
+      local op_idx = uniformly(opponent:field_idxs_with_preds())
+      local pl_idx = player:first_empty_field_slot()
+      if op_idx and pl_idx then
+        OneImpact(opponent, op_idx):apply()
+        opponent.field[op_idx], player.field[pl_idx] = nil, opponent.field[op_idx]
+        player.field[pl_idx].active = false
+      end
+    end
+  end
+end,
+
+--[[
+  Loneliness
+]]
+[200492] = function(player)
+  local buff = OnePlayerBuff(player)
+  for i = 1, 2 do
+    local idx = i * 2
+    if player.field[idx] and pred.follower(player.field[idx]) then
+      buff[idx] = {def={"+", 2}}
+    end
+  end
+  buff:apply()
+end,
+
+--[[
+  Waiting
+]]
+[200493] = function(player)
+  local check1 = player:field_idxs_with_preds(pred.follower, pred.N)[1]
+  local check2 = player:field_idxs_with_preds(pred.follower, pred.neg(pred.N))[1]
+  if check1 and check2 then
+    local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+    local buff = OnePlayerBuff(player)
+    for i = 1, 2 do
+      if idxs[i] then
+        buff[idxs[i]] = {atk={"+", 1}, def={"+", 1}, sta={"+", 3}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
+--[[
+  Isfeldt's Threat
+]]
+[200494] = function(player, opponent)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local impact = Impact(opponent)
+  for i = 1, 2 do
+    if idxs[i] then
+      impact[opponent][idxs[i]] = true
+    end
+  end
+  impact:apply()
+  for i = 1, 2 do
+    if idxs[i] then
+      opponent.field[idxs[i]]:gain_skill(1440)
+    end
+  end
+end,
+
+--[[
+  Gauntlet of Darkness
+]]
+[200495] = function(player)
+  local idx = player:field_idxs_with_preds(pred.follower)[1]
+  if idx then
+    OneImpact(player, idx):apply()
+    player.field[idx]:gain_skill(1482) -- Dark Soul Attack
+  end
+end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})

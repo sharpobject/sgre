@@ -4892,6 +4892,28 @@ end,
   end
 end,
 
+-- Boot of Darkness
+-- Dark Soul Unleashed
+[1478] = function(player, my_idx, my_card, skill_idx)
+  local mag = player.game.turn
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Gauntlet of Darkness
+-- Dark Soul Attack
+[1482] = function(player, my_idx)
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  local mag = 0
+  for _, idx in ipairs(idxs) do
+    buff.field[player.opponent][idx] = {sta={"-", 1}}
+    mag = mag + 1
+  end
+  buff.field[player][my_idx] = {atk={"+", mag}}
+  buff:apply()
+end,
+
 -- Cook Club Director Jamie if NPC, +1/+1
 [1483] = function(player, my_idx)
   if player.opponent:is_npc() then
