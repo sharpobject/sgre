@@ -1143,7 +1143,7 @@ end,
     end
   end
   if #player.hand > 0 then
-    player:hand_to_bottom_deck(1)
+    player:hand_to_top_deck(1)
     local grave_idx = uniformly(player:grave_idxs_with_preds(pred.union(pred.shion, pred.rion)))
     if grave_idx then
       player:grave_to_exile(grave_idx)
