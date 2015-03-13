@@ -2504,6 +2504,25 @@ end,
   end
 end,
 
+-- School Uniform Rianna
+[100192] = function(player, opponent, my_card)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+    local buff = GlobalBuff(player)
+    if idx <= 3 then
+      local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+      if idx then
+        buff.field[opponent][idx] = {sta={"-", 2}}
+      end
+    end
+    if idx >= 3 then
+      buff.field[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    end
+    buff:apply()
+  end
+end,
+
 -- Dress Rose
 [100193] = function(player, opponent, my_card)
   local idx = player:deck_idxs_with_preds(pred.follower)[1]
@@ -5990,6 +6009,204 @@ end,
     player:deck_to_field(idx1, idx2)
     local mag = math.ceil(player.field[idx2].size / 2)
     OneBuff(player, idx2, {size={"=", mag}, atk={"+", 2}}):apply()
+  end
+end,
+
+-- Dean Rianna
+[110256] = function(player)
+  local idx1 = uniformly(player:field_idxs_with_preds(pred.follower))
+  local idx2 = uniformly(player:empty_field_slots())
+  if idx1 and idx2 then
+    player.field[idx1], player.field[idx2] = nil, player.field[idx1]
+    local buff = {}
+    if idx2 < 3 then
+      buff = {sta={"+", 3}}
+    elseif idx2 > 3 then
+      buff = {atk={"+", 2}, sta={"+", 3}}
+    else
+      buff = {atk={"+", 2}, sta={"+", 5}}
+    end
+    OneBuff(player, idx2, buff):apply()
+  end
+end,
+    
+-- Lieutenant Kay
+[110257] = function(player, opponent)
+  local pred_atk = function(card) return card.atk >= 20 end
+  local idx1 = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_atk))
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    OneImpact(opponent, idx1):apply()
+    opponent.field[idx1], player.field[idx2] = nil, opponent.field[idx1]
+  end
+end,
+
+-- Treanna
+[110258] = function(player, opponent)
+  if player.grave[1] then
+    player:grave_to_bottom_deck(#player.grave)
+  end
+  local idxs = opponent:field_idxs_with_preds(pred.follower, pred.skill)
+  local buff = OnePlayerBuff(opponent)
+  for _, idx in ipairs(idxs) do
+    opponent.field[idx].skills = {}
+    buff[idx] = {atk={"-", 2}, sta={"-", 2}}
+  end
+  buff:apply()
+end,
+    
+-- Penguin Suit Sita
+[110259] = function(player, opponent)
+  local check = player:field_idxs_with_preds(pred.sita)[1]
+  if check then
+    local buff = OnePlayerBuff(player)
+    for _, idx in ipairs(player:field_idxs_with_preds()) do
+      if pred.follower(player.field[idx]) then
+        buff[idx] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
+      else
+        buff[idx] = {size={"-", 1}}
+      end
+    end
+    buff:apply()
+  else
+    local idxs = opponent:field_idxs_with_preds(pred.follower)
+    local buff = OnePlayerBuff(opponent)
+    for i = 1, 2 do
+      if idxs[i] then
+        buff[idxs[i]] = {atk={"-", 2}, sta={"-", 2}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
+-- Wet Gart
+[110260] = function(player, opponent)
+  local mag = #player:hand_idxs_with_preds(pred.follower)
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local pl_idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+  local buff = GlobalBuff(player)
+  if op_idx then
+    buff.field[opponent][op_idx] = {def={"-", mag}, sta={"-", mag}}
+  end
+  if pl_idx then
+    buff.hand[player][pl_idx] = {def={"+", mag}, sta={"+", mag}}
+  end
+  buff:apply()
+end,
+
+-- Bunny Girl Cannelle
+[110261] = function(player)
+  local pred_size = function(card) return card.size <= 6 end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_size))
+  if idx then
+    OneBuff(player, idx, {size={"+", 1}, atk={"+", 2}, def={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Hammered Sigma
+[110262] = function(player)
+  if player.hand[1] then
+    local mag = player.hand[1].size
+    local idxs = player:hand_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for i = 1, mag do
+      if idxs[i] then
+        buff.hand[player][idxs[i]] = {atk={"+", 2}, sta={"+", 2}}
+      end
+    end
+    buff:apply()
+  end
+end,
+
+-- Street Idol Clarice
+[110263] = function(player)
+  local idxs = player:field_idxs_with_preds(pred.follower,
+      function(card) return card.id == 300201 end)
+  for _, idx in ipairs(idxs) do
+    player:field_to_grave(idx)
+  end
+  if player.game.turn % 10 > 0 then
+    local mag = 15 - player.game.turn % 10
+    local idx = player:last_empty_field_slot()
+    if idx then
+      player.field[idx] = Card(300201)
+      OneBuff(player, idx, {size={"=", 1}, atk={"=", mag}, def={"=", 1}, sta={"=", mag}}):apply()
+    end
+  end
+end,
+
+-- Transfer Student Cinia
+[110264] = function(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx and player.hand[1] then
+    local fact = player.hand[1].faction
+    if fact == "V" then
+      OneBuff(player, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    elseif fact == "A" then
+      OneBuff(player, idx, {sta={"+", 4}}):apply()
+    elseif fact == "C" then
+      OneBuff(player, idx, {def={"+", 2}}):apply()
+    elseif fact == "D" then
+      OneBuff(player, idx, {size={"-", 2}}):apply()
+    end
+  end
+end,
+
+-- Team Manager Vernika
+[110265] = function(player)
+  if not player.hand[4] then
+    local mag = #player.hand
+    while player.hand[1] do
+      player:hand_to_bottom_deck(1)
+    end
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+    end
+  end
+end,
+
+-- Cheerleader Iri
+[110266] = function(player)
+  local pred_size = function(card) return card.size >= 2 end
+  for i = 1, 2 do
+    local idx = uniformly(player:hand_idxs_with_preds(pred_size))
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {size={"-", 1}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Sports Luthica
+[110267] = function(player)
+  if player.field[1] and pred.follower(player.field[1]) and not player.field[5] then
+    player.field[1], player.field[5] = nil, player.field[1]
+    OneBuff(player, 5, {sta={"+", 5}}):apply()
+  end
+  if not player.field[1] and player.field[5] and pred.follower(player.field[5]) then
+    player.field[5], player.field[1] = nil, player.field[5]
+    OneBuff(player, 1, {atk={"+", 4}, sta={"+", 4}}):apply()
+  end
+end,
+  
+-- Waitress Rianna
+[110268] = function(player)
+  local idx1 = uniformly(player:field_idxs_with_preds(pred.follower))
+  local idx2 = uniformly(player:empty_field_slots())
+  if idx1 and idx2 then
+    player.field[idx1], player.field[idx2] = nil, player.field[idx1]
+    local buff = {}
+    if idx2 < 3 then
+      buff = {atk={"+", 2}, sta={"+", 2}}
+    elseif idx2 > 3 then
+      buff = {size={"-", 2}, atk={"+", 2}}
+    else
+      buff = {size={"-", 2}, atk={"+", 4}, sta={"+", 2}}
+    end
+    OneBuff(player, idx2, buff):apply()
   end
 end,
 
