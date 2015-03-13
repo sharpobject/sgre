@@ -2120,7 +2120,7 @@ local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5},
     {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10},
     {"Vita Public School", 12}, {"Vivid World", 13}, {"Catacombs", 16},
     {"Ancient Sanctuary", 17}, {"Catch That Cat", 21}, {"Underground Library", 23},
-    {"Underground Altar", 24}, }
+    {"Underground Altar", 24}, {"Royle City", 25}, }
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11},
     {"Linia's World", 22}, }
 

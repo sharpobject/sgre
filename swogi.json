@@ -72466,7 +72466,7 @@
     "120003": "Turn Start: A random Follower on the enemy Field is deactivated.",
     "120004": "Turn Start: All Followers on your Field get ATK +3.",
     "120005": "Turn Start: If your Character's LIFE is 9 or less, it gets LIFE +5.",
-    "120006": "Turn Start: A random Spell in your Grave is sent to the bottom of your Deck. A Follower named \"Scardel Shion Flina\" or a Follower named \"Scardel Rion Flina\" is created in the first empty Slot in your Field, and then those Followers get SIZE -1.",
+    "120006": "Turn Start: A random Spell in your Grave is sent to the bottom of your Deck. A Follower named \"Scardel Shion Flina\" or a Follower named \"Scardel Rion Flina\" is created in the first empty Slot in your Field and gets SIZE -1.",
     "120007": "Turn Start: If the enemy Hand has an even number of cards, a random card in an even-numbered Slot on the enemy Field is sent to the Grave. If the enemy Hand has an odd number of cards, a random card in an odd-numbered Slot on the enemy Field is sent to the Grave. All Followers on your Field get ATK +1/STA +1.",
     "120008": "Turn Start: If the Turn Number is odd, a random Follower on the enemy Field's ATK is halved (rounding up). If the Turn Number is even, a random Follower on the enemy Field's STA is halved (rounding up).",
     "120009": "Turn Start: The first card in your Grave is sent to the bottom of your Deck. If the enemy Character has 10 or less LIFE, the enemy Character gets LIFE -10.",

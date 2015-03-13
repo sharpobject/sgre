@@ -3792,21 +3792,20 @@ end,
 
 -- Restorative Infusion!
 -- Lady on the Water
-[1360] = function(player, my_idx, my_card)
+[1360] = function(player, my_idx, my_card, skill_idx)
   local mag = Card(my_card.id).sta
   if mag > my_card.sta then
     OneBuff(player, my_idx, {sta={"=", mag}}):apply()
   end
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Glasses Maid
 -- Genius Control!
 [1361] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and #other_card:squished_skills() then
+  if other_card and (#other_card:squished_skills() >= 2) then
+    other_card.skills = {1076}
     OneImpact(player.opponent, other_idx):apply()
-    other_card:remove_skill_until_refresh(1)
-    other_card:remove_skill(2)
-    other_card:remove_skill(3)
     OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 2}}):apply()
   end
 end,

@@ -1046,6 +1046,7 @@ end,
   local target_idx = uniformly(opponent:field_idxs_with_preds({pred.follower, pred.skill}))
   if target_idx then
     opponent.field[target_idx].skills = {}
+    OneImpact(opponent, target_idx):apply()
   end
 end,
 
@@ -4770,10 +4771,7 @@ The Follower in your Field with the lowest STA gets STA changed equal to the sen
   end
 end,
 
---[[
-Back From Sanctuary
-2 random allied Crux Followers get +STA equal to ATK of first enemy Follower.
-]]
+-- Sanctuary Returnee
 [200328] = function(player, opponent)
   local op_idx = opponent:field_idxs_with_preds(pred.follower)[1]
   if not op_idx then
@@ -4781,7 +4779,7 @@ Back From Sanctuary
   end
   local mag = opponent.field[op_idx].atk
   local buff = OnePlayerBuff(player)
-  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.C))
   for i=1,min(2,#idxs) do
     buff[idxs[i]] = {sta={"+",mag}}
   end
@@ -7046,34 +7044,16 @@ end,
 Everyone's Enemy
 ]]
 [200445] = function(player, opponent)
-  for i=1,4 do
-    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-    if not idx then
-      return
-    end
-    local mag = {atk={"-", 0}, def={"-", 0}, sta={"-", 0}}
-    for i = 1, 4 do
-      local stat = uniformly({"atk", "def", "sta"})
-      mag[stat][2] = mag[stat][2] + 1
-    end
-    OneBuff(opponent, idx, mag):apply()
-    --[[
-    local a_mag = 0
-    local d_mag = 0
-    local s_mag = 0
-    for i=1,4 do
-      local r = random(3)
-      if r == 1 then
-        a_mag = a_mag + 1
-      elseif r == 2 then
-        d_mag = d_mag + 1
-      else
-        s_mag = s_mag + 1
-      end
-    end
-    OneBuff(opponent, idx, {atk={"-",a_mag},def={"-",d_mag},sta={"-",s_mag}}):apply()
-    ]]
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if not idx then
+    return
   end
+  local mag = {atk={"-", 0}, def={"-", 0}, sta={"-", 0}}
+  for i = 1, 4 do
+    local stat = uniformly({"atk", "def", "sta"})
+    mag[stat][2] = mag[stat][2] + 1
+  end
+  OneBuff(opponent, idx, mag):apply()
 end,
 
 --[[
@@ -7121,7 +7101,7 @@ Experience
       function(card) return card.name ~= my_card.name end))
   local pl_idx = player:first_empty_field_slot()
   if op_idx and pl_idx then
-    player.field[pl_idx] = deepcpy(opponent.field[op_idx])
+    player.field[pl_idx] = Card(opponent.field[op_idx].id)
   end
 end,
 

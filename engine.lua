@@ -952,13 +952,13 @@ function Game:clean_dead_followers()
       end
       card = player.hand[i]
       if card and card.type == "follower" and card.sta < 1 then
-        player:destroy_hand(i)
+        card.sta = 1
       end
     end
     for i=#player.deck,1,-1 do
       local card = player.deck[i]
       if card and card.type == "follower" and card.sta < 1 then
-        player:destroy_deck(i)
+        card.sta = 1
       end
     end
   end

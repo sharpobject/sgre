@@ -5632,14 +5632,18 @@ end,
 
 -- Chess Cinia
 [110227] = function(player, opponent)
-  local idx = opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
-  if idx then
-    local card = player.field[player:field_idxs_with_preds()[1]]
-    local mag = card and card.size or 0
-    card = player.field[4]
-    mag = mag + (card and card.size or 0)
-    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  local target_idx = player.opponent:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
+  local followers = player:get_follower_idxs()
+  if not target_idx or #followers == 0 then
+    return
   end
+  local buff_size = 0
+  if player.field[4] then
+    buff_size = ceil((player.field[followers[1]].size + player.field[4].size)/2)
+  else
+    buff_size = ceil(player.field[followers[1]].size/2)
+  end
+  OneBuff(player.opponent,target_idx,{atk={"-",buff_size},sta={"-",buff_size}}):apply()
 end,
 
 -- Swimwear Cinia
@@ -6262,15 +6266,15 @@ end,
   if idx then
     player:grave_to_bottom_deck(idx)
   end
-  local slots = player:empty_field_slots()
-  local buff = OnePlayerBuff(player)
-  if slots[1] then
-    player.field[slots[1]] = Card(300057)
-    buff[slots[1]] = {size={"-",1}}
+  local spawn_id = 300057
+  if player.game.turn % 2 == 0 then
+    spawn_id = 300058
   end
-  if slots[2] then
-    player.field[slots[2]] = Card(300058)
-    buff[slots[2]] = {size={"-",1}}
+  local slot = player:first_empty_field_slot()
+  local buff = OnePlayerBuff(player)
+  if slot then
+    player.field[slot] = Card(spawn_id)
+    buff[slot] = {size={"-",1}}
   end
   buff:apply()
 end,

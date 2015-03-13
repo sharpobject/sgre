@@ -52,6 +52,7 @@ local dungeon_mats = {
   210036, -- cat paw stamp (ex3)
   210038, -- library card (ep10)
   210039, -- mystery parchment (ep11)
+  210040, -- Police I.D. (ep12)
 }
 local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}
