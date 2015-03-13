@@ -7343,7 +7343,7 @@ Manhunt
   for i=1,5 do
     local idx = player:hand_idxs_with_preds(pred.spell)[1]
     if idx and player:first_empty_field_slot() then
-      player:hand_to_field(i)
+      player:hand_to_field(idx)
       mag = mag + 1
     end
   end
