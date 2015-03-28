@@ -928,10 +928,12 @@ end,
 
 -- child iri
 [100053] = function(player, opponent, my_card)
-  if #player.hand % 2 == 0 then
-    local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
-    if target then
-      OneBuff(opponent, target, {atk={"-",1},def={"-",1},sta={"-",1}}):apply()
+  local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if target then
+    if #player.hand % 2 == 0 then
+      OneBuff(opponent, target, {atk={"-",1},def={"-",1},sta={"-",2}}):apply()
+    else
+      OneBuff(opponent, target, {atk={"-",1},sta={"-",2}}):apply()
     end
   end
 end,
@@ -1132,7 +1134,10 @@ end,
 [100075] = function(player, opponent)
   local life = opponent.character.life
   if 26 <= life then
-    OneBuff(opponent, 0, {life={"-",1}}):apply()
+    local buff = GlobalBuff(player)
+    buff.field[opponent][0] = {life={"-",1}}
+    buff.field[player][0] = {life={"+",1}}
+    buff:apply()
   elseif 15 <= life and life <= 20 then
     OneBuff(opponent, 0, {life={"-",2}}):apply()
   elseif life <= 9 then

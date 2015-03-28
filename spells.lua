@@ -2133,8 +2133,11 @@ end,
 
 -- home study
 [200147] = function(player, opponent, my_idx, my_card)
-  local buff_amt = 1 + #player:grave_idxs_with_preds(
-      function(card) return card.id == player.field[my_idx].id end)
+  local same_pred = function(card)
+      return card.id == player.field[my_idx].id
+    end
+  local buff_amt = 1 + #player:grave_idxs_with_preds(same_pred) +
+      #player:hand_idxs_with_preds(same_pred)
   local buff = GlobalBuff(player)
   local idxs = player:hand_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
@@ -3034,7 +3037,7 @@ end,
   if size then
     for i=1,5 do
       local card = opponent.field[i]
-      if card and pred.spell(card) and card.size < size then
+      if card and pred.spell(card) and card.size <= size then
         opponent:field_to_bottom_deck(i)
       end
     end
@@ -6576,7 +6579,7 @@ Cosmo Drive
     local mag = abs(player.field[pl_idx].size - opponent.field[op_idxs[1]].size)
     local buff = OnePlayerBuff(opponent)
     for _,idx in ipairs(op_idxs) do
-      buff[idx] = {sta={"-",mag}}
+      buff[idx] = {atk={"-",mag},sta={"-",mag}}
     end
     buff:apply()
   end
