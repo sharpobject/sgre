@@ -25,6 +25,7 @@ function Game:set_animation(kind, player_idx, slot)
   players[player_idx].animation[slot] = {kind=kind,
       framecount=ani_to_framecount[kind], frame = 0,
       dx = ani_to_dx[kind] or 0, dy = ani_to_dy[kind] or 0,}
+  play_sound(kind)
 end
 
 function Game:await_animations()
