@@ -39,7 +39,7 @@ function play_sound(kind)
     if (sound == nil) then
     else
         source = love.audio.newSource(sound)
-        source:setVolume(options.music_volume)
+        source:setVolume(options.sfx_volume)
         source:play()
     end
 end
