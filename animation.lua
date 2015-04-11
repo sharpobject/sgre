@@ -8,7 +8,7 @@ local ani_to_framecount = {
   trigger_defend = 7,
   trigger_start = 9,
   trigger_spell = 13,
-  spell_death = 13,
+  trigger_vanish = 13,
 }
 
 local ani_to_dx = {
@@ -18,6 +18,7 @@ local ani_to_dx = {
 
 local ani_to_dy = {
   trigger_attack = 4,
+  trigger_vanish = -4
 }
 
 function Game:set_animation(kind, player_idx, slot)

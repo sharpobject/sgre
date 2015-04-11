@@ -886,10 +886,15 @@ function Player:combat_round()
     self:check_hand()
     self.opponent:check_hand()
     --print("Just ran spell func for id "..card.id)
+    local spell_vanish = false
     if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
+      spell_vanish = true
     end
     self.game:snapshot(nil,nil,true)
+    if spell_vanish then
+      self.game:send_trigger(self.player_index, idx, "vanish")
+    end
   end
 end
 

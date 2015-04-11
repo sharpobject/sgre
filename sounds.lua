@@ -16,7 +16,7 @@ sounds_table["trigger_attack"] = "sg_sounds/follower_effect.wav"
 sounds_table["trigger_defend"] = "sg_sounds/counter.wav"
 sounds_table["trigger_start"] = "sg_sounds/char_effect.wav"
 sounds_table["trigger_spell"] = "sg_sounds/spell_effect.wav"
-sounds_table["spell_death"] = "sg_sounds/spell_destroyed.wav"
+sounds_table["trigger_vanish"] = "sg_sounds/spell_destroyed.wav"
 
 for state, source in pairs(bgm_table) do
     source:setLooping(true)
