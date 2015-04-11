@@ -57,8 +57,8 @@ function load_img(s)
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  ret:setFilter("linear","linear")
   ret:setMipmapFilter("linear", -.1)
+  gray:setMipmapFilter("linear", -.1)
   return ret,gray,w,h
 end
 
