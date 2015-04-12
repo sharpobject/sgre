@@ -314,7 +314,7 @@ local slot_to_dxdy = {
 function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
-    id = 200099
+    id = "000000"
   end
   if not IMG_card[id] then
     IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
@@ -385,6 +385,76 @@ function set_buff_font(kind)
   end
 end
 
+function anim_layer()
+  local base = loveframes.Create("image")
+  base:SetSize(0, 0)
+  base:SetX(0)
+  base:SetY(0)
+  base:SetState("playing")
+  base.Draw = function(self)
+    for i=0,11 do
+      local animation = self.anims[i]
+      if animation then
+        local img = load_asset(animation.filename)
+        local dx = animation.dx - math.floor((img:getWidth() - 80)/2)
+        local dy = animation.dy - math.floor((img:getHeight() - 120)/2)
+        local pos = self.slotpos[i]
+        love.graphics.draw(img, pos.x+dx, pos.y+dy)
+      end
+    end
+  end
+  base.Update = function(self)
+    if not game.fps then game.fps = love.timer.getFPS() end
+    local framestep = 20/game.fps -- animation FPS here
+    for i=0,5 do
+      local player = game.P1
+      local animation = player.animation[i]
+      if animation then
+        local frame = math.floor(animation.frame)..""
+        while frame:len() < 3 do frame = "0"..frame end
+        self.anims[i] = {
+            filename = "animations/"..animation.kind.."/"..frame..".png",
+            dx = animation.dx,
+            dy = animation.dy,
+          }
+        animation.frame = animation.frame + framestep
+        if animation.frame >= animation.framecount then
+          player.animation[i] = nil
+          self.anims[i] = nil
+        end
+      end
+      local opponent = player.opponent
+      animation = opponent.animation[i]
+      if animation then
+        local frame = math.floor(animation.frame)..""
+        while frame:len() < 3 do frame = "0"..frame end
+        self.anims[i+6] = {
+            filename = "animations/"..animation.kind.."/"..frame..".png",
+            dx = animation.dx,
+            dy = animation.dy,
+          }
+        animation.frame = animation.frame + framestep
+        if animation.frame >= animation.framecount then
+          opponent.animation[i] = nil
+          self.anims[i+6] = nil
+        end
+      end
+
+    end
+  end
+  base.anims = {}
+  base.slotpos = {}
+  for _,side in ipairs({"left", "right"}) do
+    for i=0,5 do
+      local origx = slot_to_dxdy[side][i][1] + field_x
+      local origy = slot_to_dxdy[side][i][2] + field_y
+      local offset = side == "left" and 0 or 6
+      base.slotpos[i+offset] = {x = origx, y = origy}
+    end
+  end
+  return anim_layer
+end
+
 function card_button(side,idx,x,y)
   local button = loveframes.Create("imagebutton")
   button:SetSize(80, 120)
@@ -423,13 +493,6 @@ function card_button(side,idx,x,y)
       draw_card(self.card, x, y, hover_frame, text)
     end
 
-    if self.animation then
-      local img = load_asset(self.animation.filename)
-      local dx = self.animation.dx - math.floor((img:getWidth() - 80)/2)
-      local dy = self.animation.dy - math.floor((img:getHeight() - 120)/2)
-      love.graphics.draw(img, x+dx, y+dy)
-    end
-
     if self.buff_animation then
       local frame = self.buff_animation.frame
       local stat_to_dxdy = {size = {card_width*2/3 + 3, 2},
@@ -456,28 +519,13 @@ function card_button(side,idx,x,y)
     if hand then
       member = "hand"
     else
-      local animation = player.animation[idx]
-      if animation then
-        local frame = math.floor(animation.frame)..""
-        while frame:len() < 3 do frame = "0"..frame end
-        self.animation = {
-            filename = "animations/"..animation.kind.."/"..frame..".png",
-            dx = animation.dx,
-            dy = animation.dy,
-          }
-        animation.frame = animation.frame + .5
-        if animation.frame == animation.framecount then
-          player.animation[idx] = nil
-        end
-      else
-        self.animation = nil
-      end
-
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
+        if not game.fps then game.fps = love.timer.getFPS() end
+        local framestep = 30/game.fps -- buff animation FPS here
         self.buff_animation = buff_animation
-        buff_animation.frame = buff_animation.frame + .5
-        if buff_animation.frame == 20 then
+        buff_animation.frame = buff_animation.frame + framestep
+        if buff_animation.frame >= 20 then
           player.buff_animation[idx] = nil
         end
       else
@@ -710,6 +758,7 @@ function get_hover_list_text(state)
 end
 
 function Game:draw()
+  self.fps = love.timer.getFPS()
   self:draw_field()
 
   local left, right = self.P1, self.P2
@@ -736,6 +785,10 @@ function Game:draw()
         local y = slot_to_dxdy[side][i][2] + field_y
         self.loveframes_buttons[side][i] = card_button(side, i, x, y)
       end
+    end
+
+    if not self.anim_layer then
+      self.anim_layer = anim_layer()
     end
 
     local ready = loveframes.Create("button")
