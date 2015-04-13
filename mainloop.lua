@@ -1713,6 +1713,9 @@ function main_options()
       sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
       set_file("options.json", json.encode(options))
     end
+    sfx_volume_slider.OnRelease = function(object)
+      play_button_sound()
+    end
 
   end
   loveframes.SetState("options")
