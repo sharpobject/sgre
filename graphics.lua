@@ -314,7 +314,7 @@ local slot_to_dxdy = {
 function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
-    id = "000000"
+    id = 200099
   end
   if not IMG_card[id] then
     IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
@@ -386,12 +386,12 @@ function set_buff_font(kind)
 end
 
 function anim_layer()
-  local base = loveframes.Create("image")
-  base:SetSize(0, 0)
-  base:SetX(0)
-  base:SetY(0)
-  base:SetState("playing")
-  base.Draw = function(self)
+  local layer = loveframes.Create("image")
+  layer:SetSize(0, 0)
+  layer:SetX(0)
+  layer:SetY(0)
+  layer:SetState("playing")
+  layer.Draw = function(self)
     for i=0,11 do
       local animation = self.anims[i]
       if animation then
@@ -403,9 +403,8 @@ function anim_layer()
       end
     end
   end
-  base.Update = function(self)
-    if not game.fps then game.fps = love.timer.getFPS() end
-    local framestep = 20/game.fps -- animation FPS here
+  layer.Update = function(self)
+    local framestep = 30/game.fps -- animation FPS here
     for i=0,5 do
       local player = game.P1
       local animation = player.animation[i]
@@ -442,14 +441,14 @@ function anim_layer()
 
     end
   end
-  base.anims = {}
-  base.slotpos = {}
+  layer.anims = {}
+  layer.slotpos = {}
   for _,side in ipairs({"left", "right"}) do
     for i=0,5 do
       local origx = slot_to_dxdy[side][i][1] + field_x
       local origy = slot_to_dxdy[side][i][2] + field_y
       local offset = side == "left" and 0 or 6
-      base.slotpos[i+offset] = {x = origx, y = origy}
+      layer.slotpos[i+offset] = {x = origx, y = origy}
     end
   end
   return anim_layer
@@ -521,7 +520,6 @@ function card_button(side,idx,x,y)
     else
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
-        if not game.fps then game.fps = love.timer.getFPS() end
         local framestep = 30/game.fps -- buff animation FPS here
         self.buff_animation = buff_animation
         buff_animation.frame = buff_animation.frame + framestep
