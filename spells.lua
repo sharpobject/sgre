@@ -4511,7 +4511,7 @@ Its skills become Break and Death
   end
   local card = player.field[pl_idx]
   player.field[pl_idx], opponent.field[op_idx] = nil, player.field[pl_idx]
-  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)+card.sta}}):apply()
+  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)}}):apply()
   card:remove_skill(1)
   card:remove_skill(2)
   card:remove_skill(3)
@@ -4843,8 +4843,8 @@ a random Follower in the enemy Field gets ATK/DEF/SIZE halved (rounding up).
     local op_idx = uniformly(op_idxs)
     if op_idx then
       local op_card = opponent.field[op_idx]
-      OneBuff(opponent, op_idx, {atk={"=",floor(op_card.atk / 2)},def={"=",floor(op_card.atk / 2)},
-        sta={"=",floor(op_card.atk / 2)}}):apply()
+      OneBuff(opponent, op_idx, {atk={"=",floor(op_card.atk / 2)},def={"=",floor(op_card.def / 2)},
+        sta={"=",floor(op_card.sta / 2)}}):apply()
     end
   end
 end,
@@ -6863,7 +6863,7 @@ Opposition
   for i=1,min(2, #idxs) do
     local mag = ceil((player.field[idxs[1]].size + 
         (player.field[idxs[2]] or player.field[idxs[1]]).size)/2)
-    buff[idxs[i]] = {atk={"+",mag}}
+    buff[idxs[i]] = {atk={"+",mag}, def={"=", 0}}
   end
   buff:apply()
 end,
