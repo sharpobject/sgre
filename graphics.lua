@@ -656,6 +656,7 @@ function faction_button(faction, x, y)
     end
   end
   button.OnClick = function(self)
+    play_button_sound()
     net_send({type="select_faction",faction=faction})
   end
   return button
@@ -804,13 +805,21 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   lb:SetPos(5, 60)
   lb:SetWidth(143)
   lb:SetText(lt)
-  lb.OnClick = function() lcb() frame:Remove() end
+  lb.OnClick = function()
+    play_button_sound()
+    lcb()
+    frame:Remove()
+  end
 
   local rb = loveframes.Create("button", frame)
   rb:SetPos(152, 60)
   rb:SetWidth(143)
   rb:SetText(rt)
-  rb.OnClick = function() rcb() frame:Remove() end
+  rb.OnClick = function()
+    play_cancel_sound()
+    rcb()
+    frame:Remove()
+  end
   
   frame:SetModal(true)
 end
@@ -873,6 +882,7 @@ function Game:draw()
     ready:SetSize(50, ready_sz)
     ready:SetState("playing")
     ready.OnClick = function()
+        play_button_sound()
         if game.client then
           net_send({type="ready"})
           game.act_buttons = false
@@ -890,6 +900,7 @@ function Game:draw()
     shuffle:SetSize(50, shuffle_sz)
     shuffle:SetState("playing")
     shuffle.OnClick = function()
+        play_button_sound()
         if self.client then
           net_send({type="shuffle"})
           self.act_buttons = false
@@ -914,6 +925,7 @@ function Game:draw()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       modal_choice("Really forfeit?", "Yes", "No", function()
           net_send({type="forfeit"})
         end)

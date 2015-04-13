@@ -9,14 +9,18 @@ bgm_table["other_main"] = love.audio.newSource("sg_bgm/5_sg_bgm_main_2.mp3")
 
 local sounds_table = {}
 sounds_table["attack"] = "sg_sounds/attack.wav"
-sounds_table["buff"] = "sg_sounds/affected.wav"
-sounds_table["death"] = "sg_sounds/destroyed.wav"
-sounds_table["life_buff"] = "sg_sounds/affected.wav"
-sounds_table["trigger_attack"] = "sg_sounds/follower_effect.wav"
-sounds_table["trigger_defend"] = "sg_sounds/counter.wav"
-sounds_table["trigger_start"] = "sg_sounds/char_effect.wav"
-sounds_table["trigger_spell"] = "sg_sounds/spell_effect.wav"
-sounds_table["trigger_vanish"] = "sg_sounds/spell_destroyed.wav"
+sounds_table["buff"] = "sg_sounds/buff.wav"
+sounds_table["death"] = "sg_sounds/death.wav"
+sounds_table["defend"] = "sg_sounds/defend.wav"
+sounds_table["life_buff"] = "sg_sounds/life_buff.wav"
+sounds_table["trigger_attack"] = "sg_sounds/trigger_attack.wav"
+sounds_table["trigger_defend"] = "sg_sounds/trigger_defend.wav"
+sounds_table["trigger_start"] = "sg_sounds/trigger_start.wav"
+sounds_table["trigger_spell"] = "sg_sounds/trigger_spell.wav"
+sounds_table["trigger_vanish"] = "sg_sounds/trigger_vanish.wav"
+
+local button_sound = love.audio.newSource("sg_sounds/btn_click01.wav")
+local cancel_sound = love.audio.newSource("sg_sounds/btn_click02.wav")
 
 for state, source in pairs(bgm_table) do
     source:setLooping(true)
@@ -32,6 +36,18 @@ function play_bgm(state)
     bgm = bgm_table[state]
     bgm:setVolume(options.music_volume)
     bgm:play()
+end
+
+function play_button_sound()
+    button_sound:stop()
+    button_sound:setVolume(options.sfx_volume)
+    button_sound:play()
+end
+
+function play_cancel_sound()
+    cancel_sound:stop()
+    cancel_sound:setVolume(options.sfx_volume)
+    cancel_sound:play()
 end
 
 function play_sound(kind)
