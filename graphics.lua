@@ -52,12 +52,12 @@ function load_img(s)
     s = padded
   end
   local ret = love.graphics.newImage(s)
+  ret:setMipmapFilter("linear", 0)
   s:mapPixel(function(x,y,r,g,b,a)
       local ret = (r+g+b)/3
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", 0)
   gray:setMipmapFilter("linear", 0)
   return ret,gray,w,h
 end
