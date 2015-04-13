@@ -412,11 +412,11 @@ end,
   local target_idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
-    for _,idx in ipairs(reverse(knight_idxs)) do
-      player:grave_to_exile(idx)
+    while(#player.grave > 0) do
+      player.grave[#player.grave] = nil
     end
-    assert(0==#player:grave_idxs_with_preds(pred.knight))
   end
+
 end,
 
 -- pacifism
@@ -7143,6 +7143,8 @@ Relapse
   idx = player:first_empty_field_slot()
   if idx then
     player.field[idx] = deepcpy(card)
+    player.field[idx]:refresh()
+    player.field[idx].active = true
     card.size = size_mag
   end
 end,
