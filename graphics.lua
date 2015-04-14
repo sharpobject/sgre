@@ -150,23 +150,6 @@ function async_load(id)
     end
     return love.image.newImageData("swordgirlsimages/000000L.jpg")
   end
-  
-  local tex = load_img_data(id)
-  local w, h = tex:getWidth(), tex:getHeight()
-  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
-  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
-  if wp ~= w or hp ~= h then
-    local padded = love.image.newImageData(wp, hp)
-    padded:paste(tex, 0, 0)
-    tex = padded
-  end
-  local tex_gray = love.image.newImageData(wp, hp)
-  tex_gray:paste(tex, 0, 0)
-  tex_gray:mapPixel(function(x,y,r,g,b,a)
-      local ret = (r+g+b)/3
-      return ret,ret,ret,a
-    end)
-  return id,tex,tex_gray
 end
 
 
@@ -496,7 +479,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .5
+        animation.frame = animation.frame + .45
         if animation.frame >= animation.framecount then
           player.animation[i] = nil
           self.anims[i] = nil
@@ -512,7 +495,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .5
+        animation.frame = animation.frame + .45
         if animation.frame >= animation.framecount then
           opponent.animation[i] = nil
           self.anims[i+6] = nil

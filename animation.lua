@@ -1,32 +1,22 @@
 local ani_to_framecount = {
-  attack = 9,
-  buff = 10,
-  death = 9,
-  defend = 11,
-  life_buff = 14,
-  trigger_attack = 9,
-  trigger_defend = 7,
-  trigger_start = 9,
+  attack = 13,
+  buff = 13,
+  death = 13,
+  defend = 13,
+  life_buff = 13,
+  trigger_attack = 13,
+  trigger_defend = 13,
+  trigger_start = 13,
   trigger_spell = 13,
   trigger_vanish = 13,
 }
 
 local ani_to_dx = {
-  buff = -1,
-  death = -1,
-  trigger_attack = 1,
-  trigger_defend = 2,
-  trigger_start = 3,
+
 }
 
 local ani_to_dy = {
-  buff = -8,
-  death = 2,
-  defend = -2,
-  trigger_attack = 4,
-  trigger_start = -3,
-  trigger_spell = -2,
-  trigger_vanish = -4
+
 }
 
 function Game:set_animation(kind, player_idx, slot)
