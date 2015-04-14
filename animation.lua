@@ -12,12 +12,20 @@ local ani_to_framecount = {
 }
 
 local ani_to_dx = {
+  buff = -1,
+  death = -1,
   trigger_attack = 1,
+  trigger_defend = 2,
   trigger_start = 3,
 }
 
 local ani_to_dy = {
+  buff = -8,
+  death = 2,
+  defend = -2,
   trigger_attack = 4,
+  trigger_start = -3,
+  trigger_spell = -2,
   trigger_vanish = -4
 }
 
