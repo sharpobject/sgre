@@ -67,9 +67,14 @@ end
 
 function love.update(dt)
   --print("FRAME BEGIN")
-  local status, err = coroutine.resume(mainloop)
-  if not status then
-    error(err..'\n'..debug.traceback(mainloop))
+  if leftover_time and leftover_time > 0 then
+    leftover_time = leftover_time - dt
+  else
+    leftover_time = 0
+    local status, err = coroutine.resume(mainloop)
+    if not status then
+      error(err..'\n'..debug.traceback(mainloop))
+    end
   end
   if game then
     game:update()

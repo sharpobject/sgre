@@ -403,8 +403,8 @@ function anim_layer()
       end
     end
   end
-  layer.Update = function(self)
-    local framestep = 30/game.fps -- animation FPS here
+  layer.Update = function(self, dt)
+    local framestep = 30*dt -- animation FPS here
     for i=0,5 do
       local player = game.P1
       local animation = player.animation[i]
@@ -508,7 +508,7 @@ function card_button(side,idx,x,y)
       end
     end
   end
-  button.Update = function(self)
+  button.Update = function(self, dt)
     local hand = side == "hand"
     local player = game.P1
     if player.side == "right" then player = player.opponent end
@@ -520,7 +520,7 @@ function card_button(side,idx,x,y)
     else
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
-        local framestep = 30/game.fps -- buff animation FPS here
+        local framestep = 30*dt -- buff animation FPS here
         self.buff_animation = buff_animation
         buff_animation.frame = buff_animation.frame + framestep
         if buff_animation.frame >= 20 then
@@ -756,7 +756,6 @@ function get_hover_list_text(state)
 end
 
 function Game:draw()
-  self.fps = love.timer.getFPS()
   self:draw_field()
 
   local left, right = self.P1, self.P2

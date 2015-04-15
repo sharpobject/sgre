@@ -904,7 +904,6 @@ Game = class(function(self, ld, rd, client, active_character)
       self.client = true
       self.P1.client = true
       self.P2.client = true
-      self.fps = love.timer.getFPS()
     end
   end)
 
