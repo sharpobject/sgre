@@ -3654,6 +3654,7 @@ end,
     buff.field[player][my_idx] = {sta={"=", other_card.sta}}
     buff.field[player.opponent][other_idx] = {sta={"=", my_card.sta}}
     buff:apply()
+    my_card.skills[skill_idx] = nil
   end
 end,
 
@@ -4448,7 +4449,7 @@ end,
 -- Restrained Fury
 [1420] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.sta > my_card.atk then
-    local mag = 1 + other_card.def - my_card.sta
+    local mag = 1 + other_card.sta - my_card.atk
     OneBuff(player, my_idx, {atk={"+", mag}, sta={"-", mag}}):apply()
     my_card:remove_skill(skill_idx)
   end

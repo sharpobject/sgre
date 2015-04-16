@@ -6227,7 +6227,7 @@ Lib. Assistant
 ]]
 [200401] = function(player, opponent, my_idx)
   player:field_to_exile(my_idx)
-  player.field[my_idx] = Card(300016) --300206
+  player.field[my_idx] = Card(300206)
   OneBuff(player, my_idx, {size={"=",my_idx},atk={"=",my_idx*2},sta={"=",my_idx*2}}):apply()
 end,
 
