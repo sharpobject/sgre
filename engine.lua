@@ -11,6 +11,9 @@ Card = class(function(self, id, upgrade_lvl)
       self[k]=deepcpy(v)
       --print(k,v,self[k])
     end
+    if self.type ~= "character" then
+      self.active = true
+    end
     --TODO: apply upgrade
   end)
 
@@ -65,6 +68,7 @@ function Card:reset()
   for k,v in pairs(id_to_canonical_card[self.id]) do
     self[k] = deepcpy(v)
   end
+  self.active = true
   --TODO: apply upgrade
   return self
 end
@@ -140,6 +144,11 @@ function Player:check_hand()
           end
           unique_things[card] = true
         end
+      end
+    end
+    for _,card in ipairs(player.grave) do
+      if not card.active then
+        error("messed up grave card active "..card.id..tostring(card.active))
       end
     end
   end
@@ -330,8 +339,7 @@ function Player:deck_to_hand(n)
 end
 
 function Player:deck_to_grave(n)
-  table.insert(self.grave, table.remove(self.deck, n))
-  --self.grave[#self.grave + 1] = table.remove(self.deck, n)
+  self.grave[#self.grave + 1] = table.remove(self.deck, n)
 end
 
 function Player:deck_to_exile(n)
@@ -857,7 +865,9 @@ function Player:combat_round()
     local target_idx = self.opponent:get_atk_target()
     --print("Got attack target! "..target_idx)
     self:follower_combat_round(idx, target_idx)
-    card.active = false
+    if self.field[idx] == card then
+      card.active = false
+    end
     self.game:snapshot(nil, nil, true)
   else
     self.send_spell_to_grave = true
