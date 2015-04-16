@@ -403,8 +403,7 @@ function anim_layer()
       end
     end
   end
-  layer.Update = function(self, dt)
-    local framestep = 30*dt -- animation FPS here
+  layer.Update = function(self)
     for i=0,5 do
       local player = game.P1
       local animation = player.animation[i]
@@ -416,7 +415,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + framestep
+        animation.frame = animation.frame + .5
         if animation.frame >= animation.framecount then
           player.animation[i] = nil
           self.anims[i] = nil
@@ -432,7 +431,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + framestep
+        animation.frame = animation.frame + .5
         if animation.frame >= animation.framecount then
           opponent.animation[i] = nil
           self.anims[i+6] = nil
@@ -508,7 +507,7 @@ function card_button(side,idx,x,y)
       end
     end
   end
-  button.Update = function(self, dt)
+  button.Update = function(self)
     local hand = side == "hand"
     local player = game.P1
     if player.side == "right" then player = player.opponent end
@@ -520,9 +519,8 @@ function card_button(side,idx,x,y)
     else
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
-        local framestep = 30*dt -- buff animation FPS here
         self.buff_animation = buff_animation
-        buff_animation.frame = buff_animation.frame + framestep
+        buff_animation.frame = buff_animation.frame + .5
         if buff_animation.frame >= 20 then
           player.buff_animation[idx] = nil
         end

@@ -3,10 +3,11 @@ local recipes = recipes
 local ceil = math.ceil
 local xmutable = require "xmutable"
 
-function wait(n) -- n in frames (based on 60FPS)
-  local wait_time_in_seconds = n and n/60 or 1/60
-  leftover_time = leftover_time + wait_time_in_seconds
-  coroutine.yield()
+function wait(n)
+  n = n or 1
+  for i=1,n do
+    coroutine.yield()
+  end
 end
 
 local main_select_boss, main_play, main_go_hard, main_login
@@ -25,7 +26,6 @@ function fmainloop()
   local func, arg = main_login, nil
   --local func, arg = main_go_hard, nil
   while true do
-    leftover_time = 0
     func,arg = func(unpack(arg or {}))
     collectgarbage("collect")
   end
