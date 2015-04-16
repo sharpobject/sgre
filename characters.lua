@@ -1122,7 +1122,7 @@ end,
 [100071] = function(player)
   local to_kill = player:field_idxs_with_preds(function(card) return card.id == 300201 end)
   for _,idx in ipairs(to_kill) do
-    player:field_to_grave(idx)
+    player:field_to_exile(idx)
   end
   local slot = player:last_empty_field_slot()
   if slot then
