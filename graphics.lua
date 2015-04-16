@@ -41,7 +41,7 @@ do
   end
 end
 
-function load_img(s)
+function load_img_old(s)
   s = love.image.newImageData("swordgirlsimages/"..s)
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
@@ -94,15 +94,66 @@ local card_width, card_height
 
 local fonts = {}
 
+local load_img_async
+
+function load_img(id)
+  local w = 512
+  local h = 512
+  s = love.image.newImageData(w, h)
+  s2 = love.image.newImageData(w, h)
+  local ret = love.graphics.newImage(s)
+  ret:setMipmapFilter("linear", -.1)
+  local gray = love.graphics.newImage(s2)
+  gray:setMipmapFilter("linear", -.1)
+  if not load_img_async then print("AAAAAHRG") end
+  load_img_async(function(id, tex, tex_gray)
+    print("attempting to refresh image "..id)
+    local img_ref = IMG_card[id]
+    img_ref:getData():paste(tex, 0, 0)
+    img_ref:refresh()
+    local img_gray_ref = IMG_gray_card[id]
+    img_gray_ref:getData():paste(tex_gray, 0, 0)
+    img_gray_ref:refresh()
+  end, id)
+  return ret,gray,w,h
+end
+
 function graphics_init()
   IMG_card = {}
   IMG_gray_card = {}
   for _,v in ipairs({300249}) do
     IMG_card[v], IMG_gray_card[v], card_width, card_height =
-      load_img(v.."L.jpg")
+      load_img_old(v.."L.jpg")
   end
   card_width = card_width * card_scale
   card_height = card_height * card_scale
+
+  load_img_async = async.define("load_img_async", function(id)
+    print("thread started for "..id)
+    love = require "love"
+    require "love.image"
+    print("required it")
+    tex = love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
+    print("acquired "..id)
+    local w, h = tex:getWidth(), tex:getHeight()
+    local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+    local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+    if wp ~= w or hp ~= h then
+      local padded = love.image.newImageData(wp, hp)
+      padded:paste(tex, 0, 0)
+      tex = padded
+    end
+    print("pasted it")
+    tex_gray = love.image.newImageData(wp, hp)
+    tex_gray:paste(tex, 0, 0)
+    print("newed it")
+    tex_gray:mapPixel(function(x,y,r,g,b,a)
+        local ret = (r+g+b)/3
+        return ret,ret,ret,a
+      end)
+    print("greyed it")
+    return id,tex,tex_gray
+  end)
 end
 
 function draw_hover_card(text_obj)
@@ -115,7 +166,7 @@ function draw_hover_card(text_obj)
   love.graphics.setColor(255, 255, 255)
   local id = card.id
   if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
+    IMG_card[id], IMG_gray_card[id] = load_img(id)
   end
   local x,y = 612,15
   love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
@@ -317,7 +368,7 @@ function draw_card(card, x, y, lighten_frame, text)
     id = 200099
   end
   if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
+    IMG_card[id], IMG_gray_card[id] = load_img(id)
   end
   if card.type == "character" or card.active then
     love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
@@ -685,7 +736,7 @@ function make_player_info(frame)
 	  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
 	  local id = get_active_char() or 100089
 	  if not IMG_card[id] then
-		IMG_card[id], IMG_gray_card[id] = load_img(id.."L.jpg")
+		IMG_card[id], IMG_gray_card[id] = load_img(id)
 	  end
 	  love.graphics.draw(IMG_card[id], 800-w-4, 80, 0, .5, .5)
 	  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 80)
