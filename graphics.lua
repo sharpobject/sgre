@@ -936,7 +936,7 @@ function card_count_thing(cards, cp, buffer_spaces)
     love.graphics.setColor(0, 0, 0, 255)
     love.graphics.setFont(load_vera(10))
     love.graphics.print(cards .. " Cards", x, y)
-    love.graphics.printf(cp.." CP", x, y, w, "right")
+    love.graphics.printf(cp.." DP", x, y, w, "right")
   end
   button.Update = function(self)
   end
