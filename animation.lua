@@ -132,20 +132,19 @@ local ani_coin_red = {
 }
 
 function Game:set_coin_animation(player)
-  game.coin_target = color
   if player == 1 then
-    game.coin_anim = ani_coin_blue
+    self.coin_anim = ani_coin_red
   else
-    game.coin_anim = ani_coin_red
+    self.coin_anim = ani_coin_blue
   end
-  game.coin_flip = true
+  self.coin_flip = true
 end
 
 function Game:await_coin_animation()
   local keep_waiting = true
   local players = {self.P1, self.P2}
   while keep_waiting do
-    if game.coin_flip then
+    if self.coin_flip then
       wait(1)
     else
       keep_waiting = false
