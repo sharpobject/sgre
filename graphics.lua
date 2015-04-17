@@ -41,27 +41,6 @@ do
   end
 end
 
-function load_img_old(s)
-  s = love.image.newImageData("swordgirlsimages/"..s)
-  local w, h = s:getWidth(), s:getHeight()
-  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
-  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
-  if wp ~= w or hp ~= h then
-    local padded = love.image.newImageData(wp, hp)
-    padded:paste(s, 0, 0)
-    s = padded
-  end
-  local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", 0)
-  s:mapPixel(function(x,y,r,g,b,a)
-      local ret = (r+g+b)/3
-      return ret,ret,ret,a
-    end)
-  local gray = love.graphics.newImage(s)
-  gray:setMipmapFilter("linear", 0)
-  return ret,gray,w,h
-end
-
 do
   local asset_map = {}
   function load_asset(s)
@@ -75,85 +54,102 @@ do
   end
 end
 
-do
-  local real_load_img = load_img
-  load_img = function(s)
-    local status,a,b,c,d = pcall(function()
-        return real_load_img(s)
-      end)
-    if status then
-      return a,b,c,d
-    end
-    return real_load_img("200033L.jpg")
-  end
-end
-
 local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
+local texture_width, texture_height
 
 local fonts = {}
 
-local load_img_async
+local load_img_async_func
 
-function load_img(id)
-  local w = 512
-  local h = 512
-  s = love.image.newImageData(w, h)
-  s2 = love.image.newImageData(w, h)
+function load_backface()
+  s = love.image.newImageData("swordgirlsimages/000000L.jpg")
+  local w, h = s:getWidth(), s:getHeight()
+  wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+  hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+  if wp ~= w or hp ~= h then
+    local padded = love.image.newImageData(wp, hp)
+    padded:paste(s, 0, 0)
+    s = padded
+  end
   local ret = love.graphics.newImage(s)
   ret:setMipmapFilter("linear", -.1)
+  s:mapPixel(function(x,y,r,g,b,a)
+      local ret = (r+g+b)/3
+      return ret,ret,ret,a
+    end)
   local gray = love.graphics.newImage(s2)
   gray:setMipmapFilter("linear", -.1)
-  if not load_img_async then print("AAAAAHRG") end
-  load_img_async(function(id, tex, tex_gray)
-    print("attempting to refresh image "..id)
+  return ret,gray,w,h,wp,hp
+end
+
+function load_img(id)
+  function async_callback(id, tex, tex_gray)
     local img_ref = IMG_card[id]
     img_ref:getData():paste(tex, 0, 0)
     img_ref:refresh()
     local img_gray_ref = IMG_gray_card[id]
     img_gray_ref:getData():paste(tex_gray, 0, 0)
     img_gray_ref:refresh()
-  end, id)
-  return ret,gray,w,h
+    IMG_rdy[id] = true
+  end
+
+  s = love.image.newImageData(texture_width, texture_height)
+  s2 = love.image.newImageData(texture_width, texture_height)
+  local ret = love.graphics.newImage(s)
+  ret:setMipmapFilter("linear", -.1)
+  local gray = love.graphics.newImage(s2)
+  gray:setMipmapFilter("linear", -.1)
+  load_img_async_func(async_callback, id)
+  return ret,gray,texture_width,texture_height
 end
 
+function async_load(id)
+  love = require "love"
+  require "love.image"
+
+  -- tries to grab image, returns predefined placeholder otherwise
+  function load_img_data(id)
+    local status, tex = pcall(function()
+        return love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
+      end)
+    if status then
+      return tex
+    end
+    return love.image.newImageData("swordgirlsimages/000000L.jpg")
+  end
+  
+  tex = load_img_data(id)
+  local w, h = tex:getWidth(), tex:getHeight()
+  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+  if wp ~= w or hp ~= h then
+    local padded = love.image.newImageData(wp, hp)
+    padded:paste(tex, 0, 0)
+    tex = padded
+  end
+  tex_gray = love.image.newImageData(wp, hp)
+  tex_gray:paste(tex, 0, 0)
+  tex_gray:mapPixel(function(x,y,r,g,b,a)
+      local ret = (r+g+b)/3
+      return ret,ret,ret,a
+    end)
+  return id,tex,tex_gray
+end
+
+
 function graphics_init()
+  IMG_rdy = {}
   IMG_card = {}
   IMG_gray_card = {}
-  for _,v in ipairs({300249}) do
-    IMG_card[v], IMG_gray_card[v], card_width, card_height =
-      load_img_old(v.."L.jpg")
-  end
+  IMG_card[000000], IMG_gray_card[000000], card_width, card_height,
+    texture_width, texture_height = load_backface()
+
   card_width = card_width * card_scale
   card_height = card_height * card_scale
 
-  load_img_async = async.define("load_img_async", function(id)
-    print("thread started for "..id)
-    love = require "love"
-    require "love.image"
-    print("required it")
-    tex = love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
-    print("acquired "..id)
-    local w, h = tex:getWidth(), tex:getHeight()
-    local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
-    local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
-    if wp ~= w or hp ~= h then
-      local padded = love.image.newImageData(wp, hp)
-      padded:paste(tex, 0, 0)
-      tex = padded
-    end
-    print("pasted it")
-    tex_gray = love.image.newImageData(wp, hp)
-    tex_gray:paste(tex, 0, 0)
-    print("newed it")
-    tex_gray:mapPixel(function(x,y,r,g,b,a)
-        local ret = (r+g+b)/3
-        return ret,ret,ret,a
-      end)
-    print("greyed it")
-    return id,tex,tex_gray
-  end)
+  load_img_async_func = async.define("load_img_async", async_load)
 end
 
 function draw_hover_card(text_obj)
@@ -365,7 +361,7 @@ local slot_to_dxdy = {
 function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
-    id = 200099
+    id = "000000"
   end
   if not IMG_card[id] then
     IMG_card[id], IMG_gray_card[id] = load_img(id)
@@ -383,7 +379,7 @@ function draw_card(card, x, y, lighten_frame, text)
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
   love.graphics.setColor(255, 255, 255)
-  if not card.hidden then
+  if not card.hidden and IMG_rdy[id] then
     if card.type == "follower" then
       love.graphics.setFont(load_font("sg_assets/fonts/statwan_s.png"))
       love.graphics.printf(card.atk, x, y+102, card_width/3, "center")
