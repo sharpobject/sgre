@@ -1630,7 +1630,8 @@ function Game:client_run()
     elseif msg.type == "shuffle" then
       --TODO PLAY A SHUFFLING SOUND?????
     elseif msg.type == "coin" then
-        --TODO
+      self:set_coin_animation(msg.player)
+      self:await_coin_animation()
     elseif msg.type == "game_over" then
       return game
     elseif msg.type == "turn" then

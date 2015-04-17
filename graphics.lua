@@ -464,6 +464,17 @@ function anim_layer()
         love.graphics.draw(img, pos.x+dx, pos.y+dy)
       end
     end
+    if self.coin_flip then
+      local imgname, alpha = unpack(self.coin_frameset)
+      local coin_img = load_asset("animations/coin_flip/"..imgname..".png")
+      if self.coin_frame > 16 and self.coin_frame < 28 then
+        local spin_img = load_asset("animations/coin_flip/flip_bg.png")
+        love.graphics.draw(spin_img, 221, 144)
+      end
+      love.graphics.setColor(255,255,255,alpha)
+      love.graphics.draw(coin_img, 221, 144)
+      love.graphics.setColor(255,255,255,255)
+    end
   end
   layer.Update = function(self)
     for i=0,5 do
@@ -501,11 +512,30 @@ function anim_layer()
           self.anims[i+6] = nil
         end
       end
+    end
 
+    if game.coin_flip then
+      self.coin_flip = true
+      local frame = math.floor(self.coin_frame)
+      if frame == 5 and self.coin_lf < 5 then
+        play_sound("coin_start")
+      elseif frame == 36 and self.coin_lf < 36 then
+        play_sound("coin_end")
+      end
+      self.coin_lf = frame
+      self.coin_frameset = game.coin_anim[frame]
+      self.coin_frame = self.coin_frame + 24/game.fps
+      if self.coin_frame >= 54 then
+        game.coin_flip = false
+        self.coin_flip = false
+        self.coin_frame = 1
+      end
     end
   end
   layer.anims = {}
   layer.slotpos = {}
+  layer.coin_frame = 1
+  layer.coin_flip = false
   for _,side in ipairs({"left", "right"}) do
     for i=0,5 do
       local origx = slot_to_dxdy[side][i][1] + field_x

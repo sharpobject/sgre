@@ -18,6 +18,8 @@ sounds_table["trigger_defend"] = "sg_sounds/trigger_defend.wav"
 sounds_table["trigger_start"] = "sg_sounds/trigger_start.wav"
 sounds_table["trigger_spell"] = "sg_sounds/trigger_spell.wav"
 sounds_table["trigger_vanish"] = "sg_sounds/trigger_vanish.wav"
+sounds_table["coin_start"] = "sg_sounds/coin_start.wav"
+sounds_table["coin_end"] = "sg_sounds/coin_end.wav"
 
 local button_sound = love.audio.newSource("sg_sounds/btn_click01.wav")
 local cancel_sound = love.audio.newSource("sg_sounds/btn_click02.wav")
