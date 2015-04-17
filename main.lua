@@ -32,6 +32,8 @@ function love.load(arg)
   arg = arg or {}
   GLOBAL_EMAIL, GLOBAL_PASSWORD = arg[2], arg[3]
 
+  leftover_time = 1/120
+
   if GLOBAL_EMAIL == "--server" then
     require("server")
   end
@@ -67,15 +69,21 @@ end
 
 function love.update(dt)
   --print("FRAME BEGIN")
-  local status, err = coroutine.resume(mainloop)
-  if not status then
-    error(err..'\n'..debug.traceback(mainloop))
+  leftover_time = leftover_time + dt
+  for i=1,3 do
+    if leftover_time >= 1/60 then
+      local status, err = coroutine.resume(mainloop)
+      if not status then
+        error(err..'\n'..debug.traceback(mainloop))
+      end
+      if game then
+        game:update()
+      end
+      do_messages()
+      loveframes.update(1/60)
+      leftover_time = leftover_time - 1/60
+    end
   end
-  if game then
-    game:update()
-  end
-  do_messages()
-  loveframes.update(dt)
 end
 
 local hover_states = arr_to_set({"playing", "decks", "craft", "cafe", "xmute"})

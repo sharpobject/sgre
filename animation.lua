@@ -42,7 +42,7 @@ function Game:set_buff_animation(buff, player_idx, slot)
 end
 
 function Game:await_buff_animations()
-  wait(math.ceil(self.fps*22/60))
+  wait(22)
 end
 
 function Game:await_target_animations()
@@ -63,5 +63,5 @@ function Game:await_target_animations()
       keep_waiting = false
     end
   end
-  wait(math.ceil(self.fps*2/60))
+  wait(2)
 end

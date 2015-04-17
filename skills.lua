@@ -1143,7 +1143,7 @@ end,
     end
   end
   if #player.hand > 0 then
-    player:hand_to_bottom_deck(1)
+    player:hand_to_top_deck(1)
     local grave_idx = uniformly(player:grave_idxs_with_preds(pred.union(pred.shion, pred.rion)))
     if grave_idx then
       player:grave_to_exile(grave_idx)
@@ -2810,10 +2810,9 @@ end,
 -- Rewind
 [1264] = function(player, my_idx, my_card, skill_idx)
   local idx = uniformly(player:grave_idxs_with_preds(pred.follower))
-  if not idx then
-    return
+  if idx then
+    player:grave_to_bottom_deck(idx)
   end
-  player:grave_to_bottom_deck(idx)
   my_card:remove_skill(skill_idx)
 end,
 
@@ -3655,6 +3654,7 @@ end,
     buff.field[player][my_idx] = {sta={"=", other_card.sta}}
     buff.field[player.opponent][other_idx] = {sta={"=", my_card.sta}}
     buff:apply()
+    my_card.skills[skill_idx] = nil
   end
 end,
 
@@ -4102,7 +4102,8 @@ end,
 
 -- White Whale Crevasse
 -- Holy Guardian's Power
-[1385] = function(player)
+[1385] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"+",1}}):apply()
   for i = 1, 5 do
     local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
     if idx then
@@ -4115,7 +4116,8 @@ end,
 
 -- White Whale Crevasse
 -- Holy Guardian's Blessing
-[1386] = function(player)
+[1386] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {sta={"+",1}}):apply()
   for i = 1, 5 do
     local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
     if idx then
@@ -4243,6 +4245,7 @@ end,
   else
     player:field_to_grave(my_idx)
   end
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Seeker Melissa
@@ -4299,7 +4302,7 @@ end,
 -- Head Luna Flina
 -- Master's Resolve
 [1404] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local check = #player:field_idxs_with_preds(pred.follower,
+  local check = #player:field_idxs_with_preds(pred.D,
       function(card) return card ~= my_card end) > 0
   if check then
     local idx = uniformly(player:empty_field_slots())
@@ -4314,6 +4317,7 @@ end,
       end
     end
   end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Trace of Kana
@@ -4445,7 +4449,7 @@ end,
 -- Restrained Fury
 [1420] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.sta > my_card.atk then
-    local mag = 1 + other_card.def - my_card.sta
+    local mag = 1 + other_card.sta - my_card.atk
     OneBuff(player, my_idx, {atk={"+", mag}, sta={"-", mag}}):apply()
     my_card:remove_skill(skill_idx)
   end

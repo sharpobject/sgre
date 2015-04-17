@@ -52,13 +52,13 @@ function load_img(s)
     s = padded
   end
   local ret = love.graphics.newImage(s)
+  ret:setMipmapFilter("linear", 0)
   s:mapPixel(function(x,y,r,g,b,a)
       local ret = (r+g+b)/3
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", -.1)
-  gray:setMipmapFilter("linear", -.1)
+  gray:setMipmapFilter("linear", 0)
   return ret,gray,w,h
 end
 
@@ -404,7 +404,6 @@ function anim_layer()
     end
   end
   layer.Update = function(self)
-    local framestep = 30/game.fps -- animation FPS here
     for i=0,5 do
       local player = game.P1
       local animation = player.animation[i]
@@ -416,7 +415,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + framestep
+        animation.frame = animation.frame + .5
         if animation.frame >= animation.framecount then
           player.animation[i] = nil
           self.anims[i] = nil
@@ -432,7 +431,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + framestep
+        animation.frame = animation.frame + .5
         if animation.frame >= animation.framecount then
           opponent.animation[i] = nil
           self.anims[i+6] = nil
@@ -520,9 +519,8 @@ function card_button(side,idx,x,y)
     else
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
-        local framestep = 30/game.fps -- buff animation FPS here
         self.buff_animation = buff_animation
-        buff_animation.frame = buff_animation.frame + framestep
+        buff_animation.frame = buff_animation.frame + .5
         if buff_animation.frame >= 20 then
           player.buff_animation[idx] = nil
         end
@@ -756,7 +754,6 @@ function get_hover_list_text(state)
 end
 
 function Game:draw()
-  self.fps = love.timer.getFPS()
   self:draw_field()
 
   local left, right = self.P1, self.P2
@@ -939,7 +936,7 @@ function card_count_thing(cards, cp, buffer_spaces)
     love.graphics.setColor(0, 0, 0, 255)
     love.graphics.setFont(load_vera(10))
     love.graphics.print(cards .. " Cards", x, y)
-    love.graphics.printf(cp.." CP", x, y, w, "right")
+    love.graphics.printf(cp.." DP", x, y, w, "right")
   end
   button.Update = function(self)
   end

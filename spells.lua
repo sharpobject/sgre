@@ -412,11 +412,11 @@ end,
   local target_idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
-    for _,idx in ipairs(reverse(knight_idxs)) do
-      player:grave_to_exile(idx)
+    while(#player.grave > 0) do
+      player.grave[#player.grave] = nil
     end
-    assert(0==#player:grave_idxs_with_preds(pred.knight))
   end
+
 end,
 
 -- pacifism
@@ -4511,7 +4511,7 @@ Its skills become Break and Death
   end
   local card = player.field[pl_idx]
   player.field[pl_idx], opponent.field[op_idx] = nil, player.field[pl_idx]
-  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)+card.sta}}):apply()
+  OneBuff(opponent, op_idx, {atk={"=",0},sta={"+",floor(card.atk/2)}}):apply()
   card:remove_skill(1)
   card:remove_skill(2)
   card:remove_skill(3)
@@ -4843,8 +4843,8 @@ a random Follower in the enemy Field gets ATK/DEF/SIZE halved (rounding up).
     local op_idx = uniformly(op_idxs)
     if op_idx then
       local op_card = opponent.field[op_idx]
-      OneBuff(opponent, op_idx, {atk={"=",floor(op_card.atk / 2)},def={"=",floor(op_card.atk / 2)},
-        sta={"=",floor(op_card.atk / 2)}}):apply()
+      OneBuff(opponent, op_idx, {atk={"=",floor(op_card.atk / 2)},def={"=",floor(op_card.def / 2)},
+        sta={"=",floor(op_card.sta / 2)}}):apply()
     end
   end
 end,
@@ -6227,7 +6227,7 @@ Lib. Assistant
 ]]
 [200401] = function(player, opponent, my_idx)
   player:field_to_exile(my_idx)
-  player.field[my_idx] = Card(300016) --300206
+  player.field[my_idx] = Card(300206)
   OneBuff(player, my_idx, {size={"=",my_idx},atk={"=",my_idx*2},sta={"=",my_idx*2}}):apply()
 end,
 
@@ -6863,7 +6863,7 @@ Opposition
   for i=1,min(2, #idxs) do
     local mag = ceil((player.field[idxs[1]].size + 
         (player.field[idxs[2]] or player.field[idxs[1]]).size)/2)
-    buff[idxs[i]] = {atk={"+",mag}}
+    buff[idxs[i]] = {atk={"+",mag}, def={"=", 0}}
   end
   buff:apply()
 end,
@@ -7090,6 +7090,7 @@ Lady Maid Dream
   end
   local idx = uniformly(opponent:field_idxs_with_preds())
   if not idx then return end
+  opponent.field[idx]:reset()
   table.insert(opponent.grave, 1, opponent.field[idx])
   opponent.field[idx] = nil
   idx = opponent:first_empty_field_slot()
@@ -7143,6 +7144,8 @@ Relapse
   idx = player:first_empty_field_slot()
   if idx then
     player.field[idx] = deepcpy(card)
+    player.field[idx]:refresh()
+    player.field[idx].active = true
     card.size = size_mag
   end
 end,
