@@ -64,10 +64,10 @@ local fonts = {}
 local load_img_async_func
 
 function load_backface()
-  s = love.image.newImageData("swordgirlsimages/000000L.jpg")
+  local s = love.image.newImageData("swordgirlsimages/000000L.jpg")
   local w, h = s:getWidth(), s:getHeight()
-  wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
-  hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
+  local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
+  local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
   if wp ~= w or hp ~= h then
     local padded = love.image.newImageData(wp, hp)
     padded:paste(s, 0, 0)
@@ -95,8 +95,8 @@ function load_img(id)
     IMG_rdy[id] = true
   end
 
-  s = love.image.newImageData(texture_width, texture_height)
-  s2 = love.image.newImageData(texture_width, texture_height)
+  local s = love.image.newImageData(texture_width, texture_height)
+  local s2 = love.image.newImageData(texture_width, texture_height)
   local ret = love.graphics.newImage(s)
   ret:setMipmapFilter("linear", -.1)
   local gray = love.graphics.newImage(s2)
@@ -120,7 +120,7 @@ function async_load(id)
     return love.image.newImageData("swordgirlsimages/000000L.jpg")
   end
   
-  tex = load_img_data(id)
+  local tex = load_img_data(id)
   local w, h = tex:getWidth(), tex:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -129,7 +129,7 @@ function async_load(id)
     padded:paste(tex, 0, 0)
     tex = padded
   end
-  tex_gray = love.image.newImageData(wp, hp)
+  local tex_gray = love.image.newImageData(wp, hp)
   tex_gray:paste(tex, 0, 0)
   tex_gray:mapPixel(function(x,y,r,g,b,a)
       local ret = (r+g+b)/3
