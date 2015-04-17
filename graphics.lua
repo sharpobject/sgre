@@ -79,7 +79,7 @@ function load_backface()
       local ret = (r+g+b)/3
       return ret,ret,ret,a
     end)
-  local gray = love.graphics.newImage(s2)
+  local gray = love.graphics.newImage(s)
   gray:setMipmapFilter("linear", -.1)
   return ret,gray,w,h,wp,hp
 end
