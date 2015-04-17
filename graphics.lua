@@ -74,13 +74,13 @@ function load_backface()
     s = padded
   end
   local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", -.1)
+  ret:setMipmapFilter("linear", 0)
   s:mapPixel(function(x,y,r,g,b,a)
       local ret = (r+g+b)/3
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  gray:setMipmapFilter("linear", -.1)
+  gray:setMipmapFilter("linear", 0)
   return ret,gray,w,h,wp,hp
 end
 
@@ -98,9 +98,9 @@ function load_img(id)
   local s = love.image.newImageData(texture_width, texture_height)
   local s2 = love.image.newImageData(texture_width, texture_height)
   local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", -.1)
+  ret:setMipmapFilter("linear", 0)
   local gray = love.graphics.newImage(s2)
-  gray:setMipmapFilter("linear", -.1)
+  gray:setMipmapFilter("linear", 0)
   load_img_async_func(async_callback, id)
   return ret,gray,texture_width,texture_height
 end
