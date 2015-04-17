@@ -1,6 +1,6 @@
 socket = require("socket")
 json = require("dkjson")
-async = require "async"
+async = require("async")
 require("stridx")
 require("util")
 require("class")
@@ -37,7 +37,6 @@ function love.load(arg)
 
   async.load()
   async.ensure.atLeast(1).atMost(4)
-
 
   if GLOBAL_EMAIL == "--server" then
     require("server")
@@ -110,8 +109,4 @@ function love.draw()
   if DISPLAY_FRAMERATE then
     love.graphics.print(tostring(love.timer.getFPS()), 0, 0)
   end
-end
-
-function love.threaderror(thread, err)
-    error(err)
 end
