@@ -196,5 +196,5 @@ function Game:await_target_animations()
       keep_waiting = false
     end
   end
-  wait(2)
+  wait(5)
 end
