@@ -1,6 +1,9 @@
 require "gradient"
 local love = love
 
+local generic_text_color = {155, 94, 33, 255}
+local cardinfo_text_color = {128, 82, 36}
+
 do
   local font_map = {}
   local font_to_str = {
@@ -218,7 +221,9 @@ function draw_hover_card(text_obj)
   love.graphics.setColor(255, 255, 255)
   local id = card.id
   acquire_img(id)
-  local x,y = 612,15
+  local x,y = 612,27
+  local border = load_asset("cardframe.png")
+  love.graphics.draw(border, x-7, y-7, 0, 1, 1)
   love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
   local card_width = card_width*2
   local card_height = card_height*2
@@ -357,7 +362,7 @@ function Game:draw_field()
   draw_border(fx, fy, fw, fh)
 end
 
-function draw_hover_frame(x,y,w,h)
+function draw_hover_frame(x,y,w,h,title)
   if not x then
     local junk, fw = load_asset("field.png")
     x = field_x+fw+4+13+4
@@ -366,6 +371,13 @@ function draw_hover_frame(x,y,w,h)
   end
   love.graphics.setColor(254, 226, 106)
   love.graphics.rectangle("fill", x, y, w, h)
+  if title then
+    local title_bg = load_asset("title_bg.png")
+    love.graphics.draw(title_bg, x, y, 0, w, 1)
+    love.graphics.setColor(253, 233, 94)
+    love.graphics.setFont(load_vera(14))
+    love.graphics.printf(title, 60, y+5, 100, "center")
+  end
   draw_border_hover(x, y, w, h)
 end
 
@@ -826,16 +838,17 @@ function make_player_info(frame)
 	  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
 	  local id = get_active_char() or 100089
 	  acquire_img(id)
-	  love.graphics.draw(IMG_card[id], 800-w-4, 80, 0, .5, .5)
-	  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 80)
-	  love.graphics.draw(load_asset("nick_name.png"),788-w-4, 330)
+    love.graphics.draw(load_asset("cardframe.png"), 800-w-11, 80)
+	  love.graphics.draw(IMG_card[id], 800-w-4, 87, 0, .5, .5)
+	  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 87)
+	  love.graphics.draw(load_asset("nick_name.png"),788-w-4, 337)
 	  love.graphics.setColor(144, 103, 55, 255)
-	  love.graphics.printf(user_data.username, 800-w*2/3-4, 340, 38, "center")
+	  love.graphics.printf(user_data.username, 800-w*2/3-4, 347, 38, "center")
 	  love.graphics.setFont(load_font("sg_assets/fonts/lifewan.png"))
 	  love.graphics.setColor(255, 255, 255, 255)
 	  local card = Card(id)
-      love.graphics.printf(math.max(card.life, 0), 800-w/2+16, h/2, 50, "center")
-	  draw_faction(card.faction, 800-w-4, 80, 0, 1, 1)  
+      love.graphics.printf(math.max(card.life, 0), 800-w/2+17, h/2+4, 50, "center")
+	  draw_faction(card.faction, 800-w-1, 90, 0, 1, 1)  
     end
 end
  
@@ -856,6 +869,7 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   frame:SetState(loveframes.GetState())
   
   local ptext = loveframes.Create("text", frame)
+  ptext:SetDefaultColor(generic_text_color)
   ptext:SetText(prompt)
   ptext:Center()
   ptext:SetY(35)
@@ -888,32 +902,37 @@ function get_hover_list_text(state)
 
   local list = loveframes.Create("list")
   list:SetState(state)
-  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+5)
+  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+24)
   list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
   list:SetPadding(5)
   list:SetSpacing(5)
 
   local name = loveframes.Create("text")
+  name:SetDefaultColor(cardinfo_text_color)
   name:SetText("Sword Girl")
   name:SetFont(load_vera(11))
   list:AddItem(name)
 
   local stats = loveframes.Create("text")
+  stats:SetDefaultColor(cardinfo_text_color)
   stats:SetText("Limit: over 9000")
   stats:SetFont(load_vera(10))
   list:AddItem(stats)
   
   local eff1 = loveframes.Create("text")
+  eff1:SetDefaultColor(cardinfo_text_color)
   eff1:SetText("TURN START:")
   eff1:SetFont(load_vera(10))
   list:AddItem(eff1)
 
   local eff2 = loveframes.Create("text")
+  eff2:SetDefaultColor(cardinfo_text_color)
   eff2:SetText("ATTACK:")
   eff2:SetFont(load_vera(10))
   list:AddItem(eff2)
 
   local eff3 = loveframes.Create("text")
+  eff3:SetDefaultColor(cardinfo_text_color)
   eff3:SetText("DEFEND:")
   eff3:SetFont(load_vera(10))
   list:AddItem(eff3)
@@ -921,6 +940,7 @@ function get_hover_list_text(state)
   local text = {eff1, eff2, eff3}
 
   local quote = loveframes.Create("text")
+  quote:SetDefaultColor(cardinfo_text_color)
   quote:SetText("[The moe is strong with this one]")
   quote:SetFont(load_vera(10))
   list:AddItem(quote)
@@ -1086,7 +1106,7 @@ function deck_card_list_button(id, upgrade, count, cb)
       love.graphics.setColor(220, 220, 255, 220)
       love.graphics.rectangle("fill", x,y,w,h)
     end
-    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.setColor(generic_text_color)
     love.graphics.setFont(load_vera(10))
     love.graphics.print(id_to_canonical_card[id].name, x, y)
     if type(count) == "number" then
@@ -1103,19 +1123,30 @@ function deck_card_list_button(id, upgrade, count, cb)
   return button
 end
 
-function card_count_thing(cards, cp, buffer_spaces)
-  local button = loveframes.Create("button")
-  button:SetHeight(13 * (1+buffer_spaces))
+function card_count_thing(count, points, parent)
+  local button = loveframes.Create("button", parent)
+  --button:SetHeight(13 * (1+buffer_spaces))
   button.Draw = function(self)
     local x = self:GetX()
-    local y = self:GetY()+13*buffer_spaces
+    local y = self:GetY()
     local w, h = self:GetWidth(), self:GetHeight()
-    love.graphics.setColor(0, 0, 0, 255)
-    love.graphics.setFont(load_vera(10))
-    love.graphics.print(cards .. " Cards", x, y)
-    love.graphics.printf(cp.." DP", x, y, w, "right")
+    local cards_img = load_asset("deck_ct.png")
+    local points_img = load_asset("deck_pt.png")
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.draw(cards_img, x, y, 0, 1, 1)
+    love.graphics.draw(points_img, x+w-30-25, y, 0, 1, 1)
+    love.graphics.setColor(generic_text_color)
+    love.graphics.setFont(load_vera(11))
+    love.graphics.print(count, x+22, y+1)
+    love.graphics.print(points, x+w-30, y+1)
   end
   button.Update = function(self)
+  end
+  function button:set_count(n)
+    count = n
+  end
+  function button:set_points(n)
+    points = n
   end
   return button
 end
@@ -1146,7 +1177,7 @@ function card_list_button(id, gray, count, cb)
       if type(count) ~= "nil" and type(count) ~= "table" then
         love.graphics.draw(load_asset("card_count.png"), x+8, y+69)
         love.graphics.setFont(load_vera(10))
-        love.graphics.setColor(0, 0, 0, 255)
+        love.graphics.setColor(generic_text_color)
         love.graphics.printf(tostring(count), x, y+83, 66, "right")
       end
     end
