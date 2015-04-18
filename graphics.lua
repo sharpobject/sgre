@@ -249,31 +249,40 @@ function draw_hover_card(text_obj)
     draw_faction(card.faction, x+3, y+3, 0, 1, 1)
   end
   love.graphics.setColor(28 ,28 ,28)
-  local text = card.name.."\n".."Limit "..card.limit.."      "..
+  local name_obj, stats_obj, eff_obj, quote_obj = text_obj[1], text_obj[2], text_obj[3], text_obj[4]
+  local eff1_obj, eff2_obj, eff3_obj = eff_obj[1], eff_obj[2], eff_obj[3]
+  name_obj:SetText(card.name)
+  stats_obj:SetText("Limit "..card.limit.."      "..
     card.points.."pt      "..card.rarity.."      "..
-    card.episode.." ".."\n\n"
-  text = text .. (skill_text[card.id] or "")
+    card.episode)
   if card.type == "follower" then
     local skills = card.skills or {}
     for i=1,3 do
+      local text
       if skills[i] then
         if skill_text[skills[i]] then
-          text = text .. skill_text[skills[i]]
+          text = skill_text[skills[i]]
         else
-          text = text .. "Unknown skill with id " .. skills[i]
+          text = "Unknown skill with id " .. skills[i]
         end
       else
-        text = text .. "-"
+        text = ""
       end
-      if i < 3 then
-        text = text .. "\n\n"
-      end
+      -- TODO: scrub the json file instead of scrubbing here
+      text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
+      eff_obj[i]:SetText(text:gsub("\n"," \n "):gsub("Turn Start:","TURN START:")
+        :gsub("Attack:","ATTACK:")
+        :gsub("Defend:","DEFEND:"))
     end
+  else
+    local text = (skill_text[card.id] or "")
+    -- TODO: scrub the json file instead of scrubbing here
+    text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
+    eff_obj[1]:SetText(text:gsub("\n"," \n "):gsub("Turn Start:","TURN START:"))
+    eff_obj[2]:SetText("")
+    eff_obj[3]:SetText("")
   end
-  text = text.."\n\n"..card.flavor
-  -- TODO: scrub the json file instead of scrubbing here
-  text = table.concat(filter(function(x) return string.byte(x) < 128 end,procat(text)))
-  text_obj:SetText(text:gsub("\n"," \n "))
+  quote_obj:SetText(card.flavor:gsub("\n"," \n "))
 end
 
 local bkg_grad, bkg_batch = nil, nil
@@ -883,12 +892,39 @@ function get_hover_list_text(state)
   list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
   list:SetPadding(5)
   list:SetSpacing(5)
+
+  local name = loveframes.Create("text")
+  name:SetText("Sword Girl")
+  name:SetFont(load_vera(11))
+  list:AddItem(name)
+
+  local stats = loveframes.Create("text")
+  stats:SetText("Limit: over 9000")
+  stats:SetFont(load_vera(10))
+  list:AddItem(stats)
   
-  local text = loveframes.Create("text")
-  text:SetText("assy cron")
-  text:SetFont(load_vera(10))
-  list:AddItem(text)
-  return list, text
+  local eff1 = loveframes.Create("text")
+  eff1:SetText("TURN START:")
+  eff1:SetFont(load_vera(10))
+  list:AddItem(eff1)
+
+  local eff2 = loveframes.Create("text")
+  eff2:SetText("ATTACK:")
+  eff2:SetFont(load_vera(10))
+  list:AddItem(eff2)
+
+  local eff3 = loveframes.Create("text")
+  eff3:SetText("DEFEND:")
+  eff3:SetFont(load_vera(10))
+  list:AddItem(eff3)
+
+  local text = {eff1, eff2, eff3}
+
+  local quote = loveframes.Create("text")
+  quote:SetText("[The moe is strong with this one]")
+  quote:SetFont(load_vera(10))
+  list:AddItem(quote)
+  return list, name, stats, text, quote
 end
 
 function Game:draw()
@@ -965,7 +1001,7 @@ function Game:draw()
     self.loveframes_buttons.ready = ready
     self.loveframes_buttons.shuffle = shuffle
 
-    local list, text = get_hover_list_text("playing")
+    local list, name, stats, text, quote = get_hover_list_text("playing")
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("playing")
@@ -986,7 +1022,7 @@ function Game:draw()
     
 
     self.loveframes_buttons.card_text_list = list
-    self.loveframes_buttons.card_text = text
+    self.loveframes_buttons.card_text = {name, stats, text, quote}
   end
 
   local ldeck, rdeck, lgrave, rgrave = left.deck, right.deck, left.grave, right.grave

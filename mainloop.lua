@@ -817,9 +817,9 @@ function main_craft()
     frames.craft.page_num = 1
     frames.craft.stack = {}
 
-    local list, text = get_hover_list_text("craft")
+    local list, name, stats, text, quote = get_hover_list_text("craft")
     frames.craft.card_text_list = list
-    frames.craft.card_text = text
+    frames.craft.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("craft")
@@ -1165,9 +1165,9 @@ function main_decks()
     frames.decks = {}
     frames.decks.page_num = 1
 
-    local list, text = get_hover_list_text("decks")
+    local list, name, stats, text, quote = get_hover_list_text("decks")
     frames.decks.card_text_list = list
-    frames.decks.card_text = text
+    frames.decks.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("decks")
@@ -1381,9 +1381,9 @@ function main_cafe()
     frames.cafe.active_character_stats = {0, 0, 0, 0, 0}
 
     -- list of cafe cards on the left
-    local list, text = get_hover_list_text("cafe")
+    local list, name, stats, text, quote = get_hover_list_text("cafe")
     frames.cafe.card_text_list = list
-    frames.cafe.card_text = text
+    frames.cafe.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     lobby_button:SetState("cafe")
@@ -1737,9 +1737,9 @@ function main_xmute()
     frames.xmute.xmute_type = nil
 
     -- set up buttons and hover area
-    local list, text = get_hover_list_text("xmute")
+    local list, name, stats, text, quote = get_hover_list_text("xmute")
     frames.xmute.card_text_list = list
-    frames.xmute.card_text = text
+    frames.xmute.card_text = {name, stats, text, quote}
 
     local lobby_button = loveframes.Create("button")
     frames.xmute.lobby_button = lobby_button
