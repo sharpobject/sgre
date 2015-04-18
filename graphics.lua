@@ -84,26 +84,29 @@ function load_backface()
   return ret,gray,w,h,wp,hp
 end
 
-local max_cards_in_mem = 64
-
 function acquire_img(id)
-  if IMG_card[id] then
-    IMG_tstamps[id] = IMG_tstamp
+  local max_cards_in_mem = 64
+  local tstamps = IMG_tstamps
+  local img_arr = IMG_card
+  local img_g_arr = IMG_gray_card
+  local ready_arr = IMG_rdy
+  if img_arr[id] then
+    tstamps[id] = IMG_tstamp
   else
-    IMG_card[id], IMG_gray_card[id] = load_img(id)
+    img_arr[id], img_g_arr[id] = load_img(id)
     IMG_count = IMG_count + 1
     if IMG_count > max_cards_in_mem then
       local smallest = IMG_tstamp
       local del_id = 0
-      for idx, stamp in pairs(IMG_tstamps) do
+      for idx, stamp in pairs(tstamps) do
         if stamp < smallest then
           del_id = idx
           smallest = stamp
         end
       end
-      IMG_card[del_id], IMG_gray_card[del_id] = nil
-      IMG_rdy[del_id] = false
-      IMG_tstamps[del_id] = nil
+      img_arr[del_id], img_g_arr[del_id] = nil
+      ready_arr[del_id] = false
+      tstamps[del_id] = nil
       IMG_count = IMG_count - 1
     end
   end
