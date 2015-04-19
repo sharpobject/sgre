@@ -879,12 +879,16 @@ function main_craft()
     end
 
     function frames.craft.spawn_craft_frame(id)
+      local str_len_limit = 32
       if frames.craft.craft_frame then
         return
       end
+      local name = id_to_canonical_card[id].name
+      name = string.len(name) < str_len_limit and name
+        or string.sub(name, 1, str_len_limit).."…"
       local frame = loveframes.Create("frame")
       frames.craft.craft_frame = frame
-      frame:SetName("Let's craft the "..id_to_canonical_card[id].name)
+      frame:SetName("Let's craft the "..name)
       frame:SetSize(400, 400)
       frame:ShowCloseButton(false)
       frame:SetDraggable(false)
