@@ -1089,6 +1089,7 @@ function Game:draw()
 end
 
 function deck_card_list_button(id, upgrade, count, cb)
+  local str_len_limit = 28
   id = tonumber(id)
   local button = loveframes.Create("button")
   button:SetHeight(13)
@@ -1108,7 +1109,10 @@ function deck_card_list_button(id, upgrade, count, cb)
     end
     love.graphics.setColor(generic_text_color)
     love.graphics.setFont(load_vera(10))
-    love.graphics.print(id_to_canonical_card[id].name, x, y)
+    local name = id_to_canonical_card[id].name
+    name = string.len(name) < str_len_limit and name
+      or string.sub(name, 1, str_len_limit).."…"
+    love.graphics.print(name, x, y)
     if type(count) == "number" then
       love.graphics.printf(count, x, y, w, "right")
     end
