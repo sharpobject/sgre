@@ -1684,73 +1684,76 @@ local from_options = nil
 function main_options()
   if not frames.options then
     frames.options = {}
-
-    local lobby_button = loveframes.Create("button")
-    frames.options.lobby_button = lobby_button
-    lobby_button:SetState("options")
-    lobby_button:SetY(515)
-    lobby_button:SetX(605)
-    lobby_button:SetWidth(174)
-    lobby_button:SetText("Lobby")
-    lobby_button:SetHeight(70)
-    function lobby_button:OnClick()
-      play_cancel_sound()
-      from_options = {main_lobby}
-    end
-
-    local options_pane = loveframes.Create("frame")
-    frames.options.options_pane = options_pane
-    options_pane:SetName("Let's adjust the SG~~")
-    options_pane:SetState("options")
-    options_pane:SetPos(50, 50)
-    options_pane:SetSize(700, 460)
-    options_pane:ShowCloseButton(false)
-    options_pane:SetDraggable(false)
-
-    local music_volume_text = loveframes.Create("text", options_pane)
-    music_volume_text:SetDefaultColor(generic_text_color)
-    music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
-    music_volume_text:SetPos(10, 30)
-
-    local music_volume_slider = loveframes.Create("slider", options_pane)
-    music_volume_slider:SetPos(10, 50)
-    music_volume_slider:SetWidth(200)
-    music_volume_slider:SetMinMax(0.0, 1.0)
-    music_volume_slider:SetDecimals(2)
-    music_volume_slider:SetValue(options.music_volume)
-    music_volume_slider.OnValueChanged = function(object)
-      options.music_volume = object:GetValue()
-      music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
-      bgm:setVolume(options.music_volume)
-      set_file("options.json", json.encode(options))
-    end
-
-    local sfx_volume_text = loveframes.Create("text", options_pane)
-    sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
-    sfx_volume_text:SetPos(10, 80)
-
-    local sfx_volume_slider = loveframes.Create("slider", options_pane)
-    sfx_volume_slider:SetPos(10, 100)
-    sfx_volume_slider:SetWidth(200)
-    sfx_volume_slider:SetMinMax(0.0, 1.0)
-    sfx_volume_slider:SetDecimals(2)
-    sfx_volume_slider:SetValue(options.sfx_volume)
-    sfx_volume_slider.OnValueChanged = function(object)
-      options.sfx_volume = object:GetValue()
-      sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
-      set_file("options.json", json.encode(options))
-    end
-    sfx_volume_slider.OnRelease = function(object)
-      play_button_sound()
-    end
-
   end
-  loveframes.SetState("options")
+
+  local options_pane = loveframes.Create("frame")
+  frames.options.options_pane = options_pane
+  options_pane:SetName("Let's adjust the SG~~")
+  options_pane:SetState("lobby")
+  options_pane:SetSize(300, 460)
+  options_pane:Center()
+  options_pane:SetModal(true)
+  options_pane:ShowCloseButton(false)
+  options_pane:SetDraggable(false)
+
+  local lobby_button = loveframes.Create("button", options_pane)
+  frames.options.lobby_button = lobby_button
+  lobby_button:SetY(420)
+  lobby_button:SetX(210)
+  lobby_button:SetWidth(80)
+  lobby_button:SetText("Close")
+  lobby_button:SetHeight(30)
+  function lobby_button:OnClick()
+	play_cancel_sound()
+    from_options = {main_lobby}
+  end
+
+  local music_volume_text = loveframes.Create("text", options_pane)
+  music_volume_text:SetDefaultColor(generic_text_color)
+  music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
+  music_volume_text:SetPos(10, 30)
+
+  local music_volume_slider = loveframes.Create("slider", options_pane)
+  music_volume_slider:SetPos(10, 50)
+  music_volume_slider:SetWidth(200)
+  music_volume_slider:SetMinMax(0.0, 1.0)
+  music_volume_slider:SetDecimals(2)
+  music_volume_slider:SetValue(options.music_volume)
+  music_volume_slider.OnValueChanged = function(object)
+    options.music_volume = object:GetValue()
+    music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
+    bgm:setVolume(options.music_volume)
+    set_file("options.json", json.encode(options))
+  end
+
+
+	local sfx_volume_text = loveframes.Create("text", options_pane)
+	sfx_volume_text:SetDefaultColor(generic_text_color)
+	sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+	sfx_volume_text:SetPos(10, 80)
+
+	local sfx_volume_slider = loveframes.Create("slider", options_pane)
+	sfx_volume_slider:SetPos(10, 100)
+	sfx_volume_slider:SetWidth(200)
+	sfx_volume_slider:SetMinMax(0.0, 1.0)
+	sfx_volume_slider:SetDecimals(2)
+	sfx_volume_slider:SetValue(options.sfx_volume)
+	sfx_volume_slider.OnValueChanged = function(object)
+	  options.sfx_volume = object:GetValue()
+	  sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+	  set_file("options.json", json.encode(options))
+	end
+	sfx_volume_slider.OnRelease = function(object)
+	  play_button_sound()
+	end
+
   while true do
     wait()
     if from_options then
       local ret = from_options
       from_options = nil
+      local options_pane = frames.options.options_pane
+      options_pane:Remove()
       return unpack(ret)
     end
   end
