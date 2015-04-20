@@ -406,6 +406,8 @@ function anim_layer()
   layer.Update = function(self)
     for i=0,5 do
       local player = game.P1
+      if player.side == "right" then player = player.opponent end
+      if side == "right" then player = player.opponent end
       local animation = player.animation[i]
       if animation then
         local frame = math.floor(animation.frame)..""
