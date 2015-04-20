@@ -886,10 +886,15 @@ function Player:combat_round()
     self:check_hand()
     self.opponent:check_hand()
     --print("Just ran spell func for id "..card.id)
+    local spell_vanish = false
     if self.send_spell_to_grave and self.field[idx] == card then
       self:field_to_grave(idx)
+      spell_vanish = true
     end
     self.game:snapshot(nil,nil,true)
+    if spell_vanish then
+      self.game:send_trigger(self.player_index, idx, "vanish")
+    end
   end
 end
 
@@ -914,6 +919,7 @@ Game = class(function(self, ld, rd, client, active_character)
       self.client = true
       self.P1.client = true
       self.P2.client = true
+      self.coin_flip = false
     end
   end)
 
@@ -1625,7 +1631,8 @@ function Game:client_run()
     elseif msg.type == "shuffle" then
       --TODO PLAY A SHUFFLING SOUND?????
     elseif msg.type == "coin" then
-        --TODO
+      self:set_coin_animation(msg.player)
+      self:await_coin_animation()
     elseif msg.type == "game_over" then
       return game
     elseif msg.type == "turn" then

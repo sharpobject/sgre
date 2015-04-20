@@ -139,6 +139,7 @@ function main_login(email, password)
     loginbutton:SetWidth(290)
     loginbutton:SetText("Login to the SG~")
     loginbutton.OnClick = function()
+      play_button_sound()
       email = textinput1:GetText()
       password = textinput2:GetText()
       net_send({type="login",
@@ -157,6 +158,7 @@ function main_login(email, password)
     donebutton:SetWidth(143)
     donebutton:SetText("Register")
     donebutton.OnClick = function()
+      play_button_sound()
       from_login = {main_register, {textinput1:GetText(),
         textinput2:GetText()}}
     end
@@ -167,6 +169,7 @@ function main_login(email, password)
     clearbutton:SetWidth(143)
     clearbutton:SetText("Forgot Password")
     clearbutton.OnClick = function()
+      play_button_sound()
       from_login = {main_forgot_password, {textinput1:GetText(),
         textinput2:GetText()}}
     end
@@ -282,6 +285,7 @@ function main_register(email, password)
     backbutton:SetWidth(143)
     backbutton:SetText("Back")
     backbutton.OnClick = function()
+      play_cancel_sound()
       from_register = {main_login, {textinput2:GetText(), textinput3:GetText()}}
     end
     frames.register.back_button = backbutton
@@ -291,6 +295,7 @@ function main_register(email, password)
     registerbutton:SetWidth(143)
     registerbutton:SetText("Register forrealz")
     registerbutton.OnClick = function(self)
+      play_button_sound()
       net_send({type="register",
         username=textinput1:GetText(),
         email=textinput2:GetText(),
@@ -365,6 +370,7 @@ function main_forgot_password(email, password)
     donebutton:SetWidth(143)
     donebutton:SetText("Back")
     donebutton.OnClick = function()
+      play_cancel_sound()
       from_forgot_password = {main_login, {textinput1:GetText(),
         frames.forgot_password.password}}
     end
@@ -374,6 +380,7 @@ function main_forgot_password(email, password)
     clearbutton:SetWidth(143)
     clearbutton:SetText("Request New Password")
     clearbutton.OnClick = function()
+      play_button_sound()
       local modal = loveframes.Create("frame")
       modal:SetName("sorry-m9")
       modal:SetSize(300, 120)
@@ -398,6 +405,7 @@ function main_forgot_password(email, password)
       loginbutton:SetWidth(290)
       loginbutton:SetText("Back")
       loginbutton.OnClick = function()
+        play_cancel_sound()
         modal:Remove()
         from_forgot_password = {main_login, {textinput1:GetText(),
           frames.forgot_password.password}}
@@ -446,6 +454,7 @@ function main_modal_notice(text, to_ret)
   frames.modal_notice.text:SetY(35)
   frames.modal_notice.ok_button:SetText("OK")
   frames.modal_notice.ok_button.OnClick = function()
+    play_button_sound()
     from_modal_notice = to_ret
   end
   loveframes.SetState("modal_notice")
@@ -487,6 +496,7 @@ function rewards(data)
   okbutton:SetY(250)
   okbutton:SetText("OK!")
   okbutton.OnClick = function()
+    play_button_sound()
     close = true
   end
 
@@ -604,12 +614,14 @@ function main_lobby()
 	
 	local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)	
 	button.OnClick = function()
+    play_button_sound()
 		from_lobby = {main_dungeon}
     end
     table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_fight_button(menuX+offsetX,menuY+offsetY+spacing)	
 	button.OnClick = function()
+    play_button_sound()
 		net_send({type="join_fight"})
 		net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
     end
@@ -682,6 +694,7 @@ function main_lobby()
     button:SetText("OPTIONS")
     button:SetState("lobby")
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_options}
     end
 --    table.insert(frames.lobby.game_buttons, button)
@@ -689,6 +702,7 @@ function main_lobby()
 	-- == Lobby Buttons, continued == --
 	local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)	
     button.OnClick = function()
+      play_button_sound()
       if frames.cafe then
         frames.cafe.populate_cafe_card_list()
         frames.cafe.update_feeding_list()
@@ -700,18 +714,21 @@ function main_lobby()
 	
 	local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)	
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_decks}
     end
 --	table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)	
     button.OnClick = function()
+      play_button_sound()
       from_lobby = {main_craft}
     end
 --    table.insert(frames.lobby.game_buttons, button)
 	
 	local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)	
     button.OnClick = function()
+      play_button_sound()
       if frames.xmute then
         frames.xmute.xmute_type = nil
         frames.xmute.populate_xmutable_card_list()
@@ -812,6 +829,7 @@ function main_craft()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_craft = {main_lobby}
     end
 
@@ -911,6 +929,7 @@ function main_craft()
       craft_button:SetX(out_card:GetStaticX()+spacing+card_width)
       craft_button:SetY(out_card:GetStaticY()+card_height/4)
       craft_button.OnClick = function()
+        play_button_sound()
         net_send({type="craft", id=id})
         function frames.craft.enable_buttons()
           craft_button:SetEnabled(true)
@@ -953,6 +972,7 @@ function main_craft()
       back_button:SetX(out_card:GetStaticX()+2*spacing+2*card_width)
       back_button:SetY(out_card:GetStaticY()+card_height/4)
       back_button.OnClick = function()
+        play_cancel_sound()
         frame:SetModal(false)
         frame:Remove()
         frames.craft.craft_frame = nil
@@ -1025,6 +1045,7 @@ function main_craft()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.craft.page_num = frames.craft.page_num - 1
       frames.craft.update_list()
     end
@@ -1036,6 +1057,7 @@ function main_craft()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.craft.page_num = frames.craft.page_num + 1
       frames.craft.update_list()
     end
@@ -1155,6 +1177,7 @@ function main_decks()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_decks = {main_lobby}
     end
 
@@ -1222,6 +1245,7 @@ function main_decks()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.decks.page_num = frames.decks.page_num - 1
       frames.decks.update_list()
     end
@@ -1233,6 +1257,7 @@ function main_decks()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.decks.page_num = frames.decks.page_num + 1
       frames.decks.update_list()
     end
@@ -1368,6 +1393,7 @@ function main_cafe()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_cafe = {main_lobby}
     end
 
@@ -1498,6 +1524,7 @@ function main_cafe()
     lbutton:SetSize(20,20)
     lbutton:SetText("<")
     function lbutton:OnClick()
+      play_button_sound()
       frames.cafe.page_num = frames.cafe.page_num - 1
       frames.cafe.update_feeding_list()
     end
@@ -1509,6 +1536,7 @@ function main_cafe()
     rbutton:SetSize(20,20)
     rbutton:SetText(">")
     function rbutton:OnClick()
+      play_button_sound()
       frames.cafe.page_num = frames.cafe.page_num + 1
       frames.cafe.update_feeding_list()
     end
@@ -1563,14 +1591,18 @@ function main_cafe()
             no_button:CenterY()
             no_button:SetX(confirm_box:GetWidth()-65)
             no_button:SetText("No")
-            no_button.OnClick = function() confirm_box:Remove() end
+            no_button.OnClick = function()
+              play_cancel_sound()
+              confirm_box:Remove()
+            end
             local yes_button = loveframes.Create("button", confirm_box)
             yes_button:SetWidth(40)
             yes_button:SetHeight(20)
             yes_button:CenterY()
             yes_button:SetX(25)
             yes_button:SetText("Yes")
-            yes_button.OnClick = function()  
+            yes_button.OnClick = function() 
+              play_button_sound() 
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
               confirm_box:Remove()
@@ -1603,7 +1635,10 @@ function main_cafe()
       ok_button:SetY(120)
       ok_button:CenterX()
       ok_button:SetText("Okay")
-      ok_button.OnClick = function() notification:Remove() end
+      ok_button.OnClick = function()
+        play_button_sound()
+        notification:Remove()
+      end
     end
   end
 
@@ -1633,6 +1668,7 @@ function main_options()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(70)
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_options = {main_lobby}
     end
 
@@ -1660,6 +1696,25 @@ function main_options()
       music_volume_text:SetText("Music Volume: "..tostring(options.music_volume))
       bgm:setVolume(options.music_volume)
       set_file("options.json", json.encode(options))
+    end
+
+    local sfx_volume_text = loveframes.Create("text", options_pane)
+    sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+    sfx_volume_text:SetPos(10, 80)
+
+    local sfx_volume_slider = loveframes.Create("slider", options_pane)
+    sfx_volume_slider:SetPos(10, 100)
+    sfx_volume_slider:SetWidth(200)
+    sfx_volume_slider:SetMinMax(0.0, 1.0)
+    sfx_volume_slider:SetDecimals(2)
+    sfx_volume_slider:SetValue(options.sfx_volume)
+    sfx_volume_slider.OnValueChanged = function(object)
+      options.sfx_volume = object:GetValue()
+      sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+      set_file("options.json", json.encode(options))
+    end
+    sfx_volume_slider.OnRelease = function(object)
+      play_button_sound()
     end
 
   end
@@ -1695,6 +1750,7 @@ function main_xmute()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       from_xmute = {main_lobby}
     end
 
@@ -1717,6 +1773,7 @@ function main_xmute()
     dr_button:SetY(math.ceil(h*0.15))
     dr_button:SetText("Double Rares")
     function dr_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "DR"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1729,6 +1786,7 @@ function main_xmute()
     accessories_button:SetY(math.ceil(h*0.45))
     accessories_button:SetText("Accessories")
     function accessories_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "accessory"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1741,6 +1799,7 @@ function main_xmute()
     ore_button:SetY(math.ceil(h*0.75))
     ore_button:SetText("Ores")
     function ore_button:OnClick()
+      play_button_sound()
       frames.xmute.xmute_type = "ore"
       frames.xmute.populate_xmutable_card_list()
     end
@@ -1857,6 +1916,7 @@ function main_xmute()
       xmute_button:SetSize(80, 40)
       xmute_button:SetText("Transmute!")
       xmute_button.OnClick = function() 
+        play_button_sound()
         local value = xmute_numberbox:GetValue()
         if not (frames.xmute.collection and from_card_id and to_card_id) then
           return
@@ -2063,6 +2123,7 @@ function main_dungeon()
   prevbutton:SetSize(30, 30)
   prevbutton:SetText("<")
   function prevbutton:OnClick()
+    play_button_sound()
     if frames.dungeon.page_num > 1 then
       frames.dungeon.page_num = frames.dungeon.page_num - 1
     end
@@ -2074,6 +2135,7 @@ function main_dungeon()
   nextbutton:SetSize(30, 30)
   nextbutton:SetText(">")
   function nextbutton:OnClick()
+    play_button_sound()
     if frames.dungeon.page_num < ceil(#frames.dungeon.difficulty / 4) then
       frames.dungeon.page_num = frames.dungeon.page_num + 1
     end
@@ -2087,6 +2149,7 @@ function main_dungeon()
   easybutton:SetText("EASY")
   easybutton:SetEnabled(false)
   function easybutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = easy_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
@@ -2097,6 +2160,7 @@ function main_dungeon()
   normalbutton:SetSize(80, 30)
   normalbutton:SetText("NORMAL")
   function normalbutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = normal_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
@@ -2107,6 +2171,7 @@ function main_dungeon()
   hardbutton:SetSize(80, 30)
   hardbutton:SetText("HARD")
   function hardbutton:OnClick()
+    play_button_sound()
     frames.dungeon.difficulty = hard_dungeons
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
@@ -2116,7 +2181,8 @@ function main_dungeon()
   closebutton:SetPos(520, 400)
   closebutton:SetSize(60, 30)
   closebutton:SetText("CLOSE")
-  function closebutton:OnClick() 
+  function closebutton:OnClick()
+    play_cancel_sound() 
     from_dungeon = {main_lobby}
     close = true
   end 
@@ -2158,6 +2224,7 @@ function main_dungeon()
         image:SetX(28 + 136 * (index - 1))
         image:CenterY()
         image.OnClick = function()
+          play_button_sound()
           from_dungeon = "start game"
           net_send({type="dungeon", idx=dungeon_id})
         end

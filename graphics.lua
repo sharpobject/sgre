@@ -501,6 +501,17 @@ function anim_layer()
         love.graphics.draw(img, pos.x+dx, pos.y+dy)
       end
     end
+    if self.coin_flip then
+      local imgname, alpha = unpack(self.coin_frameset)
+      local coin_img = load_asset("animations/coin_flip/"..imgname..".png")
+      if self.coin_frame > 16 and self.coin_frame < 28 then
+        local spin_img = load_asset("animations/coin_flip/flip_bg.png")
+        love.graphics.draw(spin_img, 221, 144)
+      end
+      love.graphics.setColor(255,255,255,alpha)
+      love.graphics.draw(coin_img, 221, 144)
+      love.graphics.setColor(255,255,255,255)
+    end
   end
   layer.Update = function(self)
     for i=0,5 do
@@ -516,7 +527,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .5
+        animation.frame = animation.frame + .45
         if animation.frame >= animation.framecount then
           player.animation[i] = nil
           self.anims[i] = nil
@@ -532,17 +543,36 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .5
+        animation.frame = animation.frame + .45
         if animation.frame >= animation.framecount then
           opponent.animation[i] = nil
           self.anims[i+6] = nil
         end
       end
+    end
 
+    if game.coin_flip then
+      self.coin_flip = true
+      local frame = math.floor(self.coin_frame)
+      if frame == 5 and self.coin_lf < 5 then
+        play_sound("coin_start")
+      elseif frame == 36 and self.coin_lf < 36 then
+        play_sound("coin_end")
+      end
+      self.coin_lf = frame
+      self.coin_frameset = game.coin_anim[frame]
+      self.coin_frame = self.coin_frame + .5
+      if self.coin_frame >= 54 then
+        game.coin_flip = false
+        self.coin_flip = false
+        self.coin_frame = 1
+      end
     end
   end
   layer.anims = {}
   layer.slotpos = {}
+  layer.coin_frame = 1
+  layer.coin_flip = false
   for _,side in ipairs({"left", "right"}) do
     for i=0,5 do
       local origx = slot_to_dxdy[side][i][1] + field_x
@@ -676,6 +706,7 @@ function faction_button(faction, x, y)
     end
   end
   button.OnClick = function(self)
+    play_button_sound()
     net_send({type="select_faction",faction=faction})
   end
   return button
@@ -824,13 +855,21 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   lb:SetPos(5, 60)
   lb:SetWidth(143)
   lb:SetText(lt)
-  lb.OnClick = function() lcb() frame:Remove() end
+  lb.OnClick = function()
+    play_button_sound()
+    lcb()
+    frame:Remove()
+  end
 
   local rb = loveframes.Create("button", frame)
   rb:SetPos(152, 60)
   rb:SetWidth(143)
   rb:SetText(rt)
-  rb.OnClick = function() rcb() frame:Remove() end
+  rb.OnClick = function()
+    play_cancel_sound()
+    rcb()
+    frame:Remove()
+  end
   
   frame:SetModal(true)
 end
@@ -893,6 +932,7 @@ function Game:draw()
     ready:SetSize(50, ready_sz)
     ready:SetState("playing")
     ready.OnClick = function()
+        play_button_sound()
         if game.client then
           net_send({type="ready"})
           game.act_buttons = false
@@ -910,6 +950,7 @@ function Game:draw()
     shuffle:SetSize(50, shuffle_sz)
     shuffle:SetState("playing")
     shuffle.OnClick = function()
+        play_button_sound()
         if self.client then
           net_send({type="shuffle"})
           self.act_buttons = false
@@ -934,6 +975,7 @@ function Game:draw()
     lobby_button:SetText("Lobby")
     lobby_button:SetHeight(600-field_y-5-lobby_button:GetY())
     function lobby_button:OnClick()
+      play_cancel_sound()
       modal_choice("Really forfeit?", "Yes", "No", function()
           net_send({type="forfeit"})
         end)
