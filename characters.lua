@@ -867,7 +867,11 @@ end,
   local targets = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#targets) do
-    buff[targets[i]] = {atk={"+",amt}}
+    if amt == 1 then
+      buff[targets[i]] = {atk={"+",1}, def={"+",1}, sta={"+",1}}
+    else
+      buff[targets[i]] = {atk={"+",amt}}
+    end
   end
   buff:apply()
 end,
@@ -2638,7 +2642,7 @@ end,
   else
     idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
-      OneBuff(player, idx, {size={"+",1}}):apply()
+      OneBuff(player, idx, {sta={"+",2}}):apply()
     end
   end
 end,
