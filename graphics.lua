@@ -65,7 +65,7 @@ local fonts = {}
 local load_img_async_func
 
 function load_backface()
-  local s = love.image.newImageData("swordgirlsimages/000000L.jpg")
+  local s = love.image.newImageData("swordgirlsimages/900000L.jpg")
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -154,6 +154,7 @@ function load_img(id)
 end
 
 function async_load(id)
+  collectgarbage("collect")
   love = require "love"
   require "love.image"
 
@@ -165,8 +166,9 @@ function async_load(id)
     if status then
       return tex
     end
-    return love.image.newImageData("swordgirlsimages/000000L.jpg")
+    return love.image.newImageData("swordgirlsimages/900000L.jpg")
   end
+  
   local tex = load_img_data(id)
   local w, h = tex:getWidth(), tex:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
@@ -197,7 +199,7 @@ function graphics_init()
 
   supports_mipmaps = love.graphics.isSupported("mipmap")
 
-  IMG_card[000000], IMG_gray_card[000000], card_width, card_height,
+  IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
     texture_width, texture_height = load_backface()
 
   card_width = card_width * card_scale
@@ -413,7 +415,7 @@ local slot_to_dxdy = {
 function draw_card(card, x, y, lighten_frame, text)
   local id = card.id
   if card.hidden then
-    id = "000000"
+    id = 900000
   end
   acquire_img(id)
   if card.type == "character" or card.active then
