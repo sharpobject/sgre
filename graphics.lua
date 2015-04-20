@@ -1097,15 +1097,32 @@ function Game:draw()
   love.graphics.printf(draw_turn[2], field_x+282, 358+field_y, 999)
   --love.graphics.setColor(28, 28, 28)
   --love.graphics.setFont(load_vera(12))
-  love.graphics.setFont(load_font("sg_assets/fonts/equalwan.png"))
   local time_remaining = self.time_remaining
   if time_remaining < 0.1 then time_remaining = 0 end
-  if self.game_type == "pve" then time_remaining = 99 end
-  love.graphics.printf(time_remaining, 447+50, 532, field_x+fw-447-50, "center")
-  love.graphics.printf("size "..left:field_size(), 447+50, 457 + 3, field_x+fw-447-50, "center")
+  if self.game_type == "pve" then time_remaining = "∞" end
+  love.graphics.setFont(load_vera(32))
+  draw_outlined_text(left:field_size(), "right", 497+48, 457+20, 100)
+  love.graphics.setFont(load_vera(16))
+  draw_outlined_text("/", "right", 497+48+6, 457+20+18, 100)
+  love.graphics.setFont(load_vera(12))
+  draw_outlined_text("10", "right", 497+48+24, 457+20+26, 100)
+  love.graphics.setFont(load_vera(32))
+  draw_outlined_text(time_remaining, "center", 497+42, 538, 100)
   if self.hover_card then
     G_hover_card = self.hover_card
   end
+end
+
+function draw_outlined_text(text, align, x, y, limit)
+  love.graphics.setColor(174, 120, 21)
+  local base_x = align == "center" and x-limit/2 or align == "right" and x-limit or x
+  love.graphics.printf(text, base_x-1, y-1, limit, align)
+  love.graphics.printf(text, base_x+1, y-1, limit, align)
+  love.graphics.printf(text, base_x-1, y+1, limit, align)
+  love.graphics.printf(text, base_x+1, y+1, limit, align)
+
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.printf(text, base_x, y, limit, align)
 end
 
 function deck_card_list_button(id, upgrade, count, cb)
