@@ -6,7 +6,7 @@ if options.music_volume == nil then
   options.music_volume = 0.1
 end
 if options.sfx_volume == nil then
-  options.sfx_volume = 0.1
+  options.sfx_volume = 0.3
 end
 if options.remember_me == nil then
   options.remember_me = true
