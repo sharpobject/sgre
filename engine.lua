@@ -919,6 +919,7 @@ Game = class(function(self, ld, rd, client, active_character)
       self.client = true
       self.P1.client = true
       self.P2.client = true
+      self.coin_flip = false
     end
   end)
 
