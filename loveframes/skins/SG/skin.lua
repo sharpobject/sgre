@@ -28,17 +28,17 @@ skin.directives = {}
 skin.controls = {}
 
 -- frame
-skin.controls.frame_border_color					= {222, 131, 33, 255}
-skin.controls.frame_separator_color					= {240, 202, 133, 255}
+skin.controls.frame_border_color                    = {222, 131, 33, 255}
+skin.controls.frame_separator_color                 = {240, 202, 133, 255}
 skin.controls.frame_body_color                      = {255, 249, 222, 255}
 skin.controls.frame_name_color                      = {155, 94, 33, 255}
-skin.controls.frame_header_color					= {255, 229, 156, 255}
+skin.controls.frame_header_color                    = {255, 229, 156, 255}
 skin.controls.frame_name_font                       = largefont
 
 -- button
-skin.controls.button_inset_color					= {12, 185, 166, 80}
-skin.controls.button_inset_width					= 1
-skin.controls.button_border_color					= {160, 160, 160, 255}
+skin.controls.button_inset_color                    = {12, 185, 166, 80}
+skin.controls.button_inset_width                    = 1
+skin.controls.button_border_color                   = {160, 160, 160, 255}
 skin.controls.button_text_down_color                = {255, 255, 255, 255}
 skin.controls.button_text_nohover_color             = {255, 255, 255, 255}
 skin.controls.button_text_hover_color               = {255, 255, 255, 255}
@@ -57,15 +57,15 @@ skin.controls.closebutton_body_nohover_color        = {255, 255, 255, 255}
 skin.controls.closebutton_body_hover_color          = {255, 255, 255, 255}
 
 -- progressbar
-skin.controls.progressbar_border_color				= {220, 154, 55, 255}
-skin.controls.progressbar_bar_color					= {248, 183, 65, 255}
+skin.controls.progressbar_border_color              = {220, 154, 55, 255}
+skin.controls.progressbar_bar_color                 = {248, 183, 65, 255}
 skin.controls.progressbar_body_color                = {255, 255, 255, 255}
 skin.controls.progressbar_text_color                = {80, 80, 80, 255}
 skin.controls.progressbar_text_font                 = smallfont
 
 -- list
 skin.controls.list_body_color                       = {253, 201, 65, 255}
-skin.controls.list_border_color                		= {218, 169, 85, 255}
+skin.controls.list_border_color                     = {218, 169, 85, 255}
 
 -- scrollarea
 skin.controls.scrollarea_body_color                 = {255, 255, 255, 120}
@@ -155,7 +155,7 @@ skin.controls.modalbackground_body_color            = {255, 255, 255, 100}
 
 -- linenumberspanel
 skin.controls.linenumberspanel_text_color           = {170, 170, 170, 255}
-skin.controls.linenumberspanel_body_color			= {235, 235, 235, 255}
+skin.controls.linenumberspanel_body_color           = {235, 235, 235, 255}
 
 -- grid
 skin.controls.grid_body_color                       = {230, 230, 230, 255}

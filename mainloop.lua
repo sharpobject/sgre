@@ -1731,25 +1731,25 @@ function main_options()
   end
 
 
-	local sfx_volume_text = loveframes.Create("text", options_pane)
-	sfx_volume_text:SetDefaultColor(generic_text_color)
-	sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
-	sfx_volume_text:SetPos(10, 80)
+  local sfx_volume_text = loveframes.Create("text", options_pane)
+  sfx_volume_text:SetDefaultColor(generic_text_color)
+  sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+  sfx_volume_text:SetPos(10, 80)
 
-	local sfx_volume_slider = loveframes.Create("slider", options_pane)
-	sfx_volume_slider:SetPos(10, 100)
-	sfx_volume_slider:SetWidth(200)
-	sfx_volume_slider:SetMinMax(0.0, 1.0)
-	sfx_volume_slider:SetDecimals(2)
-	sfx_volume_slider:SetValue(options.sfx_volume)
-	sfx_volume_slider.OnValueChanged = function(object)
-	  options.sfx_volume = object:GetValue()
-	  sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
-	  set_file("options.json", json.encode(options))
-	end
-	sfx_volume_slider.OnRelease = function(object)
-	  play_button_sound()
-	end
+  local sfx_volume_slider = loveframes.Create("slider", options_pane)
+  sfx_volume_slider:SetPos(10, 100)
+  sfx_volume_slider:SetWidth(200)
+  sfx_volume_slider:SetMinMax(0.0, 1.0)
+  sfx_volume_slider:SetDecimals(2)
+  sfx_volume_slider:SetValue(options.sfx_volume)
+  sfx_volume_slider.OnValueChanged = function(object)
+    options.sfx_volume = object:GetValue()
+    sfx_volume_text:SetText("Effect Volume: "..tostring(options.sfx_volume))
+    set_file("options.json", json.encode(options))
+  end
+  sfx_volume_slider.OnRelease = function(object)
+    play_button_sound()
+  end
 
   while true do
     wait()
