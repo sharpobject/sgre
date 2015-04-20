@@ -217,13 +217,14 @@ function draw_hover_card(text_obj)
     card = Card(card)
   end
 
-  draw_hover_frame()
+  local fx, fy, fw, fh = prepare_hover_frame()
   love.graphics.setColor(255, 255, 255)
   local id = card.id
   acquire_img(id)
-  local x,y = 612,27
-  local border = load_asset("cardframe.png")
-  love.graphics.draw(border, x-7, y-7, 0, 1, 1)
+  local x,y = 612,21
+  local card_bg = load_asset("cardframe.png")
+  love.graphics.draw(card_bg, x-7, y-7, 0, 1, 1)
+  draw_border_hover(fx, fy, fw, fh)
   love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
   local card_width = card_width*2
   local card_height = card_height*2
@@ -379,6 +380,25 @@ function draw_hover_frame(x,y,w,h,title)
     love.graphics.printf(title, 60, y+5, 100, "center")
   end
   draw_border_hover(x, y, w, h)
+end
+
+function prepare_hover_frame(x,y,w,h,title)
+  if not x then
+    local junk, fw = load_asset("field.png")
+    x = field_x+fw+4+13+4
+    y = field_y
+    w, h = 800 - field_x - x, 600 - field_y - y
+  end
+  love.graphics.setColor(254, 226, 106)
+  love.graphics.rectangle("fill", x, y, w, h)
+  if title then
+    local title_bg = load_asset("title_bg.png")
+    love.graphics.draw(title_bg, x, y, 0, w, 1)
+    love.graphics.setColor(253, 233, 94)
+    love.graphics.setFont(load_vera(14))
+    love.graphics.printf(title, 60, y+5, 100, "center")
+  end
+  return x, y, w, h
 end
 
 function left_hover_frame_pos()
@@ -902,7 +922,7 @@ function get_hover_list_text(state)
 
   local list = loveframes.Create("list")
   list:SetState(state)
-  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+24)
+  list:SetPos(field_x+fw+4+13+4 + 5, 15+240+18)
   list:SetSize(800-field_x*2-fw-4-13-4-10, 250)
   list:SetPadding(5)
   list:SetSpacing(5)
