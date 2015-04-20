@@ -84,15 +84,46 @@ function load_backface()
   return ret,gray,w,h,wp,hp
 end
 
+function acquire_img(id)
+  local max_cards_in_mem = 64
+  local tstamps = IMG_tstamps
+  local img_arr = IMG_card
+  local img_g_arr = IMG_gray_card
+  local ready_arr = IMG_rdy
+  if img_arr[id] then
+    tstamps[id] = IMG_tstamp
+  else
+    img_arr[id], img_g_arr[id] = load_img(id)
+    IMG_count = IMG_count + 1
+    if IMG_count > max_cards_in_mem then
+      local smallest = IMG_tstamp
+      local del_id = 0
+      for idx, stamp in pairs(tstamps) do
+        if stamp < smallest then
+          del_id = idx
+          smallest = stamp
+        end
+      end
+      img_arr[del_id], img_g_arr[del_id] = nil
+      ready_arr[del_id] = false
+      tstamps[del_id] = nil
+      IMG_count = IMG_count - 1
+    end
+  end
+  IMG_tstamp = IMG_tstamp + 1
+end
+
 function load_img(id)
   function async_callback(id, tex, tex_gray)
-    local img_ref = IMG_card[id]
-    img_ref:getData():paste(tex, 0, 0)
-    img_ref:refresh()
-    local img_gray_ref = IMG_gray_card[id]
-    img_gray_ref:getData():paste(tex_gray, 0, 0)
-    img_gray_ref:refresh()
-    IMG_rdy[id] = true
+    if IMG_card[id] then
+      local img_ref = IMG_card[id]
+      img_ref:getData():paste(tex, 0, 0)
+      img_ref:refresh()
+      local img_gray_ref = IMG_gray_card[id]
+      img_gray_ref:getData():paste(tex_gray, 0, 0)
+      img_gray_ref:refresh()
+      IMG_rdy[id] = true
+    end
   end
 
   local s = love.image.newImageData(texture_width, texture_height)
@@ -143,6 +174,11 @@ function graphics_init()
   IMG_rdy = {}
   IMG_card = {}
   IMG_gray_card = {}
+
+  IMG_tstamps = {}
+  IMG_tstamp = 1
+  IMG_count = 0
+
   IMG_card[000000], IMG_gray_card[000000], card_width, card_height,
     texture_width, texture_height = load_backface()
 
@@ -161,9 +197,7 @@ function draw_hover_card(text_obj)
   draw_hover_frame()
   love.graphics.setColor(255, 255, 255)
   local id = card.id
-  if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id)
-  end
+  acquire_img(id)
   local x,y = 612,15
   love.graphics.draw(IMG_card[id], x, y, 0, 0.5, 0.5)
   local card_width = card_width*2
@@ -363,9 +397,7 @@ function draw_card(card, x, y, lighten_frame, text)
   if card.hidden then
     id = "000000"
   end
-  if not IMG_card[id] then
-    IMG_card[id], IMG_gray_card[id] = load_img(id)
-  end
+  acquire_img(id)
   if card.type == "character" or card.active then
     love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
   else
@@ -733,9 +765,7 @@ function make_player_info(frame)
 	  love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
 	  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
 	  local id = get_active_char() or 100089
-	  if not IMG_card[id] then
-		IMG_card[id], IMG_gray_card[id] = load_img(id)
-	  end
+	  acquire_img(id)
 	  love.graphics.draw(IMG_card[id], 800-w-4, 80, 0, .5, .5)
 	  love.graphics.draw(load_asset("m-character.png"), 800-w-4, 80)
 	  love.graphics.draw(load_asset("nick_name.png"),788-w-4, 330)
