@@ -154,6 +154,7 @@ function load_img(id)
 end
 
 function async_load(id)
+  collectgarbage("collect")
   love = require "love"
   require "love.image"
 
