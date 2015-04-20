@@ -341,6 +341,12 @@ function draw_border_hover(x,y,w,h)
   love.graphics.draw(load_asset("border-4.png"), x+w+cx-cw, y+h+cy-ch)
 end
 
+function limit_string(text, maxlen)
+  local ret = string.len(text) < maxlen and text
+      or string.sub(text, 1, maxlen).."…"
+  return ret
+end
+
 field_x, field_y = 16, 10
 local field_x, field_y = field_x, field_y
 function Game:draw_field()
@@ -350,7 +356,7 @@ function Game:draw_field()
   love.graphics.draw(load_asset("field_hud.png"), fx+4, fy+340)
   local p1_name, p2_name, nw, nh =
       load_asset("name-red.png"), load_asset("name-blue.png")
-  local left_text, right_text = self.P1.name, self.P2.name
+  local left_text, right_text = limit_string(self.P1.name, 12), limit_string(self.P2.name, 12)
   if self.P1.side ~= "left" then
     p1_name, p2_name = p2_name, p1_name
     left_text, right_text = right_text, left_text
@@ -1126,7 +1132,6 @@ function draw_outlined_text(text, align, x, y, limit)
 end
 
 function deck_card_list_button(id, upgrade, count, cb)
-  local str_len_limit = 28
   id = tonumber(id)
   local button = loveframes.Create("button")
   button:SetHeight(13)
@@ -1147,8 +1152,7 @@ function deck_card_list_button(id, upgrade, count, cb)
     love.graphics.setColor(generic_text_color)
     love.graphics.setFont(load_vera(10))
     local name = id_to_canonical_card[id].name
-    name = string.len(name) < str_len_limit and name
-      or string.sub(name, 1, str_len_limit).."…"
+    name = limit_string(name, 28)
     love.graphics.print(name, x, y)
     if type(count) == "number" then
       love.graphics.printf(count, x, y, w, "right")
