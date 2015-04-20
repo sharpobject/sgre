@@ -58,6 +58,7 @@ local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
 local texture_width, texture_height
+local supports_mipmaps
 
 local fonts = {}
 
@@ -74,13 +75,21 @@ function load_backface()
     s = padded
   end
   local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", 0)
+  if supports_mipmaps then
+    ret:setMipmapFilter("linear", 0)
+  else
+    ret:setFilter("linear", "linear")
+  end
   s:mapPixel(function(x,y,r,g,b,a)
       local ret = (r+g+b)/3
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  gray:setMipmapFilter("linear", 0)
+  if supports_mipmaps then
+    gray:setMipmapFilter("linear", 0)
+  else
+    gray:setFilter("linear", "linear")
+  end
   return ret,gray,w,h,wp,hp
 end
 
@@ -129,9 +138,17 @@ function load_img(id)
   local s = love.image.newImageData(texture_width, texture_height)
   local s2 = love.image.newImageData(texture_width, texture_height)
   local ret = love.graphics.newImage(s)
-  ret:setMipmapFilter("linear", 0)
+  if supports_mipmaps then
+    ret:setMipmapFilter("linear", 0)
+  else
+    ret:setFilter("linear", "linear")
+  end
   local gray = love.graphics.newImage(s2)
-  gray:setMipmapFilter("linear", 0)
+  if supports_mipmaps then
+    gray:setMipmapFilter("linear", 0)
+  else
+    gray:setFilter("linear", "linear")
+  end
   load_img_async_func(async_callback, id)
   return ret,gray,texture_width,texture_height
 end
@@ -177,6 +194,8 @@ function graphics_init()
   IMG_tstamps = {}
   IMG_tstamp = 1
   IMG_count = 0
+
+  supports_mipmaps = love.graphics.isSupported("mipmap")
 
   IMG_card[000000], IMG_gray_card[000000], card_width, card_height,
     texture_width, texture_height = load_backface()
