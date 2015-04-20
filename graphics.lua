@@ -356,9 +356,9 @@ function Game:draw_field()
   end
   love.graphics.draw(p1_name, fx+7, fy+fh-6-nh)
   love.graphics.draw(p2_name, fx+fw-7-nw, fy+fh-6-nh)
-  love.graphics.setFont(load_vera(12))
-  love.graphics.printf(left_text, fx+7+4, fy+fh-6-nh+2, nw-8, "left")
-  love.graphics.printf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+2, nw-8, "right")
+  love.graphics.setFont(load_vera(11))
+  love.graphics.printf(left_text, fx+7+4, fy+fh-6-nh+3, nw-8, "left")
+  love.graphics.printf(right_text, fx+fw-7-nw+4, fy+fh-6-nh+3, nw-8, "right")
   draw_border(fx, fy, fw, fh)
 end
 
@@ -1056,18 +1056,18 @@ function Game:draw()
     --self.loveframes_buttons.shuffle:SetY(457+ready_sz+2)
   draw_hand_frame()
 
-  love.graphics.setColor(28, 28, 28)
-  love.graphics.setFont(load_vera(12))
+  love.graphics.setColor(99, 71, 19)
+  love.graphics.setFont(load_vera(11))
   --love.graphics.print("deck "..ldeck.."    grave "..lgrave, 45, 425)
   --love.graphics.print("turn "..self.turn, 260, 425)
   --love.graphics.print("deck "..rdeck.."    grave "..rgrave, 405, 425)
-  local field_hud_left_start_x, field_hud_y = 135 + field_x, 400 + field_y
-  local field_hud_right_start_x = 372 + field_x
+  local field_hud_left_start_x, field_hud_y = 135 + field_x, 401 + field_y
+  local field_hud_right_start_x = 371 + field_x
   love.graphics.print(ldeck, field_hud_left_start_x, field_hud_y)
-  love.graphics.print(lgrave, field_hud_left_start_x + 38, field_hud_y)
+  love.graphics.print(lgrave, field_hud_left_start_x + 36, field_hud_y)
   love.graphics.print(left.shuffles, field_hud_left_start_x + 70, field_hud_y)
   love.graphics.print(rdeck, field_hud_right_start_x, field_hud_y)
-  love.graphics.print(rgrave, field_hud_right_start_x + 38, field_hud_y)
+  love.graphics.print(rgrave, field_hud_right_start_x + 36, field_hud_y)
   love.graphics.print(right.shuffles, field_hud_right_start_x + 70, field_hud_y)
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(load_font("sg_assets/fonts/turnwan.png"))
