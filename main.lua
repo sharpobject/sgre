@@ -36,7 +36,7 @@ function love.load(arg)
   leftover_time = 1/120
 
   async.load()
-  async.ensure.atLeast(1).atMost(4)
+  async.ensure.exactly(3)
 
   if GLOBAL_EMAIL == "--server" then
     require("server")
