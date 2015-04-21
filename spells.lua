@@ -412,11 +412,10 @@ end,
   local target_idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
-    while(#player.grave > 0) do
-      player.grave[#player.grave] = nil
-    end
   end
-
+  while(#player.grave > 0) do
+    player.grave[#player.grave] = nil
+  end
 end,
 
 -- pacifism
