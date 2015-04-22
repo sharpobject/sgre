@@ -3,7 +3,6 @@ local substr
 local eps = require("episodes")
 
 function add_craft_filters()
-  filter_width = 56
   state = "craft"
   craft_filters = {} 
   craft_filter_values = {}
@@ -15,9 +14,9 @@ function add_craft_filters()
   crafttypefilter:AddChoice("Character")
   crafttypefilter:AddChoice("Follower")
   crafttypefilter:AddChoice("Spell")
-  crafttypefilter:SetX(220)
+  crafttypefilter:SetX(216)
   crafttypefilter:SetY(530)
-  crafttypefilter:SetWidth(filter_width)
+  crafttypefilter:SetWidth(70)
 
 --onchoiceselected, repopulate card list: change populate function to get values
 --probably need to change it so the populate function 
@@ -38,9 +37,9 @@ function add_craft_filters()
   for i=1,#eps do
     craftepisodefilter:AddChoice(eps[i])
   end
-  craftepisodefilter:SetX(280)
+  craftepisodefilter:SetX(285)
   craftepisodefilter:SetY(530)
-  craftepisodefilter:SetWidth(filter_width)
+  craftepisodefilter:SetWidth(59)
   function craftepisodefilter:OnChoiceSelected(choice)
     filter_episode = craftepisodefilter:GetValue()
     if filter_episode == "Episode" then filter_episode = nil end
@@ -59,9 +58,9 @@ function add_craft_filters()
   craftrarityfilter:AddChoice("D.Rare")
   craftrarityfilter:AddChoice("T.Rare")
   craftrarityfilter:AddChoice("Event")
-  craftrarityfilter:SetX(340)
+  craftrarityfilter:SetX(343)
   craftrarityfilter:SetY(530)
-  craftrarityfilter:SetWidth(filter_width)
+  craftrarityfilter:SetWidth(78)
   function craftrarityfilter:OnChoiceSelected(choice)
     filter_rarity = craftrarityfilter:GetValue()
     if filter_rarity == "Rarity" then filter_rarity = nil
@@ -86,9 +85,9 @@ function add_craft_filters()
   craftfactionfilter:AddChoice("Darklore")
   craftfactionfilter:AddChoice("Neutral")
 
-  craftfactionfilter:SetX(400)
+  craftfactionfilter:SetX(420)
   craftfactionfilter:SetY(530)
-  craftfactionfilter:SetWidth(filter_width)
+  craftfactionfilter:SetWidth(67)
   function craftfactionfilter:OnChoiceSelected(choice)
     filter_faction = craftfactionfilter:GetValue()
     if filter_faction == "Faction" then filter_faction = nil
@@ -106,9 +105,9 @@ function add_craft_filters()
     craftsizefilter:AddChoice(tostring(i))
   end
 
-  craftsizefilter:SetX(460)
+  craftsizefilter:SetX(486)
   craftsizefilter:SetY(530)
-  craftsizefilter:SetWidth(filter_width)
+  craftsizefilter:SetWidth(40)
 
   function craftsizefilter:OnChoiceSelected(choice)
     if craftsizefilter:GetValue() == "Size" then filter_size = nil
@@ -121,7 +120,6 @@ function add_craft_filters()
 end
 
 function add_decks_filters()
-  filter_width = 56
   state = "decks"
   decks_filters = {} 
   decks_filter_values = {}
@@ -132,9 +130,9 @@ function add_decks_filters()
   decktypefilter:AddChoice("Character")
   decktypefilter:AddChoice("Follower")
   decktypefilter:AddChoice("Spell")
-  decktypefilter:SetX(220)
+  decktypefilter:SetX(216)
   decktypefilter:SetY(530)
-  decktypefilter:SetWidth(filter_width)
+  decktypefilter:SetWidth(70)
   --onchoiceselected, repopulate card list: change populate function to get values
   --probably need to change it so the populate function 
   function decktypefilter:OnChoiceSelected(choice)
@@ -153,9 +151,9 @@ function add_decks_filters()
   for i=1,#eps do
     deckepisodefilter:AddChoice(eps[i])
   end
-  deckepisodefilter:SetX(280)
+  deckepisodefilter:SetX(285)
   deckepisodefilter:SetY(530)
-  deckepisodefilter:SetWidth(filter_width)
+  deckepisodefilter:SetWidth(59)
   function deckepisodefilter:OnChoiceSelected(choice)
     filter_episode = deckepisodefilter:GetValue()
     if filter_episode == "Episode" then filter_episode = nil end
@@ -176,9 +174,9 @@ function add_decks_filters()
   deckrarityfilter:AddChoice("D.Rare")
   deckrarityfilter:AddChoice("T.Rare")
   deckrarityfilter:AddChoice("Event")
-  deckrarityfilter:SetX(340)
+  deckrarityfilter:SetX(343)
   deckrarityfilter:SetY(530)
-  deckrarityfilter:SetWidth(filter_width)
+  deckrarityfilter:SetWidth(78)
   function deckrarityfilter:OnChoiceSelected(choice)
     filter_rarity = deckrarityfilter:GetValue()
     if filter_rarity == "Rarity" then filter_rarity = nil
@@ -206,9 +204,9 @@ function add_decks_filters()
   deckfactionfilter:AddChoice("Darklore")
   deckfactionfilter:AddChoice("Neutral")
 
-  deckfactionfilter:SetX(400)
+  deckfactionfilter:SetX(420)
   deckfactionfilter:SetY(530)
-  deckfactionfilter:SetWidth(filter_width)
+  deckfactionfilter:SetWidth(67)
   function deckfactionfilter:OnChoiceSelected(choice)
     filter_faction = deckfactionfilter:GetValue()
     if filter_faction == "Faction" then filter_faction = nil
@@ -227,9 +225,9 @@ function add_decks_filters()
     decksizefilter:AddChoice(tostring(i))
   end
 
-  decksizefilter:SetX(460)
+  decksizefilter:SetX(486)
   decksizefilter:SetY(530)
-  decksizefilter:SetWidth(filter_width)
+  decksizefilter:SetWidth(40)
 
   function decksizefilter:OnChoiceSelected(choice)
     if decksizefilter:GetValue() == "Size" then filter_size = nil
@@ -265,9 +263,9 @@ end
 function add_search_bar(pane)
   craft_search_bar = loveframes.Create("textinput", pane)
   craft_search_bar:SetState("craft")
-  craft_search_bar:SetWidth(math.floor(pane:GetWidth() * 0.8))
+  craft_search_bar:SetWidth(math.floor(pane:GetWidth() * 0.9))
   local x,y,w,h = left_hover_frame_pos()
-  craft_search_bar:SetPos(math.floor(pane:GetWidth()*0.1),10)
+  craft_search_bar:SetPos(math.floor(pane:GetWidth()*0.05),34)
   function craft_search_bar:OnTextChanged(key)
     substr = string.lower(craft_search_bar:GetText())
   frames.craft.populate_text_card_list(recipes, substr, true)
