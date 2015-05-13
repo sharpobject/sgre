@@ -6600,10 +6600,10 @@ end,
   local idx2 = player:first_empty_field_slot()
   if idx1 and idx2 then
     player:deck_to_field(idx1, idx2)
-    local mag = math.ceil(player.field[idx2].size / 2)
     OneBuff(player, idx2, {size={"=", mag}}):apply()
     local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
+      local mag = math.ceil(opponent.field[idx].size / 2)
       OneBuff(opponent, idx, {sta={"-", mag}}):apply()
       if opponent.field[idx] then
         opponent:field_to_top_deck(idx)
