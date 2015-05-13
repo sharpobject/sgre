@@ -4532,6 +4532,7 @@ end,
   if other_card and other_card:squished_skills()[1] then
     OneImpact(player.opponent, other_idx):apply()
     other_card.skills = {}
+    my_card:remove_skill(skill_idx)
   end
 end,
 
