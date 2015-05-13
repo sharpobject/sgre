@@ -4773,7 +4773,7 @@ end,
   if idx and other_card then
     local buff = OnePlayerBuff(player)
     buff[idx] = {sta={"-", floor(other_card.atk / 2)}}
-    buff[my_idx] = {sta={"-", ceil(other_card.atk / 2)}}
+    buff[my_idx] = {sta={"+", ceil(other_card.atk / 2)}}
     buff:apply()
   end
 end,
