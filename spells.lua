@@ -408,13 +408,13 @@ end,
 
 -- sentry's testimony
 [200029] = function(player)
-  local knight_idxs = player:grave_idxs_with_preds(pred.knight)
+  local knight_idxs = player:grave_idxs_with_preds(pred.follower, pred.knight)
   local target_idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
   end
-  while(#player.grave > 0) do
-    player.grave[#player.grave] = nil
+  while player.grave[1] do
+    player:grave_to_exile(1)
   end
 end,
 
@@ -7375,11 +7375,9 @@ Backup
   local buff = GlobalBuff(opponent)
   for _,idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
     buff.field[opponent][idx] = {def={"-",mag}}
-    mag = mag + 1
   end
   for _,idx in ipairs(opponent:hand_idxs_with_preds(pred.follower)) do
     buff.hand[opponent][idx] = {def={"-",mag}}
-    mag = mag + 1
   end
   buff:apply()
 end,
