@@ -4947,7 +4947,7 @@ end,
 -- Fattened Uup
 [1463] = function(player, my_idx, my_card)
   local mag = floor(my_card.size / 2)
-  OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
 end,
 
 -- Cinia-cherishing Linia
@@ -4980,7 +4980,7 @@ end,
   local pred_diff = function(card) return card ~= my_card end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_diff))
   if idx then
-    local mag = ceil(player.field[idx] / 2)
+    local mag = ceil(player.field[idx].size / 2)
     OneImpact(player, idx):apply()
     player:field_to_bottom_deck(idx)
     local opponent = player.opponent
@@ -5054,7 +5054,7 @@ end,
   local idx2 = player:first_empty_field_slot()
   if idx1 and idx2 then
     OneImpact(player, idx2):apply()
-    player:deck_to_field(idx)
+    player:deck_to_field(idx1)
     player.field[idx2].active = false
   end
   local mag = #player:field_idxs_with_preds(pred.neg(pred.active))
@@ -5157,7 +5157,7 @@ end,
 [1480] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.size >= 6 then
     OneImpact(player.opponent, other_idx):apply()
-    player.opponent:field_to_grave(other_idx):apply()
+    player.opponent:field_to_grave(other_idx)
   end
   local mag = ceil(player.game.turn / 2)
   OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
@@ -5171,7 +5171,9 @@ end,
   if idx then
     buff.field[player][idx] = {size={"-", 1}}
   end
-  buff.field[player.opponent][other_idx] = {size={"+", 1}}
+  if other_card then
+    buff.field[player.opponent][other_idx] = {size={"+", 1}}
+  end
   buff:apply()
 end,
 

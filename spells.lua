@@ -7359,8 +7359,8 @@ Backup
   end
   local mag = 0
   for i=1,5 do
-    if opponent.field[idx] and pred.spell(opponent.field[idx]) then
-      opponent:field_to_top_deck(idx)
+    if opponent.field[i] and pred.spell(opponent.field[i]) then
+      opponent:field_to_top_deck(i)
       mag = mag + 1
     end
   end
