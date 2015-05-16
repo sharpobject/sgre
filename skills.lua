@@ -4886,6 +4886,248 @@ end,
   my_card:remove_skill(skill_idx)
 end,
 
+-- Infiltrator Witch Parfunte
+-- Deliver Knowledge
+[1458] = function(player, my_idx, my_card, skill_idx)
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}, sta={"+", 1}}
+    buff:apply()
+    OneImpact(player, my_idx):apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Animal Suit Layna
+-- Animal Regeneration
+[1459] = function(player, my_idx, my_card, skill_idx)
+  local mag = my_card.sta * 2
+  OneBuff(player, my_idx, {sta={"=", mag}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Cafe Sita
+-- Rest Time
+[1460] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    if other_card.skills[1] then
+      other_card.skills[1] = 1476
+      OneImpact(player.opponent, other_idx):apply()
+    elseif other_card.skills[2] then
+      other_card.skills[2] = 1476
+      OneImpact(player.opponent, other_idx):apply()
+    elseif other_card.skills[3] then
+      other_card.skills[3] = 1476
+      OneImpact(player.opponent, other_idx):apply()
+    end
+  end
+end,
+
+-- Garden Lady
+-- Appreciation
+[1461] = function(player, my_idx, my_card, skill_idx)
+  local idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred.active))
+  if idx then
+    OneImpact(player.opponent, idx):apply()
+    player.opponent.field[idx].active = false
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Bamboo Scent Lady Panica
+-- Grow!
+[1462] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and my_card.atk >= other_card.def + other_card.sta then
+    OneBuff(player, my_idx, {size={"+", 1}}):apply()
+  end
+end,
+
+-- Bamboo Scent Lady Panica
+-- Fattened Uup
+[1463] = function(player, my_idx, my_card)
+  local mag = floor(my_card.size / 2)
+  OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Cinia-cherishing Linia
+-- Secret Sharing
+[1464] = function(player, my_idx)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local mag = max(min(player.field[idx]. size - 1, 2), 1)
+  local buff = OnePlayerBuff(player)
+  if idx ~= my_idx then
+    buff[idx] = {size={"-", 1}}
+    buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
+  else
+    buff[my_idx] = {size={"-", 1}, atk={"+", mag}, sta={"+", mag}}
+  end
+  buff:apply()
+end,
+
+-- Seeker Odien
+-- Seeker Summon
+[1465] = function(player)
+  local idx = uniformly(player:grave_idxs_with_preds(pred.seeker))
+  if idx then
+    player:grave_to_bottom_deck(idx)
+  end
+end,
+
+-- Knight Pintail
+-- Decoy
+[1466] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local pred_diff = function(card) return card ~= my_card end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_diff))
+  if idx then
+    local mag = ceil(player.field[idx] / 2)
+    OneImpact(player, idx):apply()
+    player:field_to_bottom_deck(idx)
+    local opponent = player.opponent
+    local pred_diff = function(card) return card ~= other_card end
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_diff))
+    local buff = OnePlayerBuff(opponent)
+    if other_card then
+      buff[other_idx] = {atk={"-", mag}, sta={"-", mag}}
+    end
+    if idx then
+      buff[idx] = {atk={"-", mag}, sta={"-", mag}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Luthica of Crux
+-- Attack Preparation
+[1467] = function(player, my_idx)
+  if my_idx % 2 == 1 then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Luthica of Crux
+-- Defense Preparation
+[1468] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and (my_idx % 2 == 0 or my_idx == 5) then
+    OneBuff(player.opponent, other_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
+  end
+end,
+
+-- Luthica of Crux
+-- Tactical Movement
+[1469] = function(player, my_idx, my_card)
+  local slots = {1, 2, 3, 4, 5}
+  table.remove(slots, my_idx)
+  local idx = uniformly(slots)
+  local impact = Impact(player)
+  impact[player][my_idx] = true
+  if player.field[idx] then
+    impact[player][idx] = true
+  end
+  player.field[my_idx], player.field[idx] = player.field[idx], my_card
+end,
+
+-- Crescent Conundrum
+-- Sky Broom
+[1470] = function(player, my_idx, my_card)
+  local idx = player:first_empty_field_slot()
+  local check = uniformly({false, false, false, false, false, false, true, true, true, true})
+  if check and idx then
+    OneImpact(player, my_idx):apply()
+    player.field[my_idx], player.field[idx] = nil, my_card
+  end
+end,
+
+-- Shaman Helena
+-- Shaman's Cheer
+[1471] = function(player, my_idx)
+  for i = 1, 1 + (my_idx == 2 and 1 or 0) do
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Trainer Iri
+-- Training Start
+[1472] = function(player, my_idx, my_card, skill_idx)
+  local idx1 = reverse(player:deck_idxs_with_preds(pred.follower))[1]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    OneImpact(player, idx2):apply()
+    player:deck_to_field(idx)
+    player.field[idx2].active = false
+  end
+  local mag = #player:field_idxs_with_preds(pred.neg(pred.active))
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Swimming Pool Cannelle
+-- Invigorate
+[1473] = function(player, my_idx, my_card)
+  local mag = Card(my_card.id).sta
+  local idx = player:first_empty_field_slot()
+  if my_card.sta <= mag and idx then
+    OneBuff(player, my_idx, {sta={"=", mag}}):apply()
+    player.field[my_idx], player.field[idx] = nil, my_card
+    my_card.active = false
+  end
+end,
+
+-- Senpai Muzisitter
+-- Senpai's Summon
+[1474] = function(player, my_idx, my_card)
+  local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {size={"+", 2}}
+    buff:apply()
+    if player.deck[idx].size >= 10 then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {size={"=", my_card.size}, atk={"+", 3}, sta={"+", 3}}
+      buff:apply()
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        OneImpact(player, idx2):apply()
+        player:deck_to_field(idx)
+      end
+    end
+  end
+end,
+
+-- Smiling Vernika
+-- Balance
+[1475] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local check = #player:field_idxs_with_preds(pred.N) >= 2
+  if check and other_card then
+    local mag = abs(other_card.def)
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][other_idx] = {def={"=", 0}}
+    local idxs = player:field_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.field[player][idx] = {atk={"+", mag}, sta={"+", mag}}
+    end
+    buff:apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Cafe Sita
+-- Let's take a break
+[1476] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, my_idx, {sta={"-", 2}}):apply()
+  local pred_diff = function(card) return card ~= my_card end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_diff))
+  if idx then
+    local impact = Impact(player)
+    impact[player][my_idx] = true
+    impact[player][idx] = true
+    impact:apply()
+    my_card:remove_skill(skill_idx)
+    player.field[idx]:gain_skill(1476)
+  end
+end,
+
 -- Defense
 [1477] = function(player, my_idx)
   if player.opponent:is_npc() then
@@ -4899,6 +5141,38 @@ end,
   local mag = player.game.turn
   OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
   my_card:remove_skill(skill_idx)
+end,
+
+-- Nold of Darkness
+-- Dark Soul Attack
+[1479] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.size >= 6 then
+    OneImpact(player.opponent, other_idx):apply()
+    player.opponent:field_to_bottom_deck(other_idx)
+  end
+end,
+
+-- Dark Soul Nold
+-- Dark Soul Attack
+[1480] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.size >= 6 then
+    OneImpact(player.opponent, other_idx):apply()
+    player.opponent:field_to_grave(other_idx):apply()
+  end
+  local mag = ceil(player.game.turn / 2)
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Dark Soul Nold
+-- Dark Soul Unleashed
+[1481] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[player][idx] = {size={"-", 1}}
+  end
+  buff.field[player.opponent][other_idx] = {size={"+", 1}}
+  buff:apply()
 end,
 
 -- Gauntlet of Darkness
@@ -4919,6 +5193,14 @@ end,
 [1483] = function(player, my_idx)
   if player.opponent:is_npc() then
     OneBuff(player, my_idx, {sta={"+",1},atk={"+",1}}):apply()
+  end
+end,
+
+-- Nold of Darkness
+-- Dark Soul Unleashed
+[1484] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {size={"+", 1}}):apply()
   end
 end,
 

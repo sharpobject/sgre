@@ -413,8 +413,8 @@ end,
   if target_idx then
     OneBuff(player,target_idx,{atk={"+",#knight_idxs},sta={"+",#knight_idxs}}):apply()
   end
-  while player.grave[1] do
-    player:grave_to_exile(1)
+  for i = #player.grave, 1, -1 do
+    player:grave_to_exile(i)
   end
 end,
 
@@ -7359,8 +7359,7 @@ Backup
   end
   local mag = 0
   for i=1,5 do
-    local idx = opponent:field_idxs_with_preds(pred.spell)[1]
-    if idx then
+    if opponent.field[idx] and pred.spell(opponent.field[idx]) then
       opponent:field_to_top_deck(idx)
       mag = mag + 1
     end
