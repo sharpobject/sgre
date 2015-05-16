@@ -6603,12 +6603,12 @@ end,
     player:deck_to_field(idx1, idx2)
     OneBuff(player, idx2, {size={"=", mag}}):apply()
     local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-    if idx then
-      local mag = ceil(opponent.field[idx].size / 2)
-      OneBuff(opponent, idx, {sta={"-", mag}}):apply()
-      if opponent.field[idx] then
-        opponent:field_to_top_deck(idx)
-      end
+  end
+  if idx then
+    local mag = ceil(opponent.field[idx].size / 2)
+    OneBuff(opponent, idx, {sta={"-", mag}}):apply()
+    if opponent.field[idx] then
+      opponent:field_to_top_deck(idx)
     end
   end
 end,
