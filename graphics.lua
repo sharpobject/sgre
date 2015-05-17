@@ -171,7 +171,7 @@ function async_load(id)
     end
     return love.image.newImageData("swordgirlsimages/900000L.jpg")
   end
-  
+
   local tex = load_img_data(id)
   local w, h = tex:getWidth(), tex:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
@@ -327,7 +327,7 @@ end
 function draw_border_hover(x,y,w,h)
 --secondary border layout for menus and hovers
 --called by: draw_hover_frame()
---tried4's TODO: work out the numbers so that they seem less arbitary 
+--tried4's TODO: work out the numbers so that they seem less arbitary
   love.graphics.setColor(255, 255, 255)
   local cx, cy = 3+4,2+4
   local c, cw, ch = load_asset("border-1.png")
@@ -759,100 +759,100 @@ function faction_button(faction, x, y)
   return button
 end
 
- --replace text buttons with image buttons 
+ --replace text buttons with image buttons
  --called by: mainloop.lua
  --tried4's TODO: highlight on hover feature
- 
-function make_menubar(x,y) 
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
-		love.graphics.setColor(255, 255, 255, 255)
-		love.graphics.draw(load_asset("menubar.png"), x-1-1, y-1)
-	end
-	return button 	
-end 
- 
+
+function make_menubar(x,y)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.draw(load_asset("menubar.png"), x-1-1, y-1)
+  end
+  return button
+end
+
 function menu_dungeon_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("dungeon.png"), x-1, y-1)
-	end
-	return button
-end 
- 
+    love.graphics.draw(load_asset("dungeon.png"), x-1, y-1)
+  end
+  return button
+end
+
 function menu_fight_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("fight.png"), x-1-1, y-1)
-	end	
-	return button
+    love.graphics.draw(load_asset("fight.png"), x-1-1, y-1)
+  end
+  return button
 end
 
 function menu_cafe_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("cafe.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("cafe.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_deck_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("deck.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("deck.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_craft_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("lab.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("lab.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_xmute_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("xmute.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("xmute.png"), x-1, y-1)
+  end
+  return button
 end
 
  -- Player Info Panel
  -- Lobby only
- 
+
 function make_player_info(frame)
-	--tried4's TODO: don't hardcode frame position and size
-	local player_panel = loveframes.Create("frame",frame)
+  --tried4's TODO: don't hardcode frame position and size
+  local player_panel = loveframes.Create("frame",frame)
   local x,y,w,h = left_hover_frame_pos()
   player_panel:SetPos(764-w,-10)
   player_panel:SetSize(w,h)
@@ -861,7 +861,7 @@ function make_player_info(frame)
   player_panel.Draw = function(self)
   draw_hover_frame(self.x, self.y, self.width, self.height)
   love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
-  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
+  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)
   local id = get_active_char() or 100089
   acquire_img(id)
   love.graphics.draw(load_asset("cardframe.png"), 800-w-11, 80)
@@ -874,10 +874,10 @@ function make_player_info(frame)
   love.graphics.setColor(255, 255, 255, 255)
   local card = Card(id)
   love.graphics.printf(math.max(card.life, 0), 800-w/2+17, h/2+4, 50, "center")
-  draw_faction(card.faction, 800-w-1, 90, 0, 1, 1)  
+  draw_faction(card.faction, 800-w-1, 90, 0, 1, 1)
   end
 end
- 
+
 
 local function modal_choice(prompt, lt, rt, lcb, rcb)
   prompt = prompt or "Is this prompt dumb?"
@@ -893,13 +893,13 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
   frame:SetDraggable(false)
   frame:Center()
   frame:SetState(loveframes.GetState())
-  
+
   local ptext = loveframes.Create("text", frame)
   ptext:SetDefaultColor(generic_text_color)
   ptext:SetText(prompt)
   ptext:Center()
   ptext:SetY(35)
-  
+
   local lb = loveframes.Create("button", frame)
   lb:SetPos(5, 60)
   lb:SetWidth(143)
@@ -919,7 +919,7 @@ local function modal_choice(prompt, lt, rt, lcb, rcb)
     rcb()
     frame:Remove()
   end
-  
+
   frame:SetModal(true)
 end
 
@@ -944,7 +944,7 @@ function get_hover_list_text(state)
   stats:SetText("Limit: over 9000")
   stats:SetFont(load_vera(10))
   list:AddItem(stats)
-  
+
   local eff1 = loveframes.Create("text")
   eff1:SetDefaultColor(cardinfo_text_color)
   eff1:SetText("TURN START:")
@@ -990,7 +990,7 @@ function Game:draw()
     frames.playing = self.loveframes_buttons
     self.loveframes_buttons.hand = {}
     for i=1,5 do
-      self.loveframes_buttons.hand[i] = 
+      self.loveframes_buttons.hand[i] =
         card_button("hand", i, unpack(slot_to_dxdy.hand[i]))
     end
     for _,side in ipairs({"left", "right"}) do
@@ -1065,7 +1065,7 @@ function Game:draw()
     lobby_button.Update = function(self)
         self.enabled = game.act_buttons
       end
-    
+
 
     self.loveframes_buttons.card_text_list = list
     self.loveframes_buttons.card_text = {name, stats, text, quote}

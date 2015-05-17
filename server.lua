@@ -24,6 +24,7 @@ require("ssl")
 require("validate")
 require("giftable")
 local xmutable = require("xmutable")
+require("brackets")
 
 local byte = string.byte
 local char = string.char
@@ -53,7 +54,7 @@ users.last_modified = nil
 users.username_to_uid = users.username_to_uid or {}
 users.uid_to_username = users.uid_to_username or {}
 users.uid_to_email = users.uid_to_email or {}
-local uid_waiting_for_fight = nil
+local bracket_to_waiting_uid = {}
 
 local file_q = Queue()
 local chat_q = Queue()
@@ -282,8 +283,10 @@ function Connection:close()
   connections[self.index] = nil
   if self.uid then
     uid_to_connection[self.uid] = nil
-    if uid_waiting_for_fight == self.uid then
-      uid_waiting_for_fight = nil
+    for k,v in pairs(bracket_to_waiting_uid) do
+      if v == self.uid then
+        bracket_to_waiting_uid[k] = nil
+      end
     end
   end
   self.socket:close()
@@ -443,8 +446,8 @@ function Connection:try_login(msg)
     end
     modified_file(data)
   end
-  if not data.cafe then 
-    data.cafe = {} 
+  if not data.cafe then
+    data.cafe = {}
     modified_file(data)
   end
   if #data.decks < 10 then
@@ -488,11 +491,12 @@ function Connection:try_select_faction(msg)
 end
 
 function Connection:try_join_fight(msg)
-  if not uid_waiting_for_fight then
-    uid_waiting_for_fight = self.uid
-  elseif uid_waiting_for_fight ~= self.uid then
-    start_fight(self.uid, uid_waiting_for_fight)
-    uid_waiting_for_fight = nil
+  local bracket = list_to_bracket(prep_deck(self.uid))
+  if not bracket_to_waiting_uid[bracket] then
+    bracket_to_waiting_uid[bracket] = self.uid
+  elseif bracket_to_waiting_uid[bracket] ~= self.uid then
+    start_fight(self.uid, bracket_to_waiting_uid[bracket])
+    bracket_to_waiting_uid[bracket] = nil
   end
 end
 
@@ -501,8 +505,10 @@ function Connection:try_dungeon(msg)
   if (not which) or (not dungeons.npcs[which]) then
     return
   end
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in pairs(bracket_to_waiting_uid) do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
@@ -650,7 +656,7 @@ end
 function Connection:set_deck(idx, deck)
   local char,other=0,0
   local data = uid_to_data[self.uid]
-  if not check_deck(deck, data) then 
+  if not check_deck(deck, data) then
     return false
   end
   if idx ~= floor(idx) or
@@ -668,14 +674,16 @@ function Connection:set_deck(idx, deck)
 end
 
 function Connection:try_update_deck(msg)
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in pairs(bracket_to_waiting_uid) do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local idx = msg.idx
   local diff = fix_num_keys(msg.diff)
   local data = uid_to_data[self.uid]
   if type(idx) ~= "number" or
-      type(diff) ~= "table" or 
+      type(diff) ~= "table" or
       idx ~= floor(idx) or
       idx < 1 or
       idx > 100 then
@@ -708,8 +716,10 @@ function Connection:crash_and_burn()
 end
 
 function Connection:set_active_deck(idx, silent)
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in pairs(bracket_to_waiting_uid) do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local char,other=0,0
   local data = uid_to_data[self.uid]
@@ -789,7 +799,7 @@ function Connection:feed_card(msg)
   if not data.cafe[eater_id][cafe_id] then
     local num_cafe_character = #data.cafe[eater_id]
     if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 11 then
-      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0} 
+      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0}
       cafe_id = num_cafe_character+1
       -- the above 5 numbers are {WIS, SENS, PERS, GLAM, LIKE}
     else
@@ -931,8 +941,8 @@ function Connection:try_xmute(msg)
   local from_card_id = msg.from_card_id
   local to_card_number = msg.to_card_number
   local xmute_type = msg.xmute_type
-  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then 
-    return false 
+  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then
+    return false
   end
   if to_card_number < 1 or to_card_number > 100 then
     return false
