@@ -4079,7 +4079,7 @@ end,
 -- Ire Flina
 -- Vampire Hunting
 [1383] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  player:to_grave(Card(300062))
+  player:to_top_deck(Card(300062))
   local check = #player:grave_idxs_with_preds(pred.follower) >= 10
   if check then
     OneBuff(player, my_idx, {atk={"+", 1}}):apply()
