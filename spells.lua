@@ -5816,8 +5816,8 @@ The first Follower in the enemy Hand loses its skills, then that Follower and a 
   end
   local h_card = opponent.hand[h_idx]
   local f_card = opponent.field[f_idx]
+  OneImpact(opponent, f_idx):apply()
   for i=1,3 do
-    OneImpact(opponent, f_idx):apply()
     h_card.skills[i], f_card.skills[i] = f_card.skills[i], h_card.skills[i]
   end
 end,
