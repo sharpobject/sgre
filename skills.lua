@@ -4980,14 +4980,14 @@ end,
 -- Decoy
 [1466] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local pred_diff = function(card) return card ~= my_card end
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_diff))
+  local idx = uniformly(player:field_idxs_with_preds(pred_diff))
   if idx then
     local mag = ceil(player.field[idx].size / 2)
     OneImpact(player, idx):apply()
     player:field_to_bottom_deck(idx)
     local opponent = player.opponent
     local pred_diff = function(card) return card ~= other_card end
-    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_diff))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     local buff = OnePlayerBuff(opponent)
     if other_card then
       buff[other_idx] = {atk={"-", mag}, sta={"-", mag}}
