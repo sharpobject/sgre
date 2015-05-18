@@ -865,8 +865,10 @@ function Player:combat_round()
     local target_idx = self.opponent:get_atk_target()
     --print("Got attack target! "..target_idx)
     self:follower_combat_round(idx, target_idx)
-    if self.field[idx] == card then
-      card.active = false
+    for i=1,5 do
+      if self.field[i] == card then
+        card.active = false
+      end
     end
     self.game:snapshot(nil, nil, true)
   else
