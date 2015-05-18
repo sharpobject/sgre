@@ -6596,14 +6596,14 @@ end,
 
 -- Royle Police Chief
 [120025] = function(player, opponent, my_card)
-  local idx1 = player:deck_idxs_with_preds(pred.follower)[1]
-  local idx2 = player:first_empty_field_slot()
-  if idx1 and idx2 then
-    local mag = floor(player.deck[idx1].size / 2)
-    player:deck_to_field(idx1, idx2)
-    OneBuff(player, idx2, {size={"=", mag}}):apply()
-    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local deck_idx = player:deck_idxs_with_preds(pred.follower)[1]
+  local field_idx = player:first_empty_field_slot()
+  if deck_idx and field_idx then
+    local mag = floor(player.deck[deck_idx].size / 2)
+    player:deck_to_field(deck_idx, field_idx)
+    OneBuff(player, field_idx, {size={"=", mag}}):apply()
   end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     local mag = ceil(opponent.field[idx].size / 2)
     OneBuff(opponent, idx, {sta={"-", mag}}):apply()
@@ -6646,7 +6646,7 @@ end,
 end,
 
 -- The Black Lion
-[120026] = function(player, opponent, my_card)
+[120027] = function(player, opponent, my_card)
   if player.game.turn == 1 then
     local idxs = player:deck_idxs_with_preds(pred.follower)
     local buff = GlobalBuff(player)

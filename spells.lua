@@ -5807,9 +5807,7 @@ The first Follower in the enemy Hand loses its skills, then that Follower and a 
   if not h_idx then
     return
   end
-  for i=1,3 do
-    opponent.hand[h_idx]:remove_skill(i)
-  end
+  opponent.hand[h_idx].skills = {}
   local f_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if not f_idx then
     return
@@ -5817,9 +5815,7 @@ The first Follower in the enemy Hand loses its skills, then that Follower and a 
   local h_card = opponent.hand[h_idx]
   local f_card = opponent.field[f_idx]
   OneImpact(opponent, f_idx):apply()
-  for i=1,3 do
-    h_card.skills[i], f_card.skills[i] = f_card.skills[i], h_card.skills[i]
-  end
+  h_card.skills, f_card.skills = f_card.skills, h_card.skills
 end,
 
 --[[
@@ -7366,7 +7362,7 @@ Backup
   end
   for i=1,#opponent.hand do
     local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
-    if opponent.hand[idx] then
+    if idx then
       opponent:hand_to_top_deck(idx)
       mag = mag + 1
     end
@@ -7406,27 +7402,25 @@ Gossip
 ]]
 [200463] = function(player, opponent)
   local pl_idxs = player:field_idxs_with_preds(pred.follower)
-  if #pl_idxs > 0 then
-    table.remove(pl_idxs, 1)
-    local mag = 1 + #pl_idxs
-    local impact = Impact(player)
-    for _, idx in ipairs(pl_idxs) do
-      impact[player][idx] = true
+  table.remove(pl_idxs, 1)
+  local mag = 1 + #pl_idxs
+  local impact = Impact(player)
+  for _, idx in ipairs(pl_idxs) do
+    impact[player][idx] = true
+  end
+  local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+  table.remove(op_idxs, 1)
+  for i = 1, math.min(mag, #op_idxs) do
+    if op_idxs[i] then
+      impact[opponent][op_idxs[i]] = true
     end
-    local op_idxs = opponent:field_idxs_with_preds(pred.follower)
-    table.remove(op_idxs, 1)
-    for i = 1, math.min(mag, #op_idxs) do
-      if op_idxs[i] then
-        impact[opponent][op_idxs[i]] = true
-      end
-    end
-    impact:apply()
-    for _, idx in ipairs(pl_idxs) do
-      player:field_to_top_deck(idx)
-    end
-    for i = 1, math.min(mag, #op_idxs) do
-      opponent:field_to_top_deck(op_idxs[i])
-    end
+  end
+  impact:apply()
+  for _, idx in ipairs(pl_idxs) do
+    player:field_to_top_deck(idx)
+  end
+  for i = 1, math.min(mag, #op_idxs) do
+    opponent:field_to_top_deck(op_idxs[i])
   end
 end,
 
