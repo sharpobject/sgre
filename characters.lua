@@ -6632,10 +6632,10 @@ end,
         opponent.field[idx2].skills = {}
       end
     else
-      local impact = OnePlayerImpact(opponent)
+      local impact = Impact(opponent)
       local idxs = player:field_idxs_with_preds()
       for _, idx in ipairs(idxs) do
-        impact[idx] = true
+        impact[opponent][idx] = true
       end
       impact:apply()
       for _, idx in ipairs(idxs) do
