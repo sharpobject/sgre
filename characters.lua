@@ -5677,14 +5677,14 @@ end,
     end
   end
 end,
-      
+
 -- Wedding Dress Cinia
 [110230] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
-  OneBuff(player, 0, {life={"+", 1}}):apply()
+  OneBuff(player, 0, {life={"+", 2}}):apply()
 end,
 
 -- Onsen Cinia
@@ -5697,7 +5697,6 @@ end,
       OneBuff(opponent, idx, {atk={"-", 2}, sta={"-", 2}}):apply()
     end
   end
-  OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
 
 -- Santa Cinia
@@ -6353,28 +6352,25 @@ end,
 [120013] = function(player, opponent)
   local idx = opponent:hand_idxs_with_preds(pred.spell)[1]
   while idx do
-    opponent:hand_to_bottom_deck(idx)
+    opponent:hand_to_grave(idx)
     idx = opponent:hand_idxs_with_preds(pred.spell)[1]
   end
-  -- bug is here
   if #player.grave > 0 then
     player:grave_to_bottom_deck(random(#player.grave))
   end
-  -- bug is here
-  if player.character.life > 5 then
-    return
-  end
-  local buff = GlobalBuff(player)
-  local mag = ceil((player.character.life + opponent.character.life) / 2)
-  buff.field[player][0] = {life={"=", mag}}
-  buff.field[opponent][0] = {life={"=", mag}}
-  buff:apply()
-  for i=1,5 do
-    if player.field[i] then
-      player:field_to_grave(i)
-    end
-    if opponent.field[i] then
-      opponent:field_to_grave(i)
+  if player.character.life <= 5 then
+    local buff = GlobalBuff(player)
+    local mag = ceil((player.character.life + opponent.character.life) / 2)
+    buff.field[player][0] = {life={"=", mag}}
+    buff.field[opponent][0] = {life={"=", mag}}
+    buff:apply()
+    for i=1,5 do
+      if player.field[i] then
+        player:field_to_grave(i)
+      end
+      if opponent.field[i] then
+        opponent:field_to_grave(i)
+      end
     end
   end
 end,

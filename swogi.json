@@ -37711,7 +37711,7 @@
       "level": "1",
       "life": "-",
       "limit": "3",
-      "name": "Crescent Nyetimber",
+      "name": "Crescent Nytimber",
       "points": "1",
       "rarity": "C",
       "size": "3",
@@ -59158,10 +59158,8 @@
       "300130",
       "300732"
     ],
-    "Crescent Nyetimber": [
-      "300062"
-    ],
     "Crescent Nytimber": [
+      "300062",
       "300890"
     ],
     "Crescent Puzzle": [
@@ -73693,7 +73691,7 @@
     "200440": "A random Follower on the enemy Field is deactivated. Next, the deactivated Follower gets the following skills: \"\u25b6Turn Start: This card is sent to the Grave.\" \"\u25b6Defend: This card gets STA increased by half of the attacker's ATK (rounding down). This skill is removed.\"",
     "200441": "The first Follower on your Field with \"Student Council\" in the name gets ATK +3, then the first Follower on the enemy Field whose ATK is lower than that Follower's ATK is deactivated.",
     "200442": "2 random Followers on your Field get STA +3 or STA +5 (50% chance).",
-    "200443": "The first Follower on your Field that belongs to your Character's faction is removed from the game, then the first card in your Deck with the highest SIZE is sent to the removed Follower's Slot. That Follower has its SIZE set equal to the removed Follower's SIZE.",
+    "200443": "The first Follower on your Field that belongs to your Character's faction is removed from the game, then the first card in your Deck with the highest SIZE is sent to the removed Follower's Slot. That card has its SIZE set equal to the removed Follower's SIZE.",
     "200444": "If you have an Academy Character, your Character gets LIFE +1. If your Deck contains 15 or fewer cards, your Character gets an additional LIFE +3. This card is removed from the game.",
     "200445": "The following effect is applied 4 times to one random Follower on the enemy Field: ATK -1, DEF -1, or STA -1.",
     "200446": "A random card on the enemy Field is sent to the bottom of the enemy Grave, then this card gets SIZE=1, is sent to the first empty Slot on the enemy Field and deactivated. If this card's SIZE is 1, the last card in your Grave is sent to the first empty Slot of your Field, then this card is removed from the game.",

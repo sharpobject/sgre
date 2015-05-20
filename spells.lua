@@ -7298,21 +7298,19 @@ Covert Operation
 ]]
 [200458] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
-  if not idx then
-    return
+  if idx then
+    opponent.field[idx] = Card(300402)
+    OneBuff(opponent, idx, {size={"=",1}}):apply()
   end
-  opponent.field[idx] = Card(300402)
-  OneBuff(opponent, idx, {size={"=",1}}):apply()
-  if not pred.A(player.character) then
-    return
+  if pred.A(player.character) then
+    local mag = min(4, #player:field_idxs_with_preds(pred.A, pred.follower) + #opponent:field_idxs_with_preds(pred.A, pred.follower))
+    local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+    local buff = OnePlayerBuff(player)
+    for i = 1, min(2, #idxs) do
+      buff[idxs[i]] = {atk={"+", mag}, sta={"+", mag}}
+    end
+    buff:apply()
   end
-  local mag = max(4, #player:field_idxs_with_preds(pred.A, pred.follower) + #opponent:field_idxs_with_preds(pred.A, pred.follower))
-  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
-  local buff = OnePlayerBuff(player)
-  for i = 1, min(2, #idxs) do
-    buff[idxs[i]] = {atk={"+", mag}, sta={"+", mag}}
-  end
-  buff:apply()
 end,
 
 --[[
