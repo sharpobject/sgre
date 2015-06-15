@@ -7686,20 +7686,16 @@ end,
   Sita's Delivery
 ]]
 [200482] = function(player)
-  if player.deck[7] and pred.V(player.deck[5]) and pred.V(player.deck[7]) then
-    local idx1 = 5
-    for i = 1, 2 do
-      local idx2 = player:first_empty_field_slot()
-      if idx2 then
-        if i == 2 then
-          idx1 = 7
-        end
-        player.field[idx2] = deepcpy(player.deck[idx1])
+  for _,deck_idx in ipairs({5,7}) do
+    if player.deck[deck_idx] and pred.V(player.deck[deck_idx]) then
+      local field_idx = player:first_empty_field_slot()
+      if field_idx then
+        player.field[field_idx] = deepcpy(player.deck[deck_idx])
       end
     end
-    if not player.hand[5] and player.deck[9] and pred.V(player.deck[9]) then
-      player.hand[#player.hand] = deepcpy(player.deck[9])
-    end
+  end
+  if player.deck[9] and pred.V(player.deck[9]) and #player.hand < 5 then
+    player.hand[#player.hand + 1] = deepcpy(player.deck[9])
   end
 end,
 

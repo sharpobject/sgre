@@ -2502,7 +2502,7 @@ end,
     if my_card.size > 2 then
       local slot = player:first_empty_field_slot()
       if slot then
-        local new_card = Card(300353)
+        local new_card = Card(my_card.id)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
         OneBuff(player, slot, {size={"=",my_card.size-1},atk={"+",2},sta={"+",2}}):apply()
@@ -2563,7 +2563,7 @@ end,
     if my_card.size > 3 then
       local slot = player:first_empty_field_slot()
       if slot then
-        local new_card = Card(300356)
+        local new_card = Card(my_card.id)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
         OneBuff(player, slot, {size={"=",my_card.size-1}}):apply()
@@ -2615,7 +2615,7 @@ end,
     if my_card.size < 3 then
       local slot = player:first_empty_field_slot()
       if slot then
-        local new_card = Card(300359)
+        local new_card = Card(my_card.id)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
         OneBuff(player, slot, {size={"=",my_card.size+1}}):apply()
@@ -2664,7 +2664,7 @@ end,
     if my_card.size > 3 then
       local slot = player:first_empty_field_slot()
       if slot then
-        local new_card = Card(300362)
+        local new_card = Card(my_card.id)
         local amt = ceil(my_card.size / 2)
         player:field_to_exile(my_idx)
         player.field[slot] = new_card
@@ -3060,7 +3060,9 @@ end,
 
 -- fake slumber!
 [1287] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  my_card.active = true
+  if other_card and other_card.atk > my_card.def then
+    my_card.active = true
+  end
 end,
 
 -- i'm done warming up!
