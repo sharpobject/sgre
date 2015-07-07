@@ -7503,10 +7503,9 @@ end,
 ]]
 [200471] = function(player, opponent)
   local mag = 0
-  for i = 0, 4 do
-    local idx = opponent:grave_idxs_with_preds(pred.spell)[1]
-    if idx and idx > #opponent.grave - 5 + i then
-      opponent:grave_to_exile(idx)
+  for i = #opponent.grave, #opponent.grave-4, -1 do
+    if opponent.grave[i] and pred.spell(opponent.grave[i]) then
+      opponent:grave_to_exile(i)
       mag = mag + 1
     end
   end
@@ -7704,12 +7703,12 @@ end,
 ]]
 [200483] = function(player, opponent)
   local pl_idx = player:field_idxs_with_preds(pred.follower)[1]
-  local op_idx = opponent:field_idxs_with_preds(pred.follower)[1]
+  local op_idx = uniformly(opponent:hand_idxs_with_preds(pred.follower))
   if pl_idx and op_idx then
-    local mag = abs(player.field[pl_idx].size - opponent.field[op_idx].size)
+    local mag = abs(player.field[pl_idx].size - opponent.hand[op_idx].size)
     local buff = GlobalBuff(player)
-    buff.field[player][pl_idx] = {size={"=", opponent.field[op_idx].size}, atk={"+", mag}, sta={"+", mag}}
-    buff.field[opponent][op_idx] = {size={"=", player.field[pl_idx].size}}
+    buff.field[player][pl_idx] = {size={"=", opponent.hand[op_idx].size}, atk={"+", mag}, sta={"+", mag}}
+    buff.hand[opponent][op_idx] = {size={"=", player.field[pl_idx].size}}
     buff:apply()
   end
 end,
