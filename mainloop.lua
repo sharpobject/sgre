@@ -637,7 +637,7 @@ function main_lobby()
       play_button_sound()
       net_send({type="join_fight"})
       local bracket = deck_to_bracket(user_data.decks[user_data.active_deck])
-      net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a " .. bracket .. "dp fite!"})
+      net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a " .. bracket .. "DP fite!"})
     end
     table.insert(frames.lobby.game_buttons, button)
 --[[
