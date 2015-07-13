@@ -491,7 +491,7 @@ function Connection:try_select_faction(msg)
 end
 
 function Connection:try_join_fight(msg)
-  local bracket = deck_to_bracket(prep_deck(self.uid))
+  local bracket = list_to_bracket(prep_deck(self.uid))
   if not bracket_to_waiting_uid[bracket] then
     bracket_to_waiting_uid[bracket] = self.uid
   elseif bracket_to_waiting_uid[bracket] ~= self.uid then
