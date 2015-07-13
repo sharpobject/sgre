@@ -282,7 +282,7 @@ function Connection:close()
   connections[self.index] = nil
   if self.uid then
     uid_to_connection[self.uid] = nil
-    for k,v in bracket_to_waiting_uid do
+    for k,v in pairs(bracket_to_waiting_uid) do
       if v == self.uid then
         bracket_to_waiting_uid[k] = nil
       end
@@ -504,7 +504,7 @@ function Connection:try_dungeon(msg)
   if (not which) or (not dungeons.npcs[which]) then
     return
   end
-  for k,v in bracket_to_waiting_uid do
+  for k,v in pairs(bracket_to_waiting_uid) do
     if v == self.uid then
       bracket_to_waiting_uid[k] = nil
     end
@@ -673,7 +673,7 @@ function Connection:set_deck(idx, deck)
 end
 
 function Connection:try_update_deck(msg)
-  for k,v in bracket_to_waiting_uid do
+  for k,v in pairs(bracket_to_waiting_uid) do
     if v == self.uid then
       bracket_to_waiting_uid[k] = nil
     end
@@ -715,7 +715,7 @@ function Connection:crash_and_burn()
 end
 
 function Connection:set_active_deck(idx, silent)
-  for k,v in bracket_to_waiting_uid do
+  for k,v in pairs(bracket_to_waiting_uid) do
     if v == self.uid then
       bracket_to_waiting_uid[k] = nil
     end
