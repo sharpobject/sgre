@@ -2014,7 +2014,7 @@ end,
 
 -- Self-Centered
 [1191] = function(player, my_idx, my_card, skill_idx)
-  local idxs = player:field_idxs_with_preds(pred.follower, 
+  local idxs = player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end)
   local mag = 0
   local buff = OnePlayerBuff(player)
@@ -2838,7 +2838,7 @@ end,
 
 -- Soul Bounce
 [1267] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local idx = uniformly(player:field_idxs_with_preds(pred.neg(pred.active), 
+  local idx = uniformly(player:field_idxs_with_preds(pred.neg(pred.active),
     function(card) return card ~= my_card end))
   if not idx then
     return
@@ -2922,7 +2922,7 @@ end,
     return card ~= my_card end)
   for _,idx in ipairs(idxs) do
     buff[idx] = {sta={"-", 1}}
-    
+
   end
   buff:apply()
 end,
@@ -3090,7 +3090,7 @@ end,
 
 -- Summoning Magic
 [1291] = function(player, my_idx, my_card)
-  local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up, 
+  local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up,
     function(card) return card.name ~= my_card.name end)[1]
   local idx2 = player:first_empty_field_slot()
   if idx and idx2 then
@@ -3168,7 +3168,7 @@ end,
     end
   end
   local mag2 = pred.rose(player.character) and 1 or 0
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end))
   local buff = OnePlayerBuff(player)
   buff[my_idx] = {atk={"+", mag2}, def={"+", mag}}
@@ -3221,7 +3221,7 @@ end,
     OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 2}}):apply()
   end
   my_card:remove_skill(skill_idx)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end))
   if idx then
     player.field[idx]:gain_skill(1299)
@@ -3311,7 +3311,7 @@ end,
 -- Accept my burder!
 [1310] = function(player, my_idx)
   local mag = 0
-  local f = function(card) 
+  local f = function(card)
     if pred.follower(card) then
       mag = math.max(mag, card.sta + 1)
     end
@@ -3577,7 +3577,7 @@ end,
 end,
 
 -- Song of Power
--- Poison Luthica 
+-- Poison Luthica
 [1338] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local idxs = player:field_idxs_with_preds(pred.follower)
   local buff = OnePlayerBuff(player)
@@ -3768,7 +3768,7 @@ end,
   end
   OneBuff(player, my_idx, buff):apply()
 end,
-  
+
 -- Student Council Press Hermes
 -- Equipment Rental!
 [1357] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
@@ -3884,7 +3884,7 @@ end,
 -- Blue Cross L-eader
 -- Power of Concentration!
 [1366] = function(player, my_idx, my_card)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end))
   if idx and #player.field[idx]:squished_skills() > 0 then
     local mag = #player.field[idx]:squished_skills() + 1
@@ -3898,7 +3898,7 @@ end,
 -- Blue Cross L-eader
 -- Tactical Training!
 [1367] = function(player, my_idx, my_card)
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower, 
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end))
   if idx then
     player.field[idx]:gain_skill(1055)
@@ -5268,7 +5268,7 @@ end,
   OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
 end,
 
--- Cook Club Svia 
+-- Cook Club Svia
 [1626] = function(player, my_idx)
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"+",player.field[my_idx].def}}
@@ -5306,7 +5306,7 @@ end,
   end
 end,
 
--- Crux Knight Terra 
+-- Crux Knight Terra
 [1708] = function(player, my_idx, my_card, skill_idx)
   local target_idx = uniformly(player:field_idxs_with_preds({pred.knight,pred.follower}))
   if target_idx then

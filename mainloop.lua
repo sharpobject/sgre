@@ -114,29 +114,29 @@ function main_login(email, password)
     frame:SetDraggable(false)
     frame:Center()
     frame:SetState("login")
-    
+
     local text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
     text1:SetDefaultColor(generic_text_color)
     text1:SetText("E-mail")
-    
+
     local textinput1 = loveframes.Create("textinput", frame)
     textinput1:SetPos(80, 30)
     textinput1:SetWidth(215)
     frames.login.email_input = textinput1
-    
+
     local text2 = loveframes.Create("text", frame)
     text2:SetPos(5, 65)
     text2:SetDefaultColor(generic_text_color)
     text2:SetText("Password")
-    
+
     local textinput2 = loveframes.Create("textinput", frame)
     textinput2:SetPos(80, 60)
     textinput2:SetWidth(215)
     textinput2:SetMasked(true)
     textinput2:SetMaskChar("*")
     frames.login.password_input = textinput2
-    
+
     local loginbutton = loveframes.Create("button", frame)
     loginbutton:SetPos(5, 90)
     loginbutton:SetWidth(290)
@@ -148,7 +148,7 @@ function main_login(email, password)
       net_send({type="login",
         email=email,
         password=password})
-      
+
       doing_login = true
       frames.login.login_button.enabled = false
       frames.login.register_button.enabled = false
@@ -166,7 +166,7 @@ function main_login(email, password)
         textinput2:GetText()}}
     end
     frames.login.register_button = donebutton
-    
+
     local clearbutton = loveframes.Create("button", frame)
     clearbutton:SetPos(152, 120)
     clearbutton:SetWidth(143)
@@ -182,7 +182,7 @@ function main_login(email, password)
   frames.login.email_input:SetText(email)
   frames.login.password_input:SetText(password)
   loveframes.SetState("login")
-  
+
   while true do
     wait()
     if doing_login then
@@ -208,7 +208,7 @@ function main_login(email, password)
                   end
                   doing_login = false
                   options.remember_me_email = email
-                  options.remember_me_password = password 
+                  options.remember_me_password = password
                   set_file("options.json", json.encode(options))
                   from_login = {main_select_faction}
                   break
@@ -218,7 +218,7 @@ function main_login(email, password)
           else
             doing_login = false
             from_login = {main_modal_notice,
-              {"Login failed "..(resp.reason or ":("), 
+              {"Login failed "..(resp.reason or ":("),
                 {main_login, {frames.login.email_input:GetText(),
                   frames.login.password_input:GetText()}}}}
           end
@@ -254,21 +254,21 @@ function main_register(email, password)
     frame:SetDraggable(false)
     frame:Center()
     frame:SetState("register")
-    
+
     text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
     text1:SetDefaultColor(generic_text_color)
     text1:SetText("Username")
-    
+
     textinput1 = loveframes.Create("textinput", frame)
     textinput1:SetPos(80, 30)
     textinput1:SetWidth(215)
-    
+
     text2 = loveframes.Create("text", frame)
     text2:SetPos(5, 65)
     text2:SetDefaultColor(generic_text_color)
     text2:SetText("E-mail")
-    
+
     textinput2 = loveframes.Create("textinput", frame)
     textinput2:SetPos(80, 60)
     textinput2:SetWidth(215)
@@ -278,14 +278,14 @@ function main_register(email, password)
     text3:SetPos(5, 95)
     text3:SetDefaultColor(generic_text_color)
     text3:SetText("Password")
-    
+
     textinput3 = loveframes.Create("textinput", frame)
     textinput3:SetPos(80, 90)
     textinput3:SetWidth(215)
     textinput3:SetMasked(true)
     textinput3:SetMaskChar("*")
     frames.register.password_input = textinput3
-    
+
     backbutton = loveframes.Create("button", frame)
     backbutton:SetPos(5, 120)
     backbutton:SetWidth(143)
@@ -295,7 +295,7 @@ function main_register(email, password)
       from_register = {main_login, {textinput2:GetText(), textinput3:GetText()}}
     end
     frames.register.back_button = backbutton
-    
+
     registerbutton = loveframes.Create("button", frame)
     registerbutton:SetPos(152, 120)
     registerbutton:SetWidth(143)
@@ -316,7 +316,7 @@ function main_register(email, password)
   frames.register.email_input:SetText(email)
   frames.register.password_input:SetText(password)
   loveframes.SetState("register")
-  
+
   while true do
     wait()
     if registering then
@@ -328,11 +328,11 @@ function main_register(email, password)
           frames.register.back_button.enabled = true
           registering = false
           if resp.success then
-            from_register = {main_modal_notice, {"Registration succeeded~", 
+            from_register = {main_modal_notice, {"Registration succeeded~",
               {main_login, {frames.register.email_input:GetText(),
                 frames.register.password_input:GetText()}}}}
           else
-            from_register = {main_modal_notice, {"Registration failed :(", 
+            from_register = {main_modal_notice, {"Registration failed :(",
               {main_register, {frames.register.email_input:GetText(),
                 frames.register.password_input:GetText()}}}}
           end
@@ -361,17 +361,17 @@ function main_forgot_password(email, password)
     frame:SetDraggable(false)
     frame:Center()
     frame:SetState("forgot_password")
-    
+
     local text1 = loveframes.Create("text", frame)
     text1:SetPos(5, 35)
     text1:SetDefaultColor(generic_text_color)
     text1:SetText("E-mail")
-    
+
     local textinput1 = loveframes.Create("textinput", frame)
     textinput1:SetPos(80, 30)
     textinput1:SetWidth(215)
     frames.forgot_password.email_input = textinput1
-    
+
     local donebutton = loveframes.Create("button", frame)
     donebutton:SetPos(5, 60)
     donebutton:SetWidth(143)
@@ -381,7 +381,7 @@ function main_forgot_password(email, password)
       from_forgot_password = {main_login, {textinput1:GetText(),
         frames.forgot_password.password}}
     end
-    
+
     local clearbutton = loveframes.Create("button", frame)
     clearbutton:SetPos(152, 60)
     clearbutton:SetWidth(143)
@@ -396,7 +396,7 @@ function main_forgot_password(email, password)
       modal:Center()
       modal:SetState("forgot_password")
       modal:SetModal(true)
-      
+
       local modaltext = loveframes.Create("text", modal)
       modaltext:SetDefaultColor(generic_text_color)
       modaltext:SetText("Password reset is not implemented :(")
@@ -425,7 +425,7 @@ function main_forgot_password(email, password)
   frames.forgot_password.password = password
   frames.forgot_password.email_input:SetText(email)
   loveframes.SetState("forgot_password")
-  
+
   while true do
     wait()
     if from_forgot_password then
@@ -448,11 +448,11 @@ function main_modal_notice(text, to_ret)
     frame:SetDraggable(false)
     frame:Center()
     frame:SetState("modal_notice")
-    
+
     local text1 = loveframes.Create("text", frame)
     text1:SetDefaultColor(generic_text_color)
     frames.modal_notice.text = text1
-    
+
     local okbutton = loveframes.Create("button", frame)
     okbutton:SetPos(5, 60)
     okbutton:SetWidth(290)
@@ -468,7 +468,7 @@ function main_modal_notice(text, to_ret)
     from_modal_notice = to_ret
   end
   loveframes.SetState("modal_notice")
-  
+
   while true do
     wait()
     if from_modal_notice then
@@ -492,7 +492,7 @@ function rewards(data)
   frame:SetModal(true)
   loveframes.modalobject.modalbackground:SetState("playing")
   frame:Center()
-  
+
   -- make text in frame
   local text1 = loveframes.Create("text", frame)
   text1:SetDefaultColor(generic_text_color)
@@ -521,7 +521,7 @@ function rewards(data)
   rewards_list:SetHeight(test_button:GetHeight())
   rewards_list:EnableHorizontalStacking(true)
   rewards_list:SetSpacing(spacing)
-  for i, v in pairs(data) do 
+  for i, v in pairs(data) do
     ncards = ncards + 1
   end
   if ncards < 1 then
@@ -532,7 +532,7 @@ function rewards(data)
   rewards_list:SetWidth(width)
   rewards_list:CenterX()
   rewards_list:CenterY()
-  for i, v in pairs(data) do 
+  for i, v in pairs(data) do
     rewards_list:AddItem(card_list_button(i, false, v, function() end))
   end
 
@@ -562,7 +562,7 @@ function main_select_faction()
   end
 
   loveframes.SetState("select_faction")
-  
+
   while true do
     wait()
     if user_data.active_deck then
@@ -855,7 +855,7 @@ function main_craft()
     craft_pane.Draw = function(self)
       draw_hover_frame(self.x, self.y, self.width, self.height, "Lab")
     end
-  
+
 
     local text_card_list = loveframes.Create("list", craft_pane)
     text_card_list:SetWidth(w-12)
@@ -912,7 +912,7 @@ function main_craft()
       frame:SetWidth(width+2*spacing+2)
       frame:SetHeight(30 + height + spacing+card_height+spacing+1)
       frame:Center()
-      for i, v in pairs(recipes[id]) do 
+      for i, v in pairs(recipes[id]) do
         local coll_amt = frames.craft.collection[i] or 0
         local gray = coll_amt < v
         in_list:AddItem(card_list_button(i, gray, coll_amt.."/"..v,
@@ -1007,9 +1007,9 @@ function main_craft()
           frames.craft.spawn_craft_frame(k)
         end))
       end
-    
+
     complete_card_list = deepcpy(text_card_list)
-      frames.craft.populate_text_card_list = function(recipes, substr, search_changed) 
+      frames.craft.populate_text_card_list = function(recipes, substr, search_changed)
       if substr and search_changed then
         text_card_list:Clear()
         for k,v in spairs(recipes, name_cmp) do
@@ -1040,7 +1040,7 @@ function main_craft()
         text_card_list = deepcpy(complete_card_list)
       end
     end
-    
+
     end
 
     local card_list = loveframes.Create("list")
@@ -1079,7 +1079,7 @@ function main_craft()
     end
     add_search_bar(craft_pane)
     add_craft_filters()
-  
+
     function frames.craft.populate_card_list(collection, substr)
       card_list:Clear()
       local coll2 = tspairs(collection, deck_cmp)
@@ -1107,13 +1107,13 @@ function main_craft()
             and ((not craft_filter_values[3]) or craft_filter_values[3] == filtering.rarity)
             and ((not craft_filter_values[4]) or craft_filter_values[4] == filtering.faction)
             and ((not craft_filter_values[5]) or craft_filter_values[5] == filtering.size)
-            and ((not substr) or string.find(string.lower(filtering.name), substr) 
+            and ((not substr) or string.find(string.lower(filtering.name), substr)
             or string.find(card_skill_text, substr)) then
           coll[collindex] = coll2[i]
           collindex = collindex + 1
         end
       end
-      
+
       frames.craft.npages = ceil(#coll/16)
       if frames.craft.npages > 0 then
         frames.craft.page_num = bound(1,frames.craft.page_num,frames.craft.npages)
@@ -1133,11 +1133,11 @@ function main_craft()
 
   frames.craft.collection = collection_ex_deck(
       user_data.collection, union_counters(user_data.decks))
-    
-    
+
+
   list_init = true
   frames.craft.update_list(recipes)
-  
+
 
   loveframes.SetState("craft")
   play_bgm("other_main")
@@ -1169,7 +1169,7 @@ local function feedable_coll(coll)
   local ret = {}
   for k,v in pairs(non_deck_cards) do
     if (k >= 200000 and k < 210000) or (k >= 300000 and k < 310000) then
-      ret[k] = v      
+      ret[k] = v
     end
   end
   return ret
@@ -1297,7 +1297,7 @@ function main_decks()
       end
       return n < 30 and ((deck[id] or 0) < Card(id).limit)
     end
-  
+
     add_decks_filters()
 
     function frames.decks.populate_card_list(collection)
@@ -1590,7 +1590,7 @@ function main_cafe()
         feeding_card_list:AddItem(card_list_button(k, false, v, function()
             if not frames.cafe.active_character_card_id then
               return false
-            end 
+            end
             local confirm_box = loveframes.Create("frame", cafe)
             frames.cafe.confirm_box = confirm_box
             confirm_box:SetState("cafe")
@@ -1630,8 +1630,8 @@ function main_cafe()
             yes_button:CenterY()
             yes_button:SetX(25)
             yes_button:SetText("Yes")
-            yes_button.OnClick = function() 
-              play_button_sound() 
+            yes_button.OnClick = function()
+              play_button_sound()
               local msg = {frames.cafe.active_character_card_id, frames.cafe.active_character_cafe_id, k}
               net_send({type="feed_card", msg=msg})
               confirm_box:Remove()
@@ -1849,7 +1849,7 @@ function main_xmute()
     function xmutable_card_list:Draw() end
     xmutable_card_list:SetSpacing(5)
 
-    function frames.xmute.populate_xmutable_card_list() 
+    function frames.xmute.populate_xmutable_card_list()
       local xmute_type = frames.xmute.xmute_type
       xmutable_card_list:Clear()
       frames.xmute.populate_xmute_to_card_list()
@@ -1875,7 +1875,7 @@ function main_xmute()
       end
       for i =1,#card_list do
         local k, v = card_list[i][1],card_list[i][2]
-        xmutable_card_list:AddItem(card_list_button(k, false, v, function() 
+        xmutable_card_list:AddItem(card_list_button(k, false, v, function()
           frames.xmute.populate_xmute_to_card_list(xmute_type, k)
           frames.xmute.draw_preview_pane(nil, k, xmute_type)
           end))
@@ -1900,7 +1900,7 @@ function main_xmute()
         if v[from_card_id] then
           for to_card_id, _ in spairs(v) do
             if to_card_id ~= from_card_id then
-              xmute_to_card_list:AddItem(card_list_button(to_card_id, false, nil, function() 
+              xmute_to_card_list:AddItem(card_list_button(to_card_id, false, nil, function()
                 frames.xmute.draw_preview_pane(to_card_id, from_card_id, xmute_type)
                 end))
             end
@@ -1950,7 +1950,7 @@ function main_xmute()
       xmute_button:SetPos(280, 100)
       xmute_button:SetSize(80, 40)
       xmute_button:SetText("Transmute!")
-      xmute_button.OnClick = function() 
+      xmute_button.OnClick = function()
         play_button_sound()
         local value = xmute_numberbox:GetValue()
         if not (frames.xmute.collection and from_card_id and to_card_id) then
@@ -2116,7 +2116,7 @@ end
 local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2},
     {"Advanced Dungeon", 3}, {"Bamboo Garden", 8}, {"Dream Island", 14},
     {"2S Detective Agency", 18}, }
-local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5}, 
+local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5},
     {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10},
     {"Vita Public School", 12}, {"Vivid World", 13}, {"Catacombs", 16},
     {"Ancient Sanctuary", 17}, {"Catch That Cat", 21}, {"Underground Library", 23},
@@ -2143,7 +2143,7 @@ function main_dungeon()
   if not frames.dungeon.showingclear then
     frames.dungeon.showingclear = {}
   end
-    
+
   local frame = loveframes.Create("frame")
   frame:SetName("Dungeons")
   frame:SetState("lobby")
@@ -2166,7 +2166,7 @@ function main_dungeon()
     end
     update_dungeon_list(frame)
   end
-    
+
   local nextbutton = loveframes.Create("button", frame)
   nextbutton:SetPos(80, 360)
   nextbutton:SetSize(30, 30)
@@ -2178,7 +2178,7 @@ function main_dungeon()
     end
     update_dungeon_list(frame)
   end
-    
+
   local easybutton, normalbutton, hardbutton
   easybutton = loveframes.Create("button", frame)
   easybutton:SetPos(150, 360)
@@ -2191,7 +2191,7 @@ function main_dungeon()
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
-    
+
   normalbutton = loveframes.Create("button", frame)
   normalbutton:SetPos(260, 360)
   normalbutton:SetSize(80, 30)
@@ -2202,7 +2202,7 @@ function main_dungeon()
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
-    
+
   hardbutton = loveframes.Create("button", frame)
   hardbutton:SetPos(370, 360)
   hardbutton:SetSize(80, 30)
@@ -2213,26 +2213,26 @@ function main_dungeon()
     frames.dungeon.page_num = 1
     update_dungeon_list(frame)
   end
-    
+
   local closebutton = loveframes.Create("button", frame)
   closebutton:SetPos(520, 360)
   closebutton:SetSize(60, 30)
   closebutton:SetText("CLOSE")
   function closebutton:OnClick()
-    play_cancel_sound() 
+    play_cancel_sound()
     from_dungeon = {main_lobby}
     close = true
-  end 
-    
+  end
+
   function update_dungeon_list(frame)
 
-    local index = 1   
+    local index = 1
     while frames.dungeon.showing[index] do
       frames.dungeon.showing[index]:Remove()
       frames.dungeon.showing[index] = nil
       index = index + 1
     end
-    
+
     index = 1
     if frames.dungeon.difficulty == easy_dungeons then
       normalbutton:SetEnabled(true)
@@ -2271,24 +2271,24 @@ function main_dungeon()
           love.graphics.setColor(255, 255, 255, 255)
           love.graphics.draw(load_asset(img_filename), x, y)
         end
-      
+
         local text = loveframes.Create("text", frame)
         local text2 = loveframes.Create("text", frame)
-        
+
         text:SetDefaultColor(generic_text_color)
         text:SetText("Floor: "..user_data.dungeon_floors[dungeon_id])
         text:SetX(63 + 141 * (index - 1))
         text:SetY(316)
-      
+
         text2:SetDefaultColor(generic_text_color)
         text2:SetText("Clear: "..user_data.dungeon_clears[dungeon_id])
         text2:SetX(62 + 141 * (index - 1))
         text2:SetY(332)
-        
+
         frames.dungeon.showing[#frames.dungeon.showing+1] = image
         frames.dungeon.showing[#frames.dungeon.showing+1] = text
         frames.dungeon.showing[#frames.dungeon.showing+1] = text2
-        
+
         index = index + 1
       else
         break
@@ -2299,13 +2299,13 @@ function main_dungeon()
     pagetext:SetPos(55, 369)
     pagetext:SetText(frames.dungeon.page_num .. "/" .. ceil(#frames.dungeon.difficulty / 4))
     frames.dungeon.showing[#frames.dungeon.showing+1] = pagetext
-  end 
-    
+  end
+
   update_dungeon_list(frame)
-    
+
   while true do
     wait()
-    
+
     if from_dungeon == "start game" then
       --a dungeon was entered, prepare for battle
       local ret = {main_lobby}
@@ -2317,7 +2317,7 @@ function main_dungeon()
       local ret = from_dungeon
       from_dungeon = nil
       frame:Remove()
-      
+
       return unpack(ret)
     end
   end

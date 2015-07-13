@@ -29,11 +29,11 @@ for state, source in pairs(bgm_table) do
 end
 
 function play_bgm(state)
-    if bgm and bgm:isPlaying() and bgm_table[state] == bgm then 
+    if bgm and bgm:isPlaying() and bgm_table[state] == bgm then
         return --do nothing if we are already playing the right music for the requested state
     end
-    if bgm then 
-        bgm:stop() 
+    if bgm then
+        bgm:stop()
     end
     bgm = bgm_table[state]
     bgm:setVolume(options.music_volume)

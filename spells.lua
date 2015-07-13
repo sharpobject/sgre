@@ -91,7 +91,7 @@ end,
     local target_idxs = shuffle(player:field_idxs_with_preds({pred.follower, pred.faction.V}))
     local buff = OnePlayerBuff(player)
     local atk_up, sta_up = 1,2
-    if #target_idxs >= 2 and 
+    if #target_idxs >= 2 and
         pred.cook_club(player.field[target_idxs[1]]) and
         pred.cook_club(player.field[target_idxs[2]]) then
       atk_up, sta_up = 2,3
@@ -3610,9 +3610,9 @@ end,
 
 --[[
 Halloween Wolf
-The first card in your Hand is sent to the first empty Slot 
-of your Field and has its SIZE halved (rounding down). If this happens, 
-the first Spell in the enemy Hand without "Halloween" in the name is copied to 
+The first card in your Hand is sent to the first empty Slot
+of your Field and has its SIZE halved (rounding down). If this happens,
+the first Spell in the enemy Hand without "Halloween" in the name is copied to
 the first empty Slot of your Field.
 ]]
 [200250] = function(player, opponent, my_idx, my_card)
@@ -4872,7 +4872,7 @@ end,
 --[[
 Musiciter Mentor
 All cards in your Hand/Deck with SIZE= 10 are sent to the bottom of your Deck
-For each card sent, a random enemy card is sent to the top of their Deck and all allied 
+For each card sent, a random enemy card is sent to the top of their Deck and all allied
   Followers get STA+ 1
 All allied Followers are deactivated
 ]]
@@ -4969,7 +4969,7 @@ end,
 --[[
 Final Decision
 The first allied Follower and a random enemy Follower with a SIZE
-less than or equal to twice the allied SIZE both have their ATK/STA 
+less than or equal to twice the allied SIZE both have their ATK/STA
 set equal to half (rounding down) the sum of both Followers' ATK/STA.
 ]]
 [200337] = function(player, opponent)
@@ -5002,12 +5002,12 @@ Otherwise, this card gets SIZE+ 2 and is sent to the top of your Deck
   if not pred.V(player.character) then
     return
   end
-  local idxs = player:field_idxs_with_preds(pred.follower, 
+  local idxs = player:field_idxs_with_preds(pred.follower,
       function(card) return card.size < my_card.size end)
   for _,idx in ipairs(idxs) do
     player:field_to_exile(idx)
   end
-  idxs = opponent:field_idxs_with_preds(pred.follower, 
+  idxs = opponent:field_idxs_with_preds(pred.follower,
       function(card) return card.size < my_card.size end)
   for _,idx in ipairs(idxs) do
     opponent:field_to_exile(idx)
@@ -5157,7 +5157,7 @@ end,
 
 --[[
 Shaman's Prayer
-2 random allied Darklore Followers get ATK + total DEF of all enemy Followers and 
+2 random allied Darklore Followers get ATK + total DEF of all enemy Followers and
 STA - total DEF of all enemy Followers / 2 rounded up + 1
 ]]
 [200346] = function(player, opponent)
@@ -5356,7 +5356,7 @@ This card is exiled
     return
   end
   for i=1,10 do
-    local idx = uniformly(player:grave_idxs_with_preds(function(card) 
+    local idx = uniformly(player:grave_idxs_with_preds(function(card)
         return card.name ~= my_card.name end))
     if idx and player.grave[idx].name ~= my_card.id then
       player:grave_to_bottom_deck(idx)
@@ -5434,7 +5434,7 @@ Lonely Operation
 All allied GS, Aletheian, and Apostle Followers get ATK+3
 ]]
 [200361] = function(player)
-  local idxs = player:field_idxs_with_preds(pred.follower, 
+  local idxs = player:field_idxs_with_preds(pred.follower,
       pred.union(pred.gs, pred.aletheian, pred.apostle))
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(idxs) do
@@ -5613,7 +5613,7 @@ end,
 
 --[[
 Lady's Dinner
-If you have a card with SIZE >= 6 on the Field, 2 random enemy Followers get ATK-2/STA-4 
+If you have a card with SIZE >= 6 on the Field, 2 random enemy Followers get ATK-2/STA-4
 Otherwise, they get ATK-1/STA-2
 ]]
 [200371] = function(player, opponent)
@@ -5626,7 +5626,7 @@ Otherwise, they get ATK-1/STA-2
   end
   buff:apply()
 end,
-    
+
 --[[
 Eldest Sister's Hobby
 2 random allied non-Maid/non-Lady Academy Followers get effects depending on the coin flip
@@ -5892,7 +5892,7 @@ Personal Relationship
     buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
-    for i=1,min(2,#op_idxs) do  
+    for i=1,min(2,#op_idxs) do
       buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
@@ -5967,7 +5967,7 @@ Myo Clan's Aid
     buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
-    for i=1,min(2,#op_idxs) do  
+    for i=1,min(2,#op_idxs) do
       buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
@@ -6053,7 +6053,7 @@ No Gain
     buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
-    for i=1,min(2,#op_idxs) do  
+    for i=1,min(2,#op_idxs) do
       buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
@@ -6150,7 +6150,7 @@ Iri's Enjoyment
     buff.field[player][pl_idxs[i]] = {atk={"+",2},sta={"+",2}}
   end
   if opponent:is_npc() then
-    for i=1,min(2,#op_idxs) do  
+    for i=1,min(2,#op_idxs) do
       buff.field[opponent][op_idxs[i]] = {atk={"-",2},sta={"-",2}}
     end
   end
@@ -6383,7 +6383,7 @@ end,
 Underground City
 ]]
 [200410] = function(player)
-  local pred_vampire = function(card) return pred.crescent(card) or 
+  local pred_vampire = function(card) return pred.crescent(card) or
       pred.flina(card) or pred.scardel(card) end
   local mag = #player:field_idxs_with_preds(pred.follower, pred_vampire)
       + #player:hand_idxs_with_preds(pred.follower, pred_vampire)
@@ -6666,7 +6666,7 @@ end,
 Ritual of Unity
 ]]
 [200424] = function(player, opponent, my_idx, my_card)
-  local pred_vampire = function(card) return pred.crescent(card) or 
+  local pred_vampire = function(card) return pred.crescent(card) or
       pred.flina(card) or pred.scardel(card) end
   local mag = #player:grave_idxs_with_preds(pred.union(pred_vampire,
       function(card) return card.name == my_card.name end))
@@ -6855,7 +6855,7 @@ Opposition
   local idxs = shuffle(player:field_idxs_with_preds(pred.C, pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(2, #idxs) do
-    local mag = ceil((player.field[idxs[1]].size + 
+    local mag = ceil((player.field[idxs[1]].size +
         (player.field[idxs[2]] or player.field[idxs[1]]).size)/2)
     buff[idxs[i]] = {atk={"+",mag}, def={"=", 0}}
   end
@@ -6991,7 +6991,7 @@ Student Council
     return
   end
   OneBuff(player, idx, {atk={"+",3}}):apply()
-  idx = opponent:field_idxs_with_preds(pred.follower, 
+  idx = opponent:field_idxs_with_preds(pred.follower,
       function(card) return card.atk < player.field[idx].atk end)[1]
   if idx then
     OneImpact(opponent, idx):apply()
@@ -7559,7 +7559,7 @@ end,
   Sudden Turn
 ]]
 [200475] = function(player)
-  local idx = player:field_idxs_with_preds(pred.follower, 
+  local idx = player:field_idxs_with_preds(pred.follower,
       function(card) return card.atk <= 5 end)[1]
   if idx then
     local mag = player.field[idx].atk * 2
@@ -7605,7 +7605,7 @@ end,
 [200478] = function(player, opponent)
   local idx1 = uniformly(player:hand_idxs_with_preds(pred.spell, function(card) return card.id ~= 200478 end))
   local idx2 = player:first_empty_field_slot()
-  if player:field_idxs_with_preds(pred.follower)[1] and player:field_idxs_with_preds(pred.spell)[2] 
+  if player:field_idxs_with_preds(pred.follower)[1] and player:field_idxs_with_preds(pred.spell)[2]
       and opponent:field_idxs_with_preds(pred.spell)[1] and idx1 and idx2 then
     player.field[idx2] = Card(player.hand[idx1].id)
   end

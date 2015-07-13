@@ -2173,7 +2173,7 @@ end,
   end
   buff:apply()
 end,
-  
+
 -- Staff Sergeant Pintail
 [100159] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
@@ -2916,7 +2916,7 @@ end,
     OneBuff(player, idx, {atk={"+", 2}, sta={"+", 3}}):apply()
   end
 end,
-  
+
 -- Halloween Iri
 [100235] = function(player, opponent)
   if player.game.turn == 1 then
@@ -3282,7 +3282,7 @@ end,
   buff_random(player, opponent, my_card, {atk={"+",1}})
 end,
 
--- True Bunny Lady 
+-- True Bunny Lady
 [110007] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {sta={"+",1}})
 end,
@@ -3292,7 +3292,7 @@ end,
   buff_all(player, opponent, my_card, {sta={"+",1}})
 end,
 
--- Wind Breaker  
+-- Wind Breaker
 [110009] = function(player)
   local target_idxs = player.opponent:field_idxs_with_preds(pred.follower)
   if #target_idxs == 0 then
@@ -3311,7 +3311,7 @@ end,
   buff:apply()
 end,
 
--- Wind Forestier  
+-- Wind Forestier
 [110011] = wind_forestier({"sta"}),
 
 -- True Enchantress
@@ -5272,7 +5272,7 @@ end,
     end
   end
   buff:apply()
-end,    
+end,
 
 -- Examiner P. Coy
 [110198] = function(player, opponent)
@@ -5406,7 +5406,7 @@ end,
     end
   end
 end,
-    
+
 -- Student Council Press Member
 [110209] = function(player, opponent)
   local idxs = opponent:field_idxs_with_preds(pred.follower,
@@ -5488,7 +5488,7 @@ end,
     end
   end
 end,
-  
+
 -- Wedding Dress Sita
 [110215] = function(player, opponent)
   local buff = OnePlayerBuff(opponent)
@@ -5509,7 +5509,7 @@ end,
   end
   OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
-  
+
 -- Wedding Dress Iri
 [110217] = function(player, opponent)
   if player:field_size() > opponent:field_size() then
@@ -5549,7 +5549,7 @@ end,
   end
   OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
-  
+
 -- Wedding Dress Clarice
 [110221] = function(player)
   local idxs = player:field_idxs_with_preds(pred.follower,
@@ -5594,7 +5594,7 @@ end,
   end
   OneBuff(player, 0, {life={"+", 1}}):apply()
 end,
-  
+
 -- Linia's Tailor
 [110224] = function(player, opponent)
   local idx = uniformly(player:hand_idxs_with_preds())
@@ -5623,7 +5623,7 @@ end,
 [110226] = function(player, opponent)
   local size1 = player.hand[1] and player.hand[1].size or 0
   local size2 = player.hand[2] and player.hand[2].size or 0
-  local idx = opponent:field_idxs_with_preds(pred.follower, 
+  local idx = opponent:field_idxs_with_preds(pred.follower,
       function(card) return card.size <= floor((size1 + size2) / 2) end)[1]
   if idx then
     OneBuff(opponent, idx, {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}):apply()
@@ -5651,7 +5651,7 @@ end,
   local idx = player:field_idxs_with_preds(pred.follower)[1]
   if idx then
     local mag = player.field[idx].size
-    local idxs = opponent:field_idxs_with_preds(pred.follower, 
+    local idxs = opponent:field_idxs_with_preds(pred.follower,
         function(card) return card.size < mag end)
     local buff = OnePlayerBuff(opponent)
     for _, idx in ipairs(idxs) do
@@ -5718,7 +5718,7 @@ end,
 
 -- Student Council President Cinia
 [110233] = function(player, opponent)
-  if #player:field_idxs_with_preds(pred.neg(pred.A)) == 0 and 
+  if #player:field_idxs_with_preds(pred.neg(pred.A)) == 0 and
       #player:hand_idxs_with_preds(pred.neg(pred.A)) == 0 and
       #player.grave >= 5 then
     local idx = uniformly(player:grave_idxs_with_preds(pred.follower))
@@ -5737,7 +5737,7 @@ end,
     end
   end
 end,
-    
+
 -- Witch Cadet Fade
 [110234] = function(player, opponent)
   local buff = GlobalBuff(player)
@@ -5783,7 +5783,7 @@ end,
     end
   end
 end,
-      
+
 -- Explorer Jia Free
 [110237] = function(player, opponent)
   local idx = opponent:field_idxs_with_preds(pred.follower)[1]
@@ -5833,7 +5833,7 @@ end,
 
 -- Library Club Explorer Kanea
 [110240] = function(player, opponent)
-  local mag1 = 2 - opponent.shuffles 
+  local mag1 = 2 - opponent.shuffles
   local mag2 = 1 + opponent.shuffles
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
@@ -5847,7 +5847,7 @@ end,
 
 -- Explorer Shon Kanea
 [110241] = function(player, opponent)
-  local mag1 = 2 - opponent.shuffles 
+  local mag1 = 2 - opponent.shuffles
   local mag2 = 1 + opponent.shuffles
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
@@ -6043,7 +6043,7 @@ end,
     OneBuff(player, idx2, buff):apply()
   end
 end,
-    
+
 -- Lieutenant Kay
 [110257] = function(player, opponent)
   local pred_atk = function(card) return card.atk >= 20 end
@@ -6068,7 +6068,7 @@ end,
   end
   buff:apply()
 end,
-    
+
 -- Penguin Suit Sita
 [110259] = function(player, opponent)
   local check = player:field_idxs_with_preds(pred.sita)[1]
@@ -6205,7 +6205,7 @@ end,
     OneBuff(player, 1, {atk={"+", 4}, sta={"+", 4}}):apply()
   end
 end,
-  
+
 -- Waitress Rianna
 [110268] = function(player)
   local idx1 = uniformly(player:field_idxs_with_preds(pred.follower))

@@ -443,8 +443,8 @@ function Connection:try_login(msg)
     end
     modified_file(data)
   end
-  if not data.cafe then 
-    data.cafe = {} 
+  if not data.cafe then
+    data.cafe = {}
     modified_file(data)
   end
   if #data.decks < 10 then
@@ -650,7 +650,7 @@ end
 function Connection:set_deck(idx, deck)
   local char,other=0,0
   local data = uid_to_data[self.uid]
-  if not check_deck(deck, data) then 
+  if not check_deck(deck, data) then
     return false
   end
   if idx ~= floor(idx) or
@@ -675,7 +675,7 @@ function Connection:try_update_deck(msg)
   local diff = fix_num_keys(msg.diff)
   local data = uid_to_data[self.uid]
   if type(idx) ~= "number" or
-      type(diff) ~= "table" or 
+      type(diff) ~= "table" or
       idx ~= floor(idx) or
       idx < 1 or
       idx > 100 then
@@ -789,7 +789,7 @@ function Connection:feed_card(msg)
   if not data.cafe[eater_id][cafe_id] then
     local num_cafe_character = #data.cafe[eater_id]
     if num_cafe_character < data.collection[eater_id] and giftable[eater_id] and num_cafe_character < 11 then
-      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0} 
+      data.cafe[eater_id][num_cafe_character+1] = {0, 0, 0, 0, 0}
       cafe_id = num_cafe_character+1
       -- the above 5 numbers are {WIS, SENS, PERS, GLAM, LIKE}
     else
@@ -931,8 +931,8 @@ function Connection:try_xmute(msg)
   local from_card_id = msg.from_card_id
   local to_card_number = msg.to_card_number
   local xmute_type = msg.xmute_type
-  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then 
-    return false 
+  if not to_card_id or not from_card_id or not to_card_number or not xmute_type then
+    return false
   end
   if to_card_number < 1 or to_card_number > 100 then
     return false

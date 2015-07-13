@@ -4,7 +4,7 @@ local eps = require("episodes")
 
 function add_craft_filters()
   state = "craft"
-  craft_filters = {} 
+  craft_filters = {}
   craft_filter_values = {}
 
   crafttypefilter = loveframes.Create("multichoice")
@@ -19,7 +19,7 @@ function add_craft_filters()
   crafttypefilter:SetWidth(70)
 
 --onchoiceselected, repopulate card list: change populate function to get values
---probably need to change it so the populate function 
+--probably need to change it so the populate function
   function crafttypefilter:OnChoiceSelected(choice)
     filter_type = crafttypefilter:GetValue()
     if filter_type == "Type" then filter_type = nil
@@ -73,7 +73,7 @@ function add_craft_filters()
     craft_filter_values[3] = filter_rarity
     frames.craft.populate_card_list(recipes, substr)
   end
-  craft_filters[3] = craftrarityfilter 
+  craft_filters[3] = craftrarityfilter
 
   craftfactionfilter = loveframes.Create("multichoice")
   craftfactionfilter:SetState(state)
@@ -121,7 +121,7 @@ end
 
 function add_decks_filters()
   state = "decks"
-  decks_filters = {} 
+  decks_filters = {}
   decks_filter_values = {}
   decktypefilter = loveframes.Create("multichoice")
   decktypefilter:SetState(state)
@@ -134,7 +134,7 @@ function add_decks_filters()
   decktypefilter:SetY(530)
   decktypefilter:SetWidth(70)
   --onchoiceselected, repopulate card list: change populate function to get values
-  --probably need to change it so the populate function 
+  --probably need to change it so the populate function
   function decktypefilter:OnChoiceSelected(choice)
     filter_type = decktypefilter:GetValue()
     if filter_type == "Type" then filter_type = nil
@@ -192,7 +192,7 @@ function add_decks_filters()
   end
   decks_filters[3] = deckrarityfilter
 
-    
+
 
   deckfactionfilter = loveframes.Create("multichoice")
   deckfactionfilter:SetState(state)
@@ -232,7 +232,7 @@ function add_decks_filters()
   function decksizefilter:OnChoiceSelected(choice)
     if decksizefilter:GetValue() == "Size" then filter_size = nil
     else filter_size = tonumber(decksizefilter:GetValue()) end
-   
+
     decks_filter_values[5] = filter_size
     frames.decks.update_list()
   end
