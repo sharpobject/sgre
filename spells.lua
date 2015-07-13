@@ -7731,16 +7731,14 @@ end,
 ]]
 [200485] = function(player, opponent)
   if pred.A(player.character) then
-    for i = 0, 2 do
-      local pl_idx = i * 2 + 1
+    for pl_idx = 1,5,2 do
       local op_idx = opponent:first_empty_field_slot()
       if player.field[pl_idx] and op_idx then
         OneImpact(player, pl_idx):apply()
         player.field[pl_idx], opponent.field[op_idx] = nil, player.field[pl_idx]
       end
     end
-    for i = 1, 2 do
-      local op_idx = i * 2
+    for op_idx = 2,4,2 do
       local pl_idx = player:first_empty_field_slot()
       if opponent.field[op_idx] and pl_idx then
         OneImpact(opponent, op_idx):apply()
