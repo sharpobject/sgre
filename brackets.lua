@@ -2,7 +2,7 @@ local function dp_to_bracket(dp)
   if dp <= 100 then return "100" end
   if dp <= 300 then return "300" end
   if dp <= 700 then return "700" end
-  return "unlimited"
+  return "9001"
 end
 
 function list_to_bracket(list)
