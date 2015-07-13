@@ -576,18 +576,18 @@ function main_lobby()
   if not frames.lobby then
     frames.lobby = {}
     local frame, text, textinput
-	
-	local chatWidth = 470
-	local chatHeight = 560
-	
+
+    local chatWidth = 470
+    local chatHeight = 560
+
     frame = loveframes.Create("frame")
     frame:SetName("Let's talk about the SG~~")
     frame:SetSize(chatWidth, chatHeight)
-	frame:SetPos(20,20)
+    frame:SetPos(20,20)
     frame:ShowCloseButton(false)
     frame:SetDraggable(false)
     frame:SetState("lobby")
-    
+
     text = loveframes.Create("textinput", frame)
     text:SetMultiline(true)
     text:SetAutoScroll(true)
@@ -598,7 +598,7 @@ function main_lobby()
     text:SetLimit(200)
     text:SetEditable(false)
     frames.lobby.text = text
-    
+
     textinput = loveframes.Create("textinput", frame)
     textinput:SetWidth(chatWidth-10)
     textinput:Center()
@@ -609,33 +609,33 @@ function main_lobby()
       net_send({type="general_chat",text=text})
     end
 
-	make_player_info(frame)
+    make_player_info(frame)
 
-	-- === Create Menubar and Lobby Buttons === --
-	
+    -- === Create Menubar and Lobby Buttons === --
+
     frames.lobby.game_buttons = {}
-	--tried4's TODO: don't hardcode frame position and size
-	local menuX = 495
-	local menuY = 0
-	local offsetX = 13
-	local offsetY = 105
-	local spacing = 57
+    --tried4's TODO: don't hardcode frame position and size
+    local menuX = 495
+    local menuY = 0
+    local offsetX = 13
+    local offsetY = 105
+    local spacing = 57
 
-	local button = make_menubar(menuX,menuY)
---	table.insert(frames.lobby.game_buttons, button)
-	
-	local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)	
-	button.OnClick = function()
+    local button = make_menubar(menuX,menuY)
+    --table.insert(frames.lobby.game_buttons, button)
+
+    local button = menu_dungeon_button(menuX+offsetX,menuY+offsetY)
+    button.OnClick = function()
     play_button_sound()
-		from_lobby = {main_dungeon}
+      from_lobby = {main_dungeon}
     end
     table.insert(frames.lobby.game_buttons, button)
-	
-	local button = menu_fight_button(menuX+offsetX,menuY+offsetY+spacing)	
-	button.OnClick = function()
-    play_button_sound()
-		net_send({type="join_fight"})
-		net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
+
+    local button = menu_fight_button(menuX+offsetX,menuY+offsetY+spacing)
+    button.OnClick = function()
+      play_button_sound()
+      net_send({type="join_fight"})
+      net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
     end
     table.insert(frames.lobby.game_buttons, button)
 --[[
@@ -711,8 +711,8 @@ function main_lobby()
     end
 --    table.insert(frames.lobby.game_buttons, button)
 
-	-- == Lobby Buttons, continued == --
-	local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)	
+    -- == Lobby Buttons, continued == --
+    local button = menu_cafe_button(menuX+offsetX-3,menuY+offsetY+spacing*2)
     button.OnClick = function()
       play_button_sound()
       if frames.cafe then
@@ -723,33 +723,33 @@ function main_lobby()
       from_lobby = {main_cafe}
     end
 --    table.insert(frames.lobby.game_buttons, button)
-	
-	local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)	
+
+    local button = menu_deck_button(menuX+offsetX-2,menuY+offsetY+spacing*3-5)
     button.OnClick = function()
       play_button_sound()
       from_lobby = {main_decks}
     end
---	table.insert(frames.lobby.game_buttons, button)
-	
-	local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)	
+--  table.insert(frames.lobby.game_buttons, button)
+
+    local button = menu_craft_button(menuX+offsetX-2,menuY+offsetY+spacing*4-10)
     button.OnClick = function()
       play_button_sound()
       from_lobby = {main_craft}
     end
 --    table.insert(frames.lobby.game_buttons, button)
-	
-	local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)	
+
+    local button = menu_xmute_button(menuX+offsetX-2,menuY+offsetY+spacing*5-15)
     button.OnClick = function()
       play_button_sound()
       if frames.xmute then
         frames.xmute.xmute_type = nil
         frames.xmute.populate_xmutable_card_list()
-		end
+      end
       from_lobby = {main_xmute}
     end
 --    table.insert(frames.lobby.game_buttons, button)
   end
-  
+
   local enable_buttons = check_active_deck()
   for _,button in ipairs(frames.lobby.game_buttons) do
     button:SetEnabled(enable_buttons)
@@ -1708,7 +1708,7 @@ function main_options()
   lobby_button:SetText("Close")
   lobby_button:SetHeight(30)
   function lobby_button:OnClick()
-	play_cancel_sound()
+    play_cancel_sound()
     from_options = {main_lobby}
   end
 

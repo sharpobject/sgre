@@ -764,95 +764,95 @@ end
  --tried4's TODO: highlight on hover feature
  
 function make_menubar(x,y) 
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
-		love.graphics.setColor(255, 255, 255, 255)
-		love.graphics.draw(load_asset("menubar.png"), x-1-1, y-1)
-	end
-	return button 	
-end 
- 
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.draw(load_asset("menubar.png"), x-1-1, y-1)
+  end
+  return button
+end
+
 function menu_dungeon_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("dungeon.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("dungeon.png"), x-1, y-1)
+  end
+  return button
 end 
  
 function menu_fight_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("fight.png"), x-1-1, y-1)
-	end	
-	return button
+    love.graphics.draw(load_asset("fight.png"), x-1-1, y-1)
+  end
+  return button
 end
 
 function menu_cafe_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("cafe.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("cafe.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_deck_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("deck.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("deck.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_craft_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("lab.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("lab.png"), x-1, y-1)
+  end
+  return button
 end
 
 function menu_xmute_button(x, y)
-	local button = loveframes.Create("imagebutton")
-	button:SetX(x)
-	button:SetY(y)
-	button:SetState("lobby")
-	button.Draw = function(self)
+  local button = loveframes.Create("imagebutton")
+  button:SetX(x)
+  button:SetY(y)
+  button:SetState("lobby")
+  button.Draw = function(self)
     love.graphics.setColor(255, 255, 255)
-		love.graphics.draw(load_asset("xmute.png"), x-1, y-1)
-	end
-	return button
+    love.graphics.draw(load_asset("xmute.png"), x-1, y-1)
+  end
+  return button
 end
 
  -- Player Info Panel
  -- Lobby only
  
 function make_player_info(frame)
-	--tried4's TODO: don't hardcode frame position and size
-	local player_panel = loveframes.Create("frame",frame)
+  --tried4's TODO: don't hardcode frame position and size
+  local player_panel = loveframes.Create("frame",frame)
   local x,y,w,h = left_hover_frame_pos()
   player_panel:SetPos(764-w,-10)
   player_panel:SetSize(w,h)
@@ -861,7 +861,7 @@ function make_player_info(frame)
   player_panel.Draw = function(self)
   draw_hover_frame(self.x, self.y, self.width, self.height)
   love.graphics.draw(load_asset("bg-ornament.png"),764-w+26,-10+20)
-  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)	  
+  love.graphics.draw(load_asset("logo.png"),764-w+22,-10+20,0,.85)  
   local id = get_active_char() or 100089
   acquire_img(id)
   love.graphics.draw(load_asset("cardframe.png"), 800-w-11, 80)
