@@ -53,7 +53,7 @@ users.last_modified = nil
 users.username_to_uid = users.username_to_uid or {}
 users.uid_to_username = users.uid_to_username or {}
 users.uid_to_email = users.uid_to_email or {}
-local uid_waiting_for_fight = nil
+local bracket_to_waiting_uid = {}
 
 local file_q = Queue()
 local chat_q = Queue()
@@ -282,8 +282,10 @@ function Connection:close()
   connections[self.index] = nil
   if self.uid then
     uid_to_connection[self.uid] = nil
-    if uid_waiting_for_fight == self.uid then
-      uid_waiting_for_fight = nil
+    for k,v in bracket_to_waiting_uid do
+      if v == self.uid then
+        bracket_to_waiting_uid[k] = nil
+      end
     end
   end
   self.socket:close()
@@ -488,11 +490,12 @@ function Connection:try_select_faction(msg)
 end
 
 function Connection:try_join_fight(msg)
-  if not uid_waiting_for_fight then
-    uid_waiting_for_fight = self.uid
-  elseif uid_waiting_for_fight ~= self.uid then
-    start_fight(self.uid, uid_waiting_for_fight)
-    uid_waiting_for_fight = nil
+  local bracket = deck_to_bracket(prep_deck(self.uid))
+  if not bracket_to_waiting_uid[bracket] then
+    bracket_to_waiting_uid[bracket] = self.uid
+  elseif bracket_to_waiting_uid[bracket] ~= self.uid then
+    start_fight(self.uid, bracket_to_waiting_uid[bracket])
+    bracket_to_waiting_uid[bracket] = nil
   end
 end
 
@@ -501,8 +504,10 @@ function Connection:try_dungeon(msg)
   if (not which) or (not dungeons.npcs[which]) then
     return
   end
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in bracket_to_waiting_uid do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
@@ -668,8 +673,10 @@ function Connection:set_deck(idx, deck)
 end
 
 function Connection:try_update_deck(msg)
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in bracket_to_waiting_uid do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local idx = msg.idx
   local diff = fix_num_keys(msg.diff)
@@ -708,8 +715,10 @@ function Connection:crash_and_burn()
 end
 
 function Connection:set_active_deck(idx, silent)
-  if uid_waiting_for_fight == self.uid then
-    uid_waiting_for_fight = nil
+  for k,v in bracket_to_waiting_uid do
+    if v == self.uid then
+      bracket_to_waiting_uid[k] = nil
+    end
   end
   local char,other=0,0
   local data = uid_to_data[self.uid]

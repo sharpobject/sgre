@@ -1,4 +1,5 @@
 require "cards"
+require "brackets"
 local recipes = recipes
 local ceil = math.ceil
 local xmutable = require "xmutable"
@@ -635,7 +636,8 @@ function main_lobby()
     button.OnClick = function()
       play_button_sound()
       net_send({type="join_fight"})
-      net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a fite!"})
+      local bracket = deck_to_bracket(user_data.decks[user_data.active_deck])
+      net_send({type="general_chat",text="[ Public Msg ] " .. user_data.username .. " is looking for a " .. bracket .. "dp fite!"})
     end
     table.insert(frames.lobby.game_buttons, button)
 --[[
