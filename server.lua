@@ -24,6 +24,7 @@ require("ssl")
 require("validate")
 require("giftable")
 local xmutable = require("xmutable")
+require("brackets")
 
 local byte = string.byte
 local char = string.char
