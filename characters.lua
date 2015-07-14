@@ -2561,6 +2561,49 @@ end,
   ep7_recycle(player)
 end,
 
+-- Queen Peia Bray
+[100195] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.spell)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Miss Royle Cinia
+[100196] = function(player, opponent)
+  if player:field_idxs_with_preds(pred.A)[1] and #opponent.hand <= 3 then
+    opponent.hand[#opponent.hand + 1] = Card(200070)
+  elseif #opponent.hand == 5 and opponent:first_empty_field_slot() then
+    local idx = opponent:first_empty_field_slot()
+    opponent.field[idx] = Card(200070)
+    OneImpact(opponent, idx):apply()
+  end
+end,
+
+-- GS Executive Mon Cher
+[100197] = function(player)
+  if player.game.turn % 2 == 1 then
+    player.grave[#player.grave + 1] = Card(300193)
+  end
+  local idx = player:deck_idxs_with_preds(pred.follower)
+  if idx then
+    local buff = GlobalBuff(player)
+    local mag = 0
+    local idx2 = #player.grave
+    for i = 1, max(idx2) do
+      if player.grave[idx2 - i + 1] and pred.D(player.grave[idx2 - i + 1]) and pred.follower(player.grave[idx2 - i + 1]) then
+        mag = mag + 1
+      end
+    end
+    buff.deck[player][idx] = {atk={"+", mag}, sta={"+", mag}}
+    buff:apply()
+  end
+end,
+
 -- Rinshan Kaihou Asmis
 [100198] = function(player, opponent, my_card)
   local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
@@ -6224,6 +6267,96 @@ end,
   end
 end,
 
+-- Dress Up Maron
+[110269] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {sta={"+", 2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Muzisitter Maron
+[110269] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {sta={"+", 2}}
+    end
+    buff:apply()
+  end
+  local pred_size = function(card) return card.size >= 5 end
+  local offset = 0
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred_size)
+  for _, idx in ipairs(idxs) do
+    player:to_bottom_deck(table.remove(player.deck, idx + offset))
+    offset = offset + 1
+  end
+end,
+
+-- Dress Up Smartyrain
+[110271] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Muzisitter Smartyrain
+[110272] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+  local pred_size = function(card) return card.size >= 5 end
+  local offset = 0
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred_size)
+  for _, idx in ipairs(idxs) do
+    player:to_bottom_deck(table.remove(player.deck, idx + offset))
+    offset = offset + 1
+  end
+end,
+
+-- Dress Up Lucerrie
+[110273] = function(player)
+  if #player:field_idxs_with_preds(pred.follower) <= 1 then
+    local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up)[1]
+    if idx then
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        player.field[idx2] = table.remove(player.deck, idx)
+        OneBuff(player, idx2, {size={"=", 5}, atk={"+", 2}, sta={"+", 2}}):apply()
+      end
+    end
+  end
+end,
+
+-- Muzisitter Lucerrie
+[110273] = function(player)
+  if #player:field_idxs_with_preds(pred.follower) <= 1 then
+    local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up)[1]
+    if idx then
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        player.field[idx2] = table.remove(player.deck, idx)
+        OneBuff(player, idx2, {size={"=", 3}, atk={"+", 4}, sta={"+", 4}}):apply()
+      end
+    end
+  end
+end,
+
 -- Gold Lion Nold
 [120001] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {size={"-",1}})
@@ -6674,8 +6807,27 @@ end,
   if player.game.turn >= 10 then
     OneBuff(opponent, 0, {life={"=", 0}}):apply()
   end
+end,
+
+-- Codename Q.B
+[120028] = function(player)
+  local buff = GlobalBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds()) do
+    buff.field[player][idx] = {size={"-", 1}}
+  end
+  for _, idx in ipairs(player:hand_idxs_with_preds()) do
+    buff.hand[player][idx] = {size={"-", 1}}
+  end
+  for _, idx in ipairs(player:deck_idxs_with_preds()) do
+    buff.deck[player][idx] = {size={"-", 1}}
+    if player.game.turn % 2 == 1 and pred.follower(player.deck[idx]) then
+      buff.deck[player][idx] = {size={"-", 1}, atk={"+", 1}, sta={"+", 1}}
+    end
+  end
+  buff:apply()
 end
 
+-- make sure last end does not have comma
 -- Do not touch that curly brace!
 }
 setmetatable(characters_func, {__index = function()return function() end end})
