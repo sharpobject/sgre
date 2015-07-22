@@ -791,6 +791,7 @@ end,
     function(card) return card.faction ~= opponent.character.faction end))
   local new_idx = player:first_empty_field_slot()
   if old_idx and new_idx then
+    OneImpact(opponent, old_idx):apply()
     player.field[new_idx] = opponent.field[old_idx]
     opponent.field[old_idx] = nil
     player.field[new_idx].active = false
@@ -8435,7 +8436,7 @@ end,
 --[[ Mass Recall ]]
 [200527] = function(player, opponent)
   local idxs = player:field_idxs_with_preds(pred.neg(pred.A))
-  for _, idx in ipairs(player:hand_idxs_with_preds(pred.neg(pred.A)) do
+  for _, idx in ipairs(player:hand_idxs_with_preds(pred.neg(pred.A))) do
     table.insert(idxs, idx + 5)
   end
   local idx = uniformly(idxs)
@@ -8536,26 +8537,28 @@ end,
     mag = mag + player.field[idx].size
     player:field_to_grave(idx)
   end
-  OneBuff(player, idx, {atk={"+", mag}, def={"+", ceil(mag / 2)}, sta={"+", mag}}):apply()
+  if idx then
+    OneBuff(player, idx, {atk={"+", mag}, def={"+", ceil(mag / 2)}, sta={"+", mag}}):apply()
+  end
 end,
 
 --[[ Devilish Girl ]]
 [200534] = function(player, opponent)
   local buff = GlobalBuff(player)
-  local _, idx in ipairs(player:field_idxs_with_preds(pred.neg(pred.D), pred.follower)) do
-    buff.field[idx] = {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.neg(pred.D), pred.follower)) do
+    buff.field[player][idx] = {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}
   end
-  local _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff.field[idx] = {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}
+  for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    buff.field[opponent][idx] = {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}
   end
   buff:apply()
   local buff = GlobalBuff(player)
   local pred_def = function(card) return card.def <= 0 end
-  local _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_def)) do
-    buff.field[idx] = {atk={"-", 2}, sta={"-", 1}}
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_def)) do
+    buff.field[player][idx] = {atk={"-", 2}, sta={"-", 1}}
   end
-  local _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_def)) do
-    buff.field[idx] = {atk={"-", 2}, sta={"-", 1}}
+  for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower, pred_def)) do
+    buff.field[opponent][idx] = {atk={"-", 2}, sta={"-", 1}}
   end
   buff:apply()
 end,
@@ -8669,7 +8672,7 @@ end,
       local buff = GlobalBuff(player)
       buff.field[opponent][idx] = {}
       if pred.follower(opponent.field[idx]) then
-        local idx = uniformlY(player:field_idxs_with_preds(pred.follower))
+        local idx = uniformly(player:field_idxs_with_preds(pred.follower))
         if idx then
           buff.field[player][idx] = {atk={"+", 2}, sta={"+", 2}}
         end

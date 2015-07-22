@@ -5218,6 +5218,418 @@ end,
   buff:apply()
 end,
 
+-- Muzisitter's Fan Layna
+-- Deadly Charm
+[1486] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {sta={"-", 1}}):apply()
+  end
+end,
+
+-- Library Club Librarian's Assistant Jin
+-- Storage
+[1487] = function(player)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.library_club, pred.follower))
+  local buff = OnePlayerBuff(player)
+  for i = 1, min(2, #idxs) do
+    buff[idxs[i]] = {size={"-", 1}}
+  end
+  buff:apply()
+end,
+
+-- Student Council Casey
+-- Heavy Strike
+[1488] = function(player, my_idx, my_card, skill_idx)
+  local pred_diff = function(card) return card ~= my_card end
+  local check = player:field_idxs_with_preds(pred.follower, pred_diff)[1]
+  if check then
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][0] = {life={"-", 3}}
+    buff.field[player][my_idx] = {}
+    buff:apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Twin Lady Shion and Rion
+-- Chaos
+[1489] = function(player)
+  local idx = uniformly(player.opponent:hand_idxs_with_preds())
+  if idx then
+    player.opponent:hand_to_bottom_deck(idx)
+  end
+end,
+
+-- Lady Cox
+-- Equip Dress
+[1490] = function(player, my_idx, my_card, skill_idx)
+  local buff = OnePlayerBuff(player)
+  buff[my_idx] = {}
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.A, pred.follower)) do
+    buff[idx] = {def={"+", 1}}
+  end
+  buff:apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Muzisitter Lady Irea
+-- HP Drain
+[1491] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.sta > Card(other_card.id).sta then
+    local orig = Card(other_card.id)
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][other_idx] = {sta={"=", orig.sta}}
+    buff.field[player][my_idx] = {sta={"+", other_card.sta - orig.sta}}
+    buff:apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Seeker Kano
+-- Report Results
+[1492] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and my_card.def + my_card.sta <= other_card.atk then
+    local idx = player:hand_idxs_with_preds(pred.follower)[1]
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.hand[player][idx] = {atk={"+", 3}, sta={"+", 3}}
+      buff:apply()
+    end
+  end
+end,
+
+-- Silent Knight
+-- Silent Pressure
+[1493] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][other_idx] = {}
+    buff.field[player][my_idx] = {size={"+", 1}}
+    buff:apply()
+    if my_card.size >= 5 then
+      player:field_to_grave(my_idx)
+    end
+  end
+end,
+
+-- Double Agent Luthica
+-- Defende
+[1494] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][other_idx] = {atk={"-", 1}, sta={"-", 1}}
+    buff.field[player][my_idx] = {}
+    buff:apply()
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- SS Informant
+-- Timing
+[1495] = function(player, my_idx)
+  if player.character.life >= 15 then
+    OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
+  else
+    OneBuff(player, my_idx, {atk={"+", 2}}):apply()
+  end
+end,
+
+-- Alethian Hania
+-- Sacrifice
+[1496] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local mag = abs((other_card.atk + other_card.def + other_card.sta) - (my_card.atk + my_card.def + my_card.sta))
+    if mag > 0 then
+      local buff = GlobalBuff(player)
+      buff.field[player][my_idx] = {}
+      buff.field[player.opponent][other_idx] = {size={"-", mag}, sta={"-", mag}}
+      buff:apply()
+      player:destroy(my_idx)
+    end
+  end
+end,
+
+-- GS Leader Schindler
+-- GS Command
+[1497] = function(player, my_idx)
+  local idx = uniformly(player:hand_idxs_with_preds(pred.gs))
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {atk={"+", 1}, sta={"+", 1}}
+    buff.hand[player][idx] = {size={"-", 1}}
+    buff:apply()
+  end
+end,
+
+-- Shionrion Extreme
+-- Transformation Expired
+[1498] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local shion = 300595
+  local rion = 300596
+  if other_card and other_card.atk >= my_card.def + my_card.sta then
+    OneImpact(player, my_idx):apply()
+    player:field_to_exile(my_idx)
+    local idxs = player:empty_field_slots()
+    local buff = OnePlayerBuff(player)
+    buff[idxs[1]] = {size={"=", 2}}
+    player.field[idxs[1]] = Card(shion)
+    if idxs[2] then
+      buff[idxs[1]] = {size={"=", 2}}
+      player.field[idxs[1]] = Card(rion)
+    end
+    buff:apply()
+  end
+end,
+
+-- Dress Up Shion
+-- Twin Attack!
+[1499] = function(player)
+  local shion = 300595
+  local rion = 300596
+  local pred = function(card) return card.id == 300595 or card.id == 300596 end
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds(pred)) do
+    buff[idx] = {atk={"+", 2}}
+  end
+  buff:apply()
+end,
+
+-- Dress Up Rion
+-- Twin Defense!
+[1500] = function(player)
+  local shion = 300595
+  local rion = 300596
+  local pred = function(card) return card.id == 300595 or card.id == 300596 end
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds(pred)) do
+    buff[idx] = {sta={"+", 2}}
+  end
+  buff:apply()
+end,
+
+-- Double Agent Luthica
+-- Attack
+[1501] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+end,
+
+-- Cook Club Baker Svia
+-- Strike Weakness
+[1502] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {atk={"-", 2}, def={"-", 2}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Summer Student Council Susie
+-- Pilfer
+[1503] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local impact = Impact(player)
+    impact[player][my_idx] = true
+    impact[player.opponent][other_idx] = true
+    impact:apply()
+    for i = 1, 3 do
+      if skill_id_to_type[my_card.skills[i]] == "defend" and other_card:first_empty_skill_slot() then
+        other_card:gain_skill(my_card.skills[i])
+        my_card:remove_skill(i)
+      end
+    end
+    for i = 1, 3 do
+      if skill_id_to_type[other_card.skills[i]] == "attack" and my_card:first_empty_skill_slot() then
+        my_card:gain_skill(other_card.skills[i])
+        other_card:remove_skill(i)
+      end
+    end
+  end
+end,
+
+-- Summer Student Council Susie
+-- Enemy Cheer
+[1504] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and not pred.V(my_card) then
+    OneBuff(player.opponent, other_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Part-Time Maid
+-- Recover
+[1505] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and other_card.atk >= my_card.def + my_card.sta then
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    local buff = OnePlayerBuff(player)
+    buff[my_idx] = {}
+    buff[idx] = {sta={"+", my_card.sta}}
+    buff:apply()
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Marionette Witch
+-- Confidence
+[1506] = function(player, my_idx, my_card)
+  local check = false
+  for i = 1, 3 do
+    check = check or my_card.skills[i] ~= 1506
+  end
+  if check then
+    OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+    my_card:refresh()
+  end
+end,
+
+-- Blue Cross Rose
+-- Comparison
+[1507] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][other_idx] = {def={"-", my_card.def}}
+    buff.field[player][my_idx] = {}
+    buff:apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Blue Cross Rose
+-- Comparison
+[1508] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and my_card.def >= 0 then
+    local mag = my_card.def
+    OneBuff(player.opponent, other_idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Blue Cross Rose
+-- Restore Confidence
+[1509] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, {def={"=", Card(my_card.id).def}}):apply()
+  my_card:refresh()
+end,
+
+-- Aletheian Deputy Cook
+-- Cooking Preparations
+[1510] = function(player, my_idx, my_card)
+  if my_card.sta > Card(my_card.id).sta then
+    local buff = OnePlayerBuff(player)
+    local mag = min(floor((my_card.sta - 5) / 2), 9)
+    buff[0] = {life={"+", mag}}
+    buff[my_idx] = {sta={"=", 5}}
+    buff:apply()
+  end
+end,
+
+-- Muzisitter Lady Linus
+-- Shockwave
+[1511] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    local pred_diff = function(card) return card ~= other_card end
+    local idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower, pred_diff))
+    local mag = idx and ceil(player.opponent.field[idx].atk / 2) or 3
+    OneBuff(player.opponent, other_idx, {sta={"-", mag}}):apply()
+  end
+end,
+
+-- Muzisitter Lady Linus
+-- Energy Drain
+[1512] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card then
+    OneBuff(player.opponent, other_idx, {atk={"-", my_card.def}}):apply()
+  end
+end,
+
+-- Crux Knight Sophia
+-- Abandonment
+[1513] = function(player, my_idx)
+  player:destroy(my_idx)
+end,
+
+-- Crux Knight Sophia
+-- Defiance
+[1514] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if other_card and player.character.faction == my_card.faction then
+    OneBuff(player, my_idx, {sta={"+", other_card.atk}}):apply()
+  end
+end,
+
+-- Blue Cross Scribe
+-- Life or Death
+[1515] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  if player.hand[4] and other_card then
+    OneImpact(player.opponent, other_idx):apply()
+    player.opponent:field_to_top_deck(other_idx)
+    my_card:remove_skill(skill_idx)
+  elseif not player.hand[3] then
+    OneImpact(player, my_idx):apply()
+    player:field_to_grave(my_idx)
+  end
+end,
+
+-- Wise Witch
+-- Reaper
+[1516] = function(player, my_idx)
+  if #player.grave + #player.opponent.grave >= 15 then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  end
+end,
+
+-- Fugitive Aletheian A-GA
+-- Natural Selection
+[1517] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  local mag = other_card and other_card.size >= my_card.size and 2 or 1
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Summer Tesla
+-- Book's Wisdom
+[1518] = function(player, my_idx, my_card, skill_idx)
+  local buff = OnePlayerBuff(player)
+  buff[my_idx] = {}
+  local mag = my_card.size
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.V, pred.follower)) do
+    buff[idx] = {atk={"+", mag}, sta={"+", mag}}
+  end
+  buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Summer Linia
+-- Master's Command
+[1519] = function(player, my_idx, my_card, skill_idx)
+  local mag = ceil(my_card.size / 2)
+  local buff = OnePlayerBuff(player)
+  for i = max(1, my_idx - 1), min(5, my_idx + 1) do
+    if player.field[i] and pred.follower(player.field[i]) then
+      buff[i] = {atk={"+", mag}, sta={"+", mag}}
+    end
+  end
+  buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Summer Vanguard
+-- Orders From Above
+[1520] = function(player, my_idx, my_card, skill_idx)
+  while player.deck[1] and not player.hand[4] do
+    player:draw_a_card()
+  end
+  local mag = #player:hand_idxs_with_preds(pred.C)
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Summer Cabernet
+-- Two and One
+[1521] = function(player, my_idx, my_card, skill_idx)
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.D, pred.follower)) do
+    buff[idx] = {atk={"+", 2}, sta={"+", 2}}
+  end
+  buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
 -- badminton sita, sita smash!
 [1522] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.sta % 2 == 0 then
@@ -5351,7 +5763,7 @@ end,
     end
   end
   OneBuff(player, my_idx, {atk={"+",mag},def={"+",mag},sta={"+",mag}}):apply()
-end,
+end
 }
 
 
