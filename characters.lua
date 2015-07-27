@@ -2561,6 +2561,49 @@ end,
   ep7_recycle(player)
 end,
 
+-- Queen Peia Bray
+[100195] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.spell)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Miss Royle Cinia
+[100196] = function(player, opponent)
+  if player:field_idxs_with_preds(pred.A)[1] and #opponent.hand <= 3 then
+    opponent.hand[#opponent.hand + 1] = Card(200070)
+  elseif #opponent.hand == 5 and opponent:first_empty_field_slot() then
+    local idx = opponent:first_empty_field_slot()
+    opponent.field[idx] = Card(200070)
+    OneImpact(opponent, idx):apply()
+  end
+end,
+
+-- GS Executive Mon Cher
+[100197] = function(player)
+  if player.game.turn % 2 == 1 then
+    player.grave[#player.grave + 1] = Card(300193)
+  end
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    local mag = 0
+    local idx2 = #player.grave
+    for i = 1, max(idx2) do
+      if player.grave[idx2 - i + 1] and pred.D(player.grave[idx2 - i + 1]) and pred.follower(player.grave[idx2 - i + 1]) then
+        mag = mag + 1
+      end
+    end
+    buff.deck[player][idx] = {atk={"+", mag}, sta={"+", mag}}
+    buff:apply()
+  end
+end,
+
 -- Rinshan Kaihou Asmis
 [100198] = function(player, opponent, my_card)
   local idx = uniformly(player:deck_idxs_with_preds(pred.follower))
@@ -3242,6 +3285,55 @@ end,
     local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
       OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 2}}):apply()
+    end
+  end
+end,
+
+-- Holy Bird's Role Sita
+[100202] = function(player, opponent)
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local my_idx = uniformly(player:field_idxs_with_preds(pred.V, pred.follower))
+  local buff = GlobalBuff(player)
+  if op_idx then
+    buff.field[opponent][op_idx] = {sta={"-", 2}}
+  end
+  if my_idx then
+    if op_idx then
+      buff.field[player][my_idx] = {sta={"+", 2}}
+    else
+      buff.field[player][my_idx] = {atk={"+", 2}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Pirates Shion and Rion
+[100203] = function(player)
+  local shion = 300057
+  local rion = 200058
+  local ids = { shion, rion }
+  if player.grave[1] then
+    player:grave_to_exile(#player.grave)
+  end
+  player:to_grave(Card(uniformly(ids)))
+  local buff = OnePlayerBuff(player)
+  local check = player.grave[#player.grave] == shion
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+    buff[idx] = check and {sta={"+", 2}} or {atk={"+", 1}}
+  end
+  buff:apply()
+end,
+
+-- Unhoused Cannelle
+[100204] = function(player)
+  local pred_size = function(card) return card.size <= 2 end
+  if not player.hand[5] then
+    local idx = player:deck_idxs_with_preds(pred.follower, pred_size)[1]
+    if idx then
+      local buff = GlobalBuff(player)
+      buff.deck[player][idx] = {size={"+", 1}, atk={"+", 1}, def={"+", 1}, sta={"+", 2}}
+      buff:apply()
+      player:deck_to_hand(idx)
     end
   end
 end,
@@ -6224,6 +6316,211 @@ end,
   end
 end,
 
+-- Dress Up Maron
+[110269] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {sta={"+", 2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Muzisitter Maron
+[110269] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {sta={"+", 2}}
+    end
+    buff:apply()
+  end
+  local pred_size = function(card) return card.size >= 5 end
+  local offset = 0
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred_size)
+  for _, idx in ipairs(idxs) do
+    player:to_bottom_deck(table.remove(player.deck, idx + offset))
+    offset = offset + 1
+  end
+end,
+
+-- Dress Up Smartyrain
+[110271] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Muzisitter Smartyrain
+[110272] = function(player)
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+  local pred_size = function(card) return card.size >= 5 end
+  local offset = 0
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred_size)
+  for _, idx in ipairs(idxs) do
+    player:to_bottom_deck(table.remove(player.deck, idx + offset))
+    offset = offset + 1
+  end
+end,
+
+-- Dress Up Lucerrie
+[110273] = function(player)
+  if #player:field_idxs_with_preds(pred.follower) <= 1 then
+    local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up)[1]
+    if idx then
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        player.field[idx2] = table.remove(player.deck, idx)
+        OneBuff(player, idx2, {size={"=", 5}, atk={"+", 2}, sta={"+", 2}}):apply()
+      end
+    end
+  end
+end,
+
+-- Muzisitter Lucerrie
+[110274] = function(player)
+  if #player:field_idxs_with_preds(pred.follower) <= 1 then
+    local idx = player:deck_idxs_with_preds(pred.follower, pred.dress_up)[1]
+    if idx then
+      local idx2 = player:first_empty_field_slot()
+      if idx2 then
+        player.field[idx2] = table.remove(player.deck, idx)
+        OneBuff(player, idx2, {size={"=", 3}, atk={"+", 4}, sta={"+", 4}}):apply()
+      end
+    end
+  end
+end,
+
+-- Student Council Monthly
+[110275] = function(player, opponent)
+  if player.game.turn == 1 then
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
+      buff.deck[player][idx] = {atk={"-", 2}, def={"+", 2}}
+    end
+    buff:apply()
+  end
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
+  local buff = OnePlayerBuff(opponent)
+  for i = 1, min(2, #idxs) do
+    buff[idxs[i]] = {atk={"-", 1}}
+  end
+  buff:apply()
+end,
+
+-- Cook Club Iri
+[110276] = function(player, opponent)
+  if player.game.turn == 1 then
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
+      buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}}
+    end
+    buff:apply()
+  end
+  OneBuff(opponent, 0, {life={"-", 1}}):apply()
+end,
+
+-- Student Council Celine
+[110277] = function(player)
+  local idx = player:deck_idxs_with_preds(pred.student_council, pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(player)
+    buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 2}}
+    buff:apply()
+    player:deck_to_top_deck(idx)
+  end
+end,
+
+-- Student Council Visitor Esprit
+[110278] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    if pred.skill(opponent.field[idx]) then
+      buff.field[opponent][idx] = {atk={"+", 1}, sta={"+", 1}}
+      opponent.field[idx].skills = {}
+    else
+      buff.field[opponent][idx] = {}
+    end
+  end
+  buff:apply()
+end,
+
+-- Frett
+[110279] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag = #player:hand_idxs_with_preds(pred.knight, pred.C, pred.follower)
+    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+-- Charon
+[110280] = function(player, opponent)
+  local mag = #player.grave + #opponent.grave
+  if mag <= 10 then
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(opponent:hand_idxs_with_preds(pred.follower)) do
+      buff.hand[opponent][idx] = {atk={"-", 1}}
+    end
+    buff:apply()
+  elseif mag <= 20 then
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(player:hand_idxs_with_preds(pred.follower)) do
+      buff.hand[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    end
+    buff:apply()
+  else
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
+      buff.deck[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Conundrum
+[110281] = function(player)
+  if player.game.turn == 1 then
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
+      buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Weekly, the Legend
+[110282] = function(player, opponent)
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local my_idx = player:hand_idxs_with_preds(pred.student_council, pred.follower)[1]
+  if op_idx and my_idx then
+    local buff = GlobalBuff(player)
+    buff.field[opponent][op_idx] = {atk={"=", player.hand[my_idx].atk}}
+    buff.hand[player][my_idx] = {atk={"=", opponent.field[op_idx].atk}}
+    buff:apply()
+  end
+end,
+
 -- Gold Lion Nold
 [120001] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {size={"-",1}})
@@ -6674,8 +6971,87 @@ end,
   if player.game.turn >= 10 then
     OneBuff(opponent, 0, {life={"=", 0}}):apply()
   end
+end,
+
+-- Codename Q.B
+[120028] = function(player)
+  local buff = GlobalBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds()) do
+    buff.field[player][idx] = {size={"-", 1}}
+  end
+  for _, idx in ipairs(player:hand_idxs_with_preds()) do
+    buff.hand[player][idx] = {size={"-", 1}}
+  end
+  for _, idx in ipairs(player:deck_idxs_with_preds()) do
+    buff.deck[player][idx] = {size={"-", 1}}
+    if player.game.turn % 2 == 1 and pred.follower(player.deck[idx]) then
+      buff.deck[player][idx] = {size={"-", 1}, atk={"+", 1}, sta={"+", 1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Badminton Sita
+[120029] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[opponent][idx] = {atk={"-", 1}, sta={"-", 1}}
+  end
+  if player.game.turn == 1 then
+    for _, idx in ipairs(player:deck_idxs_with_preds()) do
+      buff.deck[player][idx] = pred.follower(player.deck[idx]) and {size={"-", 1}, atk={"+", 1}, sta={"+", 2}} or {size={"-", 1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Archery Cinia
+[120030] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[opponent][idx] = {atk={"-", 1}, sta={"-", 1}}
+  end
+  if player.game.turn == 1 then
+    for _, idx in ipairs(player:deck_idxs_with_preds()) do
+      buff.deck[player][idx] = pred.follower(player.deck[idx]) and {size={"-", 1}, atk={"+", 1}, sta={"+", 2}} or {size={"-", 1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Judo Luthica
+[120031] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[opponent][idx] = {atk={"-", 1}, sta={"-", 1}}
+  end
+  if player.game.turn == 1 then
+    for _, idx in ipairs(player:deck_idxs_with_preds()) do
+      buff.deck[player][idx] = pred.follower(player.deck[idx]) and {size={"-", 1}, atk={"+", 1}, sta={"+", 2}} or {size={"-", 1}}
+    end
+  end
+  buff:apply()
+end,
+
+-- Ping Pong Iri
+[120032] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[opponent][idx] = {atk={"-", 1}, sta={"-", 1}}
+  end
+  if player.game.turn == 1 then
+    for _, idx in ipairs(player:deck_idxs_with_preds()) do
+      buff.deck[player][idx] = pred.follower(player.deck[idx]) and {size={"-", 1}, atk={"+", 1}, sta={"+", 2}} or {size={"-", 1}}
+    end
+  end
+  buff:apply()
 end
 
+-- make sure last end does not have comma
 -- Do not touch that curly brace!
 }
 setmetatable(characters_func, {__index = function()return function() end end})
