@@ -8296,14 +8296,16 @@ end,
   Demotion
 ]]
 [200518] = function(player)
-  local idxs = player:deck_idxs_with_preds(pred.blue_cross)
-  local i = 1
-  while idxs[i] and not player.hand[4] do
-    player:deck_to_hand(idxs[i])
+  local idx = player:deck_idxs_with_preds(pred.blue_cross)[1]
+  local amt = 0
+  while idx and not player.hand[4] do
+    player:deck_to_hand(idx)
+    amt = amt + 1
+    idx = player:deck_idxs_with_preds(pred.blue_cross)[1]
   end
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff[idx] = {atk={"+", i - 1}, sta={"+", i - 1}}
+    buff[idx] = {atk={"+", amt}, sta={"+", amt}}
   end
   buff:apply()
 end,
@@ -8629,17 +8631,19 @@ end,
 
 --[[ Deja Vu ]]
 [200540] = function(player, opponent)
-  local idxs = player:hand_idxs_with_preds(pred.spell)
-  local idx = player:first_empty_field_slot()
+  local hand_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+  local field_idx = opponent:first_empty_field_slot()
   local mag = 0
-  while idxs[1] and idx do
-    player:hand_to_field(idxs[1])
-    OneImpact(player, idx):apply()
+  while hand_idx and field_idx do
+    opponent:hand_to_field(idxs[1])
+    OneImpact(opponent, idx):apply()
     mag = mag + 1
-    idxs = player:hand_idxs_with_preds(pred.spell)
-    idx = player:first_empty_field_slot()
+    hand_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+    field_idx = opponent:first_empty_field_slot()[1]
   end
-  OneBuff(player, 0, {life={"-", mag * (pred.A(player.character) and 0 or 1)}}):apply()
+  if not pred.A(player.character) then
+    OneBuff(player, 0, {life={"-", mag}}):apply()
+  end
 end,
 
 --[[ Jackpot ]]
