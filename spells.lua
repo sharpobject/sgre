@@ -8627,15 +8627,15 @@ end,
 
 --[[ Deja Vu ]]
 [200540] = function(player, opponent)
-  local idxs = player:hand_idxs_with_preds(pred.spell)
-  local idx = player:first_empty_field_slot()
+  local idxs = opponent:hand_idxs_with_preds(pred.spell)
+  local idx = opponent:first_empty_field_slot()
   local mag = 0
   while idxs[1] and idx do
-    player:hand_to_field(idxs[1])
-    OneImpact(player, idx):apply()
+    opponent:hand_to_field(idxs[1])
+    OneImpact(opponent, idx):apply()
     mag = mag + 1
-    idxs = player:hand_idxs_with_preds(pred.spell)
-    idx = player:first_empty_field_slot()
+    idxs = opponent:hand_idxs_with_preds(pred.spell)
+    idx = opponent:first_empty_field_slot()
   end
   OneBuff(player, 0, {life={"-", mag * (pred.A(player.character) and 0 or 1)}}):apply()
 end,
