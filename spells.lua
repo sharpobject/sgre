@@ -6884,14 +6884,16 @@ Trace of Kana
 ]]
 [200435] = function(player)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  if not idx then
-    return
-  end
-  OneBuff(player, idx, {atk={"+",2},sta={"+",2}}):apply()
-  local card = player.field[idx]
-  card:gain_skill(1407)
-  if pred.C(player.character) then
+  if idx then
+    OneBuff(player, idx, {atk={"+",2},sta={"+",2}}):apply()
+    local card = player.field[idx]
     card:gain_skill(1407)
+    if pred.C(player.character) then
+      idx = uniformly(player:field_idxs_with_preds(pred.follower))
+      OneBuff(player, idx, {atk={"+",2},sta={"+",2}}):apply()
+      local card = player.field[idx]
+      card:gain_skill(1407)
+    end
   end
 end,
 
