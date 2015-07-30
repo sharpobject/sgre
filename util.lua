@@ -5,6 +5,15 @@ local type, setmetatable, getmetatable =
 local random = math.random
 local max = math.max
 
+function any(fun, tab)
+  for _, v in ipairs(tab) do
+    if fun(v) then
+      return true
+    end
+  end
+  return false
+end
+
 -- bounds b so a<=b<=c
 function bound(a, b, c)
   if b<a then return a

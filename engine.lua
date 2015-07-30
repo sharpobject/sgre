@@ -636,6 +636,27 @@ function Player:grave_idxs_with_most_and_preds(func, preds)
   return self:grave_idxs_with_least_and_preds(function(...)return -func(...) end, preds)
 end
 
+function Player:field_cards_with_preds(...)
+  return map(function(h) return self.field[h] end, self:field_idxs_with_preds(...))
+end
+
+function Player:grave_cards_with_preds(...)
+  return map(function(h) return self.grave[h] end, self:grave(...))
+end
+
+function Player:deck_cards_with_preds(...)
+  return map(function(h) return self.deck[h] end, self:deck_idxs_with_preds(...))
+end
+
+function Player:field_buff_n_random_followers_with_preds(n, b, ...)
+  local idxs = shuffle(self:field_idxs_with_preds(pred.follower, ...))
+  local buff = OnePlayerBuff(self)
+  for i = 1, min(n, #idxs) do
+    buff[idxs[i]] = b
+  end
+  buff:apply()
+end
+
 function Player:squish_hand()
   local newhand = {}
   for i=1,5 do
@@ -755,7 +776,7 @@ function Player:follower_combat_round(idx, target_idx)
             skill_func[skill_id](attack_player, attack_idx, attacker, skill_idx,
                 defend_idx, other_card)
             if BUFF_COUNTER and BUFF_COUNTER ~= 0 then
-              error("oh no")
+              error("oh no " .. skill_id)
             end
             if flicker_follower then
               defend_player.field[defend_idx] = flicker_follower
