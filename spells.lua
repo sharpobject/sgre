@@ -4042,6 +4042,7 @@ end,
   local slot = player:first_empty_field_slot()
   if target and slot then
     player:grave_to_field(target)
+    player.field[slot].active = false
     OneBuff(player, slot, {atk={"+",2},sta={"+",2}}):apply()
     player.field[slot].skills = {1076}
   end
@@ -8152,8 +8153,11 @@ end,
       if idx then
         OneBuff(player, idx, {atk={"+", mag * 2}, sta={"+", mag * 2}}):apply()
       end
+      my_card.size = my_card.size + 2
+      player:field_to_top_deck(my_idx)
     else
-      local idx = player:grave_idxs_with_preds(pred.follower)[1]
+      local idxs = player:grave_idxs_with_preds(pred.follower)
+      local idx = idxs[#idxs]
       if idx then
         player:grave_to_top_deck(idx)
       end
@@ -8635,11 +8639,11 @@ end,
   local field_idx = opponent:first_empty_field_slot()
   local mag = 0
   while hand_idx and field_idx do
-    opponent:hand_to_field(idxs[1])
-    OneImpact(opponent, idx):apply()
+    opponent:hand_to_field(hand_idx)
+    OneImpact(opponent, field_idx):apply()
     mag = mag + 1
     hand_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
-    field_idx = opponent:first_empty_field_slot()[1]
+    field_idx = opponent:first_empty_field_slot()
   end
   if not pred.A(player.character) then
     OneBuff(player, 0, {life={"-", mag}}):apply()

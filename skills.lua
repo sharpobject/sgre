@@ -4987,7 +4987,7 @@ end,
     player:field_to_bottom_deck(idx)
     local opponent = player.opponent
     local pred_diff = function(card) return card ~= other_card end
-    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_diff))
     local buff = OnePlayerBuff(opponent)
     if other_card then
       buff[other_idx] = {atk={"-", mag}, sta={"-", mag}}
@@ -5540,17 +5540,17 @@ end,
 end,
 
 -- Crux Knight Sophia
--- Abandonment
-[1513] = function(player, my_idx)
-  player:destroy(my_idx)
-end,
-
--- Crux Knight Sophia
 -- Defiance
-[1514] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+[1513] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and player.character.faction == my_card.faction then
     OneBuff(player, my_idx, {sta={"+", other_card.atk}}):apply()
   end
+end,
+
+-- Crux Knight Sophia
+-- Abandonment
+[1514] = function(player, my_idx)
+  player:destroy(my_idx)
 end,
 
 -- Blue Cross Scribe
