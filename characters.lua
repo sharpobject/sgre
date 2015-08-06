@@ -1225,7 +1225,7 @@ end,
 
 -- rain-soaked gart
 [100084] = function(player, opponent, my_card)
-  local amt = #player:hand_idxs_with_preds(pred.follower)
+  local amt = min(2, 5 - #player.hand)
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if target then
     OneBuff(opponent, target, {def={"-",amt},sta={"-",amt}}):apply()
