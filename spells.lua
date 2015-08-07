@@ -4042,6 +4042,7 @@ end,
   local slot = player:first_empty_field_slot()
   if target and slot then
     player:grave_to_field(target)
+    player.field[slot].active = false
     OneBuff(player, slot, {atk={"+",2},sta={"+",2}}):apply()
     player.field[slot].skills = {1076}
   end
@@ -8160,8 +8161,11 @@ end,
       if idx then
         OneBuff(player, idx, {atk={"+", mag * 2}, sta={"+", mag * 2}}):apply()
       end
+      my_card.size = my_card.size + 2
+      player:field_to_top_deck(my_idx)
     else
-      local idx = player:grave_idxs_with_preds(pred.follower)[1]
+      local idxs = player:grave_idxs_with_preds(pred.follower)
+      local idx = idxs[#idxs]
       if idx then
         player:grave_to_top_deck(idx)
       end
@@ -8304,14 +8308,16 @@ end,
   Demotion
 ]]
 [200518] = function(player)
-  local idxs = player:deck_idxs_with_preds(pred.blue_cross)
-  local i = 1
-  while idxs[i] and not player.hand[4] do
-    player:deck_to_hand(idxs[i])
+  local idx = player:deck_idxs_with_preds(pred.blue_cross)[1]
+  local amt = 0
+  while idx and not player.hand[4] do
+    player:deck_to_hand(idx)
+    amt = amt + 1
+    idx = player:deck_idxs_with_preds(pred.blue_cross)[1]
   end
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
-    buff[idx] = {atk={"+", i - 1}, sta={"+", i - 1}}
+    buff[idx] = {atk={"+", amt}, sta={"+", amt}}
   end
   buff:apply()
 end,
@@ -8637,6 +8643,7 @@ end,
 
 --[[ Deja Vu ]]
 [200540] = function(player, opponent)
+<<<<<<< HEAD
   local idxs = opponent:hand_idxs_with_preds(pred.spell)
   local idx = opponent:first_empty_field_slot()
   local mag = 0
@@ -8646,8 +8653,21 @@ end,
     mag = mag + 1
     idxs = opponent:hand_idxs_with_preds(pred.spell)
     idx = opponent:first_empty_field_slot()
+=======
+  local hand_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+  local field_idx = opponent:first_empty_field_slot()
+  local mag = 0
+  while hand_idx and field_idx do
+    opponent:hand_to_field(hand_idx)
+    OneImpact(opponent, field_idx):apply()
+    mag = mag + 1
+    hand_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+    field_idx = opponent:first_empty_field_slot()
   end
-  OneBuff(player, 0, {life={"-", mag * (pred.A(player.character) and 0 or 1)}}):apply()
+  if not pred.A(player.character) then
+    OneBuff(player, 0, {life={"-", mag}}):apply()
+>>>>>>> d066e0cbf5b3c0552bc2f56773301b8c17344c30
+  end
 end,
 
 --[[ Jackpot ]]

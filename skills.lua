@@ -5540,17 +5540,17 @@ end,
 end,
 
 -- Crux Knight Sophia
--- Abandonment
-[1513] = function(player, my_idx)
-  player:destroy(my_idx)
-end,
-
--- Crux Knight Sophia
 -- Defiance
-[1514] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+[1513] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and player.character.faction == my_card.faction then
     OneBuff(player, my_idx, {sta={"+", other_card.atk}}):apply()
   end
+end,
+
+-- Crux Knight Sophia
+-- Abandonment
+[1514] = function(player, my_idx)
+  player:destroy(my_idx)
 end,
 
 -- Blue Cross Scribe

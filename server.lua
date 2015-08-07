@@ -430,7 +430,12 @@ function Connection:try_login(msg)
   local data = uid_to_data[uid]
   local correct_password = true
   if bcrypt then
-    correct_password = bcrypt.verify(password, data.password)
+    if data.password == "literally any password" then
+      data.password = bcrypt.digest(password, bcrypt.salt(10))
+      modified_file(data)
+    else
+      correct_password = bcrypt.verify(password, data.password)
+    end
   end
   if not correct_password then
     return failure("incorrect password")
