@@ -7115,18 +7115,26 @@ Relapse
     return
   end
   local card = player.field[idx]
-  local size_mag = ceil(card.size / 2)
-  OneBuff(player, idx, {size={"=",floor(card.size/2)},atk={"=",floor(card.atk/2)},
-      def={"=",floor(card.def/2)},sta={"=",floor(card.sta/2)}}):apply()
+  local mag_size = ceil(card.size / 2)
+  local mag_atk = ceil(card.atk / 2)
+  local mag_def = ceil(card.def / 2)
+  local mag_sta = ceil(card.sta / 2)
+  local mag_size2 = floor(card.size / 2)
+  local mag_atk2 = floor(card.atk / 2)
+  local mag_def2 = floor(card.def / 2)
+  local mag_sta2 = floor(card.sta / 2)
+  OneBuff(player, idx, {size={"=", mag_size}, atk={"=", mag_atk}, def={"=", mag_def},sta={"=", mag_sta}}):apply()
   if not player.field[idx] then
     return
   end
   idx = player:first_empty_field_slot()
   if idx then
     player.field[idx] = deepcpy(card)
-    player.field[idx]:refresh()
+    player.field[idx].size = mag_size2
+    player.field[idx].atk = mag_atk2
+    player.field[idx].def = mag_def2
+    player.field[idx].sta = mag_sta2
     player.field[idx].active = true
-    card.size = size_mag
   end
 end,
 
