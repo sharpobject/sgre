@@ -4698,13 +4698,15 @@ end,
 
 -- Library Club Researcher Albert
 -- Relativity Impetus!
-[1441] = function(player)
+[1441] = function(player, my_idx, my_card, skill_idx)
   local idxs = player:deck_idxs_with_preds(pred.library_club, pred.follower)
   local buff = GlobalBuff(player)
   for _, idx in ipairs(idxs) do
     buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
   end
+  buff.field[player][my_idx] = {}
   buff:apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Library Club Head Researcher Von
