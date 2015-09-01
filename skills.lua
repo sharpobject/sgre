@@ -2349,8 +2349,7 @@ end,
 
 -- dd lady tomo, lady ready!
 [1224] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local n = #player:hand_idxs_with_preds(pred.lady) + #player:field_idxs_with_preds(
-      pred.lady, function(card) return card ~= my_card end)
+  local n = #player:hand_idxs_with_preds(pred.lady) + #player:field_idxs_with_preds(pred.lady)
   OneBuff(player, my_idx, {atk={"+",floor(n/2)},sta={"+",n}}):apply()
 end,
 
