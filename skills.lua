@@ -5483,7 +5483,7 @@ end,
 -- Blue Cross Rose
 -- Comparison
 [1507] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card then
+  if other_card and my_card.def >= 0 then
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {def={"-", my_card.def}}
     buff.field[player][my_idx] = {}
