@@ -6329,7 +6329,7 @@ end,
 end,
 
 -- Muzisitter Maron
-[110269] = function(player)
+[110270] = function(player)
   if player.game.turn == 1 then
     local idxs = player:deck_idxs_with_preds(pred.follower)
     local buff = GlobalBuff(player)
