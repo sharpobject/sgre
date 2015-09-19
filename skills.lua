@@ -59,7 +59,7 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
     buff = true
   end
   local grave_target = player:grave_idxs_with_preds(pred.dress_up)[1]
-  if grave_target then
+  if grave_target and not buff then
     player:grave_to_exile(grave_target)
     buff = true
   end
@@ -68,9 +68,9 @@ local heartful_catch = function(dressup_id, player, my_idx, other_idx, buff_type
       if not player.opponent.field[other_idx] then
         return
       end
-      OneBuff(player.opponent, other_idx, {atk={buff_type,1}, sta={buff_type,2}}):apply()
+      OneBuff(player.opponent, other_idx, {atk={"-",1}, sta={"-",2}}):apply()
     elseif buff_type == "+" then
-      OneBuff(player, my_idx, {atk={buff_type,1}, sta={buff_type,2}}):apply()
+      OneBuff(player, my_idx, {atk={"+",1}, sta={"+",2}}):apply()
     end
   end
 end
@@ -1332,11 +1332,11 @@ end,
     buff.field[player][my_idx] = {atk={"-",2}, sta={"-",2}}
     buff.field[player.opponent][other_idx] = {atk={"+",2}, sta={"+",2}}
     buff:apply()
-    player.deck[#player.deck+1] = other_card
+    player:to_top_deck(other_card)
     player.opponent.field[other_idx] = nil
     if player.field[my_idx] == my_card then
       player.field[my_idx] = nil
-      player.opponent.deck[#player.opponent.deck+1] = my_card
+      player.opponent:to_bottom_deck(my_card)
     end
   end
 end,
@@ -3219,10 +3219,10 @@ end,
   else
     OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 2}}):apply()
   end
-  my_card:remove_skill(skill_idx)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower,
     function(card) return card ~= my_card end))
   if idx then
+    my_card:remove_skill(skill_idx)
     player.field[idx]:gain_skill(1299)
   end
 end,

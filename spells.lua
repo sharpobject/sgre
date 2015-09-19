@@ -614,7 +614,7 @@ end,
   local nlibrarians = #player:field_idxs_with_preds({pred.follower, pred.library_club})
   local spells = opponent:field_idxs_with_preds(pred.spell)
   local new_idx = player:first_empty_field_slot()
-  if nlibrarians > #spells and new_idx then
+  if nlibrarians >= #spells and new_idx then
     local old_idx = uniformly(spells)
     if old_idx then
       player.field[new_idx] = opponent.field[old_idx]
@@ -3695,7 +3695,7 @@ end,
   buff = OnePlayerBuff(player)
   for i=1,5 do
     if targets[i] then
-      buff[targets[i]] = {atk={"+",#targets}}
+      buff[targets[i]] = {atk={"+",#targets + 1}}
     end
   end
   buff:apply()
@@ -7461,7 +7461,7 @@ Discover Evidence
 ]]
 [200468] = function(player)
   if player.field[5] and pred.follower(player.field[5]) then
-    OneBuff(player, 5, {atk={"+",5},sta={"+",5}}):apply()
+    OneBuff(player, 5, {atk={"+",4},sta={"+",4}}):apply()
   end
 end,
 

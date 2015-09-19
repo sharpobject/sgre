@@ -2297,7 +2297,7 @@ end,
   local check = {}
   local life = "" .. my_card.life
   for i = 1, #life do
-    check[i + 0] = true
+    check[life[i] + 0] = true
   end
   if check[3] then
     idx = uniformly(player:field_idxs_with_preds(pred.follower))
