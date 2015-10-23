@@ -2294,6 +2294,7 @@ end,
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
   local check = {false, false, false}
+  local life = player.character.life
   while life > 0 do
       check[life % 10] = true
       life = math.floor(life / 10)
