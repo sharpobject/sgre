@@ -1912,8 +1912,7 @@ end,
       player:to_grave(Card(300072))
     end
   else
-    local idx = player:grave_idxs_with_preds(pred.D)
-    idx = idx[#idx]
+    local idx = player:grave_idxs_with_preds(pred.D)[1]
     if not idx then
       return
     end
@@ -2622,7 +2621,7 @@ end,
 -- Baker Linus
 [100199] = function(player, opponent, my_card)
   if player.game.turn % 2 == 1 then
-    local idx = player:grave_idxs_with_preds(pred.follower)[1]
+    local idx = reverse(player:grave_idxs_with_preds(pred.follower))[1]
     local fidx = player:first_empty_field_slot()
     if idx and fidx then
       player:grave_to_field(idx)
@@ -6329,7 +6328,7 @@ end,
 end,
 
 -- Muzisitter Maron
-[110269] = function(player)
+[110270] = function(player)
   if player.game.turn == 1 then
     local idxs = player:deck_idxs_with_preds(pred.follower)
     local buff = GlobalBuff(player)

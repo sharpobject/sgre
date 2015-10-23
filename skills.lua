@@ -570,10 +570,8 @@ end,
 -- undertaker, undertaker
 [1044] = function(player, my_idx)
   local buffsize = 0
-  local my_grave_idx = player:grave_idxs_with_preds(pred.follower)
-  local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)
-  my_grave_idx = my_grave_idx[#my_grave_idx]
-  op_idx = op_idx[#op_idx]
+  local my_grave_idx = player:grave_idxs_with_preds(pred.follower)[1]
+  local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)[1]
   if my_grave_idx then
     player:grave_to_exile(my_grave_idx)
     buffsize = buffsize + 1
@@ -827,7 +825,6 @@ end,
 end,
 
 -- scardel elder barbera, elder scroll
--- todo: test this
 [1071] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
     local target_idx = player:grave_idxs_with_most_and_preds(
@@ -2340,8 +2337,7 @@ end,
 
 -- council press lyrica, guarantee!
 [1223] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local target = player:grave_idxs_with_preds(pred.V, pred.follower)
-  target = target[#target]
+  local target = player:grave_idxs_with_preds(pred.V, pred.follower)[1]
   if target then
     player:grave_to_exile(target)
   end

@@ -1545,9 +1545,10 @@ end,
 
 -- scardel rite
 [200110] = function(player)
-  local dl_in_grave = player:grave_idxs_with_preds({pred.follower, pred.faction.D})
-  if #dl_in_grave ~= 0 then
-    local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
+  local dl_in_grave = player:grave_idxs_with_preds(pred.follower, pred.faction.D)
+  if dl_in_grave[1] then
+    local card = Card(player.grave[dl_in_grave[1]].id)
+    player:grave_to_exile(dl_in_grave[1])
     -- For the rest of the spell to happen, we need a vampire and an empty slot.
     local slot = player:first_empty_field_slot()
     local vampires = player:field_idxs_with_preds(pred.follower,
@@ -2785,8 +2786,7 @@ end,
 -- night is coming
 [200197] = function(player, opponent, my_idx, my_card)
   for i=1,2 do
-    local gs = player:grave_idxs_with_preds(pred.follower, pred.gs)
-    gs = gs[#gs]
+    local gs = player:grave_idxs_with_preds(pred.follower, pred.gs)[1]
     if gs then
       player:grave_to_exile(gs)
     end
@@ -5271,7 +5271,7 @@ This card is exiled
     return
   end
   local name = player.field[idx].name
-  local idxs = reverse(player:grave_idxs_with_preds(function(card) return card.name == name end))
+  local idxs = player:grave_idxs_with_preds(function(card) return card.name == name end)
   for _,idx in ipairs(idxs) do
     player:grave_to_top_deck(idx)
   end
@@ -5867,7 +5867,7 @@ If your Grave has >= 5 cards, a random card is sent from your Grave to the botto
   if #player.grave < 5 then
     return
   end
-  idx = uniformly(player:grave_idxs_with_preds())
+  idx = uniformly(player.grave)
   player:grave_to_bottom_deck(idx)
 end,
 
@@ -6003,7 +6003,7 @@ If you have an Academy Character,
     return
   end
   -- grave exile
-  local idxs = reverse(opponent:grave_idxs_with_preds(pred.spell))
+  local idxs = opponent:grave_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
     opponent:grave_to_exile(idx)
   end
@@ -6786,7 +6786,7 @@ Witchification Plans
 [200430] = function(player, opponent)
   local pred_faction = function(card) return card.faction ~= opponent.character.faction end
   local mag = 0
-  local idxs = reverse(opponent:grave_idxs_with_preds(pred_faction))
+  local idxs = opponent:grave_idxs_with_preds(pred_faction)
   for i=1,min(3,#idxs) do
     opponent:grave_to_exile(idxs[i])
     mag = mag + 1
@@ -8082,7 +8082,7 @@ end,
   Putting the plan into action
 ]]
 [200504] = function(player, opponent)
-  local idx = opponent:grave_idxs_with_most_and_preds(pred.size, pred.spell)[1]
+  local idx = uniformly(opponent:grave_idxs_with_most_and_preds(pred.size, pred.spell))
   local idx2 = player:first_empty_field_slot()
   if idx and idx2 then
     player.field[idx2] = table.remove(opponent.grave, idx)
@@ -8164,8 +8164,7 @@ end,
       my_card.size = my_card.size + 2
       player:field_to_top_deck(my_idx)
     else
-      local idxs = player:grave_idxs_with_preds(pred.follower)
-      local idx = idxs[#idxs]
+      local idx = player:grave_idxs_with_preds(pred.follower)[1]
       if idx then
         player:grave_to_top_deck(idx)
       end

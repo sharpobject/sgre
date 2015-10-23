@@ -439,7 +439,7 @@ function Player:grave_idxs_with_preds(...)
     preds = preds[1]
   end
   local ret = {}
-  for i=1,#self.grave do
+  for i=#self.grave,1,-1 do
     local incl = true
     for j=1,#preds do
       incl = incl and preds[j](self.grave[i])
