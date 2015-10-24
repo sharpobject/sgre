@@ -895,7 +895,7 @@ end,
 
 -- child sita
 [100050] = function(player, opponent, my_card)
-  if opponent.field[2] then
+  if opponent.field[2] and pred.follower(opponent.field[2]) then
     OneBuff(opponent, 2, {sta={"-",2}}):apply()
   end
   local idx = opponent:field_idxs_with_preds(pred.follower)[1]
