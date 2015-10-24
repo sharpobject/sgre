@@ -5911,8 +5911,8 @@ end,
 -- Night's Holy Guardian Sigma
 -- Reverse Power
 [1549] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and other_card.sta > Card(other_card.id).sta then
-    local mag_sta = other_card.sta - Card(other_card.id).sta
+  if other_card and Card(other_card.id).sta > other_card.sta then
+    local mag_sta = Card(other_card.id).sta - other_card.sta
     local mag_atk = floor(mag_sta / 2)
     OneBuff(player, my_idx, {atk={"+", mag_atk}, sta={"+", mag_sta}}):apply()
   end
