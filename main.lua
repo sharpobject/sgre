@@ -85,7 +85,9 @@ function love.update(dt)
         game:update()
       end
       do_messages()
-      loveframes.update(1/60)
+      loveframes.update((1/60)/3)
+      loveframes.update((1/60)/3)
+      loveframes.update((1/60)/3)
       leftover_time = leftover_time - 1/60
     end
   end
