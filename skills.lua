@@ -4782,7 +4782,7 @@ end,
 -- Stamina Distribution
 [1448] = function(player, my_idx, my_card, skill_idx)
   if my_card.atk > my_card.sta then
-    local mag_atk = ceil(my_card.sta / 2)
+    local mag_atk = ceil(my_card.atk / 2)
     local mag_sta = (my_card.atk - mag_atk) * 2
     OneBuff(player, my_idx, {atk={"=", mag_atk}, sta={"+", mag_sta}}):apply()
     my_card:remove_skill(skill_idx)
