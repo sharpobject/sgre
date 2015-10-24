@@ -5826,9 +5826,11 @@ end,
   local mag = 1
   if my_idx > 1 and player.field[my_idx - 1] and pred.follower(player.field[my_idx - 1]) then
     buff[my_idx - 1] = {sta={"+", 1}}
+    mag = mag + 1
   end
   if my_idx < 5 and player.field[my_idx + 1] and pred.follower(player.field[my_idx + 1]) then
     buff[my_idx + 1] = {sta={"+", 1}}
+    mag = mag + 1
   end
   buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
   buff:apply()
