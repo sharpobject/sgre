@@ -5689,6 +5689,7 @@ end,
   local mag_atk = ceil(#player:field_idxs_with_preds(pred.V, pred.follower) / 2)
   local mag_sta = #player:field_idxs_with_preds()
   player:field_buff_n_random_followers_with_preds(5, {atk={"+", mag_atk}, def={"+", mag_def}, sta={"+", mag_sta}})
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Inspiration Lady
