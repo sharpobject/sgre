@@ -2293,11 +2293,18 @@ end,
   if idx then
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
+<<<<<<< HEAD
   local check = {false, false, false}
   local life = player.character.life
   while life > 0 do
       check[life % 10] = true
       life = math.floor(life / 10)
+=======
+  local check = {}
+  local life = "" .. my_card.life
+  for i = 1, #life do
+    check[life[i] + 0] = true
+>>>>>>> 73d9ec8171cc450d1729bdc75c783c55f638534f
   end
   if check[3] then
     idx = uniformly(player:field_idxs_with_preds(pred.follower))
