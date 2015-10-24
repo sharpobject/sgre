@@ -5695,8 +5695,8 @@ end,
 -- Inspiration Lady
 -- Lady Meeting
 [1528] = function(player, my_idx, my_card, skill_idx)
-  local pred_diff_lady = function(card) return pred.lady(card) and card ~= my_card end
-  local buff = #player:field_cards_with_preds(pred_diff_lady, pred.follower) > 0 and {atk={"+", 1}, sta={"+", 1}} or {atk={"+", 1}, sta={"+", 2}}
+  local pred_diff = function(card) return card ~= my_card end
+  local buff = player:field_cards_with_preds(pred_diff, pred.lady, pred.follower)[1] and {atk={"+", 1}, sta={"+", 2}} or {atk={"+", 1}, sta={"+", 1}}
   player:field_buff_n_random_followers_with_preds(5, buff)
   my_card:remove_skill_until_refresh(skill_idx)
 end,
