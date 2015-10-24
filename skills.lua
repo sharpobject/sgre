@@ -3887,6 +3887,7 @@ end,
     buff[idx] = {atk={"+", mag}, sta={"+", mag}}
     buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
     buff:apply()
+    player.field[idx].skills = {}
   end
 end,
 
