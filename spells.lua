@@ -6551,7 +6551,7 @@ end,
 --[[
 Surprise Attack
 ]]
-[200418] = function(player, player)
+[200418] = function(player)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if not idx then
     return
