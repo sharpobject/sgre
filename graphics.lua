@@ -574,7 +574,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .45
+        animation.frame = animation.frame + .15
         if animation.frame >= animation.framecount then
           player.animation[i] = nil
           self.anims[i] = nil
@@ -590,7 +590,7 @@ function anim_layer()
             dx = animation.dx,
             dy = animation.dy,
           }
-        animation.frame = animation.frame + .45
+        animation.frame = animation.frame + .15
         if animation.frame >= animation.framecount then
           opponent.animation[i] = nil
           self.anims[i+6] = nil
@@ -608,7 +608,7 @@ function anim_layer()
       end
       self.coin_lf = frame
       self.coin_frameset = game.coin_anim[frame]
-      self.coin_frame = self.coin_frame + .5
+      self.coin_frame = self.coin_frame + .5 / 3
       if self.coin_frame >= 54 then
         game.coin_flip = false
         self.coin_flip = false
