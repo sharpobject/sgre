@@ -895,13 +895,17 @@ end,
 
 -- child sita
 [100050] = function(player, opponent, my_card)
-  local buff = OnePlayerBuff(opponent)
-  for _,idx in ipairs({1,2,5}) do
-    if opponent.field[idx] and pred.follower(opponent.field[idx]) then
-      buff[idx] = {sta={"-",2}}
-    end
+  if opponent.field[2] then
+    OneBuff(opponent, 2, {sta={"-",2}}):apply()
   end
-  buff:apply()
+  local idx = opponent:field_idxs_with_preds(pred.follower)[1]
+  if idx then
+    OneBuff(opponent, idx, {sta={"-",1}}):apply()
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {sta={"-",2}}):apply()
+  end
 end,
 
 -- child cinia
