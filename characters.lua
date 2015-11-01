@@ -1912,8 +1912,7 @@ end,
       player:to_grave(Card(300072))
     end
   else
-    local idx = player:grave_idxs_with_preds(pred.D)
-    idx = idx[#idx]
+    local idx = player:grave_idxs_with_preds(pred.D)[1]
     if not idx then
       return
     end
@@ -2294,10 +2293,11 @@ end,
   if idx then
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
-  local check = {}
-  local life = "" .. my_card.life
-  for i = 1, #life do
-    check[life[i] + 0] = true
+  local check = {false, false, false}
+  local life = player.character.life
+  while life > 0 do
+      check[life % 10] = true
+      life = math.floor(life / 10)
   end
   if check[3] then
     idx = uniformly(player:field_idxs_with_preds(pred.follower))
@@ -2621,7 +2621,7 @@ end,
 -- Baker Linus
 [100199] = function(player, opponent, my_card)
   if player.game.turn % 2 == 1 then
-    local idx = player:grave_idxs_with_preds(pred.follower)[1]
+    local idx = reverse(player:grave_idxs_with_preds(pred.follower))[1]
     local fidx = player:first_empty_field_slot()
     if idx and fidx then
       player:grave_to_field(idx)

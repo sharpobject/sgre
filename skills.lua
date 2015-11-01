@@ -570,10 +570,8 @@ end,
 -- undertaker, undertaker
 [1044] = function(player, my_idx)
   local buffsize = 0
-  local my_grave_idx = player:grave_idxs_with_preds(pred.follower)
-  local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)
-  my_grave_idx = my_grave_idx[#my_grave_idx]
-  op_idx = op_idx[#op_idx]
+  local my_grave_idx = player:grave_idxs_with_preds(pred.follower)[1]
+  local op_idx = player.opponent:grave_idxs_with_preds(pred.follower)[1]
   if my_grave_idx then
     player:grave_to_exile(my_grave_idx)
     buffsize = buffsize + 1
@@ -827,7 +825,6 @@ end,
 end,
 
 -- scardel elder barbera, elder scroll
--- todo: test this
 [1071] = function(player, my_idx, my_card, skill_idx)
   if my_card.faction == player.character.faction then
     local target_idx = player:grave_idxs_with_most_and_preds(
@@ -2340,8 +2337,7 @@ end,
 
 -- council press lyrica, guarantee!
 [1223] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local target = player:grave_idxs_with_preds(pred.V, pred.follower)
-  target = target[#target]
+  local target = player:grave_idxs_with_preds(pred.V, pred.follower)[1]
   if target then
     player:grave_to_exile(target)
   end
@@ -3891,6 +3887,7 @@ end,
     buff[idx] = {atk={"+", mag}, sta={"+", mag}}
     buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
     buff:apply()
+    player.field[idx].skills = {}
   end
 end,
 
@@ -4698,13 +4695,15 @@ end,
 
 -- Library Club Researcher Albert
 -- Relativity Impetus!
-[1441] = function(player)
+[1441] = function(player, my_idx, my_card, skill_idx)
   local idxs = player:deck_idxs_with_preds(pred.library_club, pred.follower)
   local buff = GlobalBuff(player)
   for _, idx in ipairs(idxs) do
     buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
   end
+  buff.field[player][my_idx] = {}
   buff:apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Library Club Head Researcher Von
@@ -5481,7 +5480,7 @@ end,
 -- Blue Cross Rose
 -- Comparison
 [1507] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card then
+  if other_card and my_card.def >= 0 then
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {def={"-", my_card.def}}
     buff.field[player][my_idx] = {}

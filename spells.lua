@@ -1545,9 +1545,10 @@ end,
 
 -- scardel rite
 [200110] = function(player)
-  local dl_in_grave = player:grave_idxs_with_preds({pred.follower, pred.faction.D})
-  if #dl_in_grave ~= 0 then
-    local card = table.remove(player.grave, dl_in_grave[#dl_in_grave])
+  local dl_in_grave = player:grave_idxs_with_preds(pred.follower, pred.faction.D)
+  if dl_in_grave[1] then
+    local card = Card(player.grave[dl_in_grave[1]].id)
+    player:grave_to_exile(dl_in_grave[1])
     -- For the rest of the spell to happen, we need a vampire and an empty slot.
     local slot = player:first_empty_field_slot()
     local vampires = player:field_idxs_with_preds(pred.follower,
@@ -2785,8 +2786,7 @@ end,
 -- night is coming
 [200197] = function(player, opponent, my_idx, my_card)
   for i=1,2 do
-    local gs = player:grave_idxs_with_preds(pred.follower, pred.gs)
-    gs = gs[#gs]
+    local gs = player:grave_idxs_with_preds(pred.follower, pred.gs)[1]
     if gs then
       player:grave_to_exile(gs)
     end
@@ -5271,7 +5271,7 @@ This card is exiled
     return
   end
   local name = player.field[idx].name
-  local idxs = reverse(player:grave_idxs_with_preds(function(card) return card.name == name end))
+  local idxs = player:grave_idxs_with_preds(function(card) return card.name == name end)
   for _,idx in ipairs(idxs) do
     player:grave_to_top_deck(idx)
   end
@@ -6003,7 +6003,7 @@ If you have an Academy Character,
     return
   end
   -- grave exile
-  local idxs = reverse(opponent:grave_idxs_with_preds(pred.spell))
+  local idxs = opponent:grave_idxs_with_preds(pred.spell)
   for _,idx in ipairs(idxs) do
     opponent:grave_to_exile(idx)
   end
@@ -6786,7 +6786,7 @@ Witchification Plans
 [200430] = function(player, opponent)
   local pred_faction = function(card) return card.faction ~= opponent.character.faction end
   local mag = 0
-  local idxs = reverse(opponent:grave_idxs_with_preds(pred_faction))
+  local idxs = opponent:grave_idxs_with_preds(pred_faction)
   for i=1,min(3,#idxs) do
     opponent:grave_to_exile(idxs[i])
     mag = mag + 1
@@ -7116,27 +7116,23 @@ Relapse
     return
   end
   local card = player.field[idx]
+  local buff = OnePlayerBuff(player)
   local mag_size = ceil(card.size / 2)
   local mag_atk = ceil(card.atk / 2)
   local mag_def = ceil(card.def / 2)
   local mag_sta = ceil(card.sta / 2)
-  local mag_size2 = floor(card.size / 2)
-  local mag_atk2 = floor(card.atk / 2)
-  local mag_def2 = floor(card.def / 2)
-  local mag_sta2 = floor(card.sta / 2)
-  OneBuff(player, idx, {size={"=", mag_size}, atk={"=", mag_atk}, def={"=", mag_def},sta={"=", mag_sta}}):apply()
-  if not player.field[idx] then
-    return
-  end
+  buff[idx] = {size={"=", mag_size}, atk={"=", mag_atk}, def={"=", mag_def}, sta={"=", mag_sta}}
   idx = player:first_empty_field_slot()
   if idx then
     player.field[idx] = deepcpy(card)
-    player.field[idx].size = mag_size2
-    player.field[idx].atk = mag_atk2
-    player.field[idx].def = mag_def2
-    player.field[idx].sta = mag_sta2
     player.field[idx].active = true
+    local mag_size2 = max(floor(card.size / 2), 1)
+    local mag_atk2 = floor(card.atk / 2)
+    local mag_def2 = floor(card.def / 2)
+    local mag_sta2 = floor(card.sta / 2)
+    buff[idx] = {size={"=", mag_size2}, atk={"=", mag_atk2}, def={"=", mag_def2}, sta={"=", mag_sta2}}
   end
+  buff:apply()
 end,
 
 --[[
@@ -8082,7 +8078,7 @@ end,
   Putting the plan into action
 ]]
 [200504] = function(player, opponent)
-  local idx = opponent:grave_idxs_with_most_and_preds(pred.size, pred.spell)[1]
+  local idx = uniformly(opponent:grave_idxs_with_most_and_preds(pred.size, pred.spell))
   local idx2 = player:first_empty_field_slot()
   if idx and idx2 then
     player.field[idx2] = table.remove(opponent.grave, idx)
@@ -8164,8 +8160,7 @@ end,
       my_card.size = my_card.size + 2
       player:field_to_top_deck(my_idx)
     else
-      local idxs = player:grave_idxs_with_preds(pred.follower)
-      local idx = idxs[#idxs]
+      local idx = player:grave_idxs_with_preds(pred.follower)[1]
       if idx then
         player:grave_to_top_deck(idx)
       end
