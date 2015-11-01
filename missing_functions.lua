@@ -13,6 +13,13 @@ npc_decks_manual = fix_num_keys(json.decode(file_contents("npc_decks_manual.json
 dungeons = fix_num_keys(json.decode(file_contents("dungeons.json")))
 for k,v in pairs(npc_decks_manual) do
   npc_decks[k] = v
+  local total = 0
+  for id, count in pairs(v) do
+    total = total + count
+  end
+  if total ~= 30 then
+    print(k,total)
+  end
 end
 cards = {}
 char_ids = {}

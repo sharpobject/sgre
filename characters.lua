@@ -2593,9 +2593,8 @@ end,
   if idx then
     local buff = GlobalBuff(player)
     local mag = 0
-    local idx2 = #player.grave
-    for i = 1, max(idx2) do
-      if player.grave[idx2 - i + 1] and pred.D(player.grave[idx2 - i + 1]) and pred.follower(player.grave[idx2 - i + 1]) then
+    for i = #player.grave, #player.grave-2, -1 do
+      if player.grave[i] and pred.D(player.grave[i]) and pred.follower(player.grave[i]) then
         mag = mag + 1
       end
     end
@@ -7049,9 +7048,30 @@ end,
     end
   end
   buff:apply()
-end
+end,
 
--- make sure last end does not have comma
+-- Ping Pong Iri
+[120033] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local hand_idxs = shuffle(player:hand_idxs_with_preds(pred.follower))
+  for i = 1, min(#hand_idxs,2) do
+    buff.hand[player][hand_idxs[i]] = {size={"+",1},atk={"+",1},def={"+",1},sta={"+",1}}
+  end
+  buff:apply()
+  local hand_idx = uniformly(player:hand_idxs_with_preds(pred.follower))
+  if hand_idx then
+    buff = GlobalBuff(player)
+    buff.hand[player][hand_idxs[i]] = {sta={"+",player.hand[hand_idxs[i]].size}}
+    buff:apply()
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff = OnePlayerBuff(opponent)
+    buff[idx] = {size={"-",1},atk={"-",1},def={"-",1},sta={"-",1}}
+    buff:apply()
+  end
+end,
+
 -- Do not touch that curly brace!
 }
 setmetatable(characters_func, {__index = function()return function() end end})
