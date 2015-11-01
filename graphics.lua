@@ -698,7 +698,7 @@ function card_button(side,idx,x,y)
       local buff_animation = player.buff_animation[idx]
       if buff_animation then
         self.buff_animation = buff_animation
-        buff_animation.frame = buff_animation.frame + .5
+        buff_animation.frame = buff_animation.frame + .5 / 3
         if buff_animation.frame >= 20 then
           player.buff_animation[idx] = nil
         end
