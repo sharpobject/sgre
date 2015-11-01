@@ -7064,13 +7064,13 @@ end,
   buff:apply()
   local hand_idx = uniformly(player:hand_idxs_with_preds(pred.follower))
   if hand_idx then
-    buff = GlobalBuff(player)
-    buff.hand[player][hand_idxs[i]] = {sta={"+",player.hand[hand_idxs[i]].size}}
+    local buff = GlobalBuff(player)
+    buff.hand[player][hand_idx] = {sta={"+",player.hand[hand_idx].size}}
     buff:apply()
   end
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    buff = OnePlayerBuff(opponent)
+    local buff = OnePlayerBuff(opponent)
     buff[idx] = {size={"-",1},atk={"-",1},def={"-",1},sta={"-",1}}
     buff:apply()
   end
