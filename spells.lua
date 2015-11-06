@@ -8575,7 +8575,7 @@ end,
 end,
 
 --[[ New Student Orientation ]]
-[200525] = function(player, opponent)
+[200535] = function(player, opponent)
   local mag = ceil(10 / (1 + #opponent:field_idxs_with_preds(pred.follower)))
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
@@ -8585,7 +8585,7 @@ end,
 end,
 
 --[[ Ascension ]]
-[200526] = function(player)
+[200536] = function(player)
   local idx = player:deck_idxs_with_least_and_preds(pred.size)[1]
   if idx then
     local mag = player.deck[idx].size

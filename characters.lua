@@ -5429,7 +5429,7 @@ end,
   if idx then
     OneBuff(player, idx, {sta={"+", 1}}):apply()
   end
-  idx = uniformly(player:field_idxs_with_preds(pred.follower,
+  idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
     function(card) return card.size >= 4 end))
   if idx then
     OneBuff(opponent, idx, {sta={"-", 1}}):apply()
@@ -5465,7 +5465,7 @@ end,
 end,
 
 -- Chupachupa Boing
-[110203] = function(player, opponent)
+[110206] = function(player, opponent)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
@@ -6506,7 +6506,7 @@ end,
   if player.game.turn == 1 then
     local buff = GlobalBuff(player)
     for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
-      buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+      buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}}
     end
     buff:apply()
   end
