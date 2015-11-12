@@ -67,8 +67,8 @@ local fonts = {}
 
 local load_img_async_func
 
-function load_backface()
-  local s = love.image.newImageData("swordgirlsimages/900000L.jpg")
+function load_image_on_main_thread(id)
+  local s = love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -203,7 +203,7 @@ function graphics_init()
   supports_mipmaps = love.graphics.isSupported("mipmap")
 
   IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
-    texture_width, texture_height = load_backface()
+    texture_width, texture_height = load_image_on_main_thread(900000)
 
   card_width = card_width * card_scale
   card_height = card_height * card_scale
@@ -465,6 +465,9 @@ function draw_card(card, x, y, lighten_frame, text)
     id = 900000
   end
   acquire_img(id)
+  if not IMG_rdy[id] then
+    id = 900000
+  end
   if card.type == "character" or card.active then
     love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
   else
@@ -478,7 +481,7 @@ function draw_card(card, x, y, lighten_frame, text)
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
   love.graphics.setColor(255, 255, 255)
-  if not card.hidden and IMG_rdy[id] then
+  if not card.hidden then
     if card.type == "follower" then
       love.graphics.setFont(load_font("sg_assets/fonts/statwan_s.png"))
       love.graphics.printf(card.atk, x, y+102, card_width/3, "center")
