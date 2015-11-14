@@ -16,6 +16,9 @@ function love.keypressed(key, unicode)
   if key == "f7" then
     load_image = load_image_on_main_thead
   end
+  if key == "f8" then
+    SUPPORTS_MIPMAPS = false
+  end
   loveframes.keypressed(key, unicode)
 end
 
