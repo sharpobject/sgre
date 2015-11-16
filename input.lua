@@ -14,7 +14,7 @@ function love.keypressed(key, unicode)
     RIP_IMAGEFONTS = not RIP_IMAGEFONTS
   end
   if key == "f7" then
-    load_image = load_image_on_main_thead
+    load_img = load_image_on_main_thread
   end
   if key == "f8" then
     SUPPORTS_MIPMAPS = false

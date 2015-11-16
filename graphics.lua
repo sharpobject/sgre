@@ -92,6 +92,9 @@ function load_image_on_main_thread(id)
   else
     gray:setFilter("linear", "linear")
   end
+  if id ~= 900000 then
+    IMG_rdy[id] = true
+  end
   return ret,gray,w,h,wp,hp
 end
 
@@ -101,24 +104,25 @@ function acquire_img(id)
   local img_arr = IMG_card
   local img_g_arr = IMG_gray_card
   local ready_arr = IMG_rdy
-  if img_arr[id] then
-    tstamps[id] = IMG_tstamp
-  else
+  tstamps[id] = IMG_tstamp
+  if not img_arr[id] then
     img_arr[id], img_g_arr[id] = load_img(id)
     IMG_count = IMG_count + 1
-    if IMG_count > max_cards_in_mem then
-      local smallest = IMG_tstamp
-      local del_id = 0
-      for idx, stamp in pairs(tstamps) do
-        if stamp < smallest then
-          del_id = idx
-          smallest = stamp
+    for i=1,3 do
+      if IMG_count > max_cards_in_mem then
+        local smallest = IMG_tstamp
+        local del_id = 0
+        for idx, stamp in pairs(tstamps) do
+          if stamp < smallest and ready_arr[idx] then
+            del_id = idx
+            smallest = stamp
+          end
         end
+        img_arr[del_id], img_g_arr[del_id] = nil, nil
+        ready_arr[del_id] = nil
+        tstamps[del_id] = nil
+        IMG_count = IMG_count - 1
       end
-      img_arr[del_id], img_g_arr[del_id] = nil
-      ready_arr[del_id] = false
-      tstamps[del_id] = nil
-      IMG_count = IMG_count - 1
     end
   end
   IMG_tstamp = IMG_tstamp + 1
