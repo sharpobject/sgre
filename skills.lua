@@ -4910,17 +4910,11 @@ end,
 -- Cafe Sita
 -- Rest Time
 [1460] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card then
-    if other_card.skills[1] then
-      other_card.skills[1] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    elseif other_card.skills[2] then
-      other_card.skills[2] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    elseif other_card.skills[3] then
-      other_card.skills[3] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    end
+  if other_card and pred.skill(other_card) then
+    local skill_idx = other_card:first_skill_idx()
+    other_card:remove_skill(skill_idx)
+    other_card:gain_skill(1476)
+    OneImpact(player.opponent, other_idx):apply()
   end
 end,
 
