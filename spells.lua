@@ -3549,9 +3549,7 @@ end,
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower, pred.skill))
   if target and #player:field_idxs_with_preds(pred.follower) > 0 then
     local idx = opponent.field[target]:first_skill_idx()
-    if idx then
-      opponent.field[target]:remove_skill(idx)
-    end
+    opponent.field[target]:remove_skill(idx)
     opponent.field[target]:gain_skill(uniformly({1201, 1202}))
     halloween(player, opponent)
   end
@@ -7213,11 +7211,19 @@ Minority Report
     return
   end
   local card = player.field[idxs[2]]
+  local skill = nil
+  if pred.skill(card) then
+    skill = card.skills[card:first_skill_idx()]
+  end
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(idxs) do
     if idx ~= idxs[2] then
+      local skill_idx = player.field[idx]:first_skill_idx()
+      if skill and skill_idx then
+        player.field[idx]:remove_skill(skill_idx)
+        player.field[idx]:gain_skill(skill)
+      end
       buff[idx] = {size={"=",card.size}}
-      player.field[idx].skills[1] = card.skills[1]
     end
   end
   buff:apply()
