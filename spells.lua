@@ -7124,7 +7124,7 @@ Relapse
   buff[idx] = {size={"=", mag_size}, atk={"=", mag_atk}, def={"=", mag_def}, sta={"=", mag_sta}}
   idx = player:first_empty_field_slot()
   if idx then
-    player.field[idx] = deepcpy(card)
+    player.field[idx] = Card(card.id)
     player.field[idx].active = true
     local mag_size2 = max(floor(card.size / 2), 1)
     local mag_atk2 = floor(card.atk / 2)
