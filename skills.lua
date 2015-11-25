@@ -3828,6 +3828,7 @@ end,
     impact[player.opponent][other_idx] = true
     impact[player][my_idx] = true
     impact:apply()
+    player.opponent:field_to_grave(other_idx)
     my_card:remove_skill(skill_idx)
   end
 end,
