@@ -4611,7 +4611,11 @@ end,
 [1433] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     local mag = floor(other_card.sta / 2)
-    OneBuff(player.opponent, other_idx, {atk={"+", mag}, sta={"=", other_card.sta - mag}}):apply()
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {}
+    buff.field[player.opponent][other_idx] = {atk={"+", mag}, sta={"=", other_card.sta - mag}}
+    buff:apply()
+    my_card:remove_skill(skill_idx)
   end
 end,
 
