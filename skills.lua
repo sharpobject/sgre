@@ -5304,6 +5304,7 @@ end,
     buff.field[player.opponent][other_idx] = {}
     buff.field[player][my_idx] = {size={"+", 1}}
     buff:apply()
+    other_card.skills = {}
     if my_card.size >= 5 then
       player:field_to_grave(my_idx)
     end
