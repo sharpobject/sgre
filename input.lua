@@ -13,6 +13,12 @@ function love.keypressed(key, unicode)
   if key == "f6" then
     RIP_IMAGEFONTS = not RIP_IMAGEFONTS
   end
+  if key == "f7" then
+    load_img = load_image_on_main_thread
+  end
+  if key == "f8" then
+    SUPPORTS_MIPMAPS = false
+  end
   loveframes.keypressed(key, unicode)
 end
 

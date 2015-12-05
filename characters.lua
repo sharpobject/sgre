@@ -1365,7 +1365,23 @@ end,
 end,
 
 -- dean rihanna
-[100096] = rihanna({sta={"+",3}},{atk={"+",2}}),
+[100096] = function(player)
+  local top = {sta={"+",3}}
+  local bottom = {atk={"+",2}}
+  local target = uniformly(player:field_idxs_with_preds(pred.follower, pred.V))
+  local slot = uniformly(player:empty_field_slots())
+  if target and slot then
+    local card = player.field[target]
+    player.field[target] = nil
+    player.field[slot] = card
+    if slot <= 3 then
+      OneBuff(player, slot, top):apply()
+    end
+    if slot >= 3 then
+      OneBuff(player, slot, bottom):apply()
+    end
+  end
+end,
 
 -- dress rihanna
 [100097] = rihanna({atk={"+",1},sta={"+",2}},{atk={"+",2},sta={"+",1}}),
@@ -5429,7 +5445,7 @@ end,
   if idx then
     OneBuff(player, idx, {sta={"+", 1}}):apply()
   end
-  idx = uniformly(player:field_idxs_with_preds(pred.follower,
+  idx = uniformly(opponent:field_idxs_with_preds(pred.follower,
     function(card) return card.size >= 4 end))
   if idx then
     OneBuff(opponent, idx, {sta={"-", 1}}):apply()
@@ -5465,7 +5481,7 @@ end,
 end,
 
 -- Chupachupa Boing
-[110203] = function(player, opponent)
+[110206] = function(player, opponent)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
@@ -6506,7 +6522,7 @@ end,
   if player.game.turn == 1 then
     local buff = GlobalBuff(player)
     for _, idx in ipairs(player:deck_idxs_with_preds(pred.follower)) do
-      buff.deck[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+      buff.deck[player][idx] = {atk={"+", 1}, def={"+", 1}}
     end
     buff:apply()
   end

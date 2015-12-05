@@ -61,14 +61,13 @@ local GFX_SCALE = 1
 local card_scale = .25
 local card_width, card_height
 local texture_width, texture_height
-local supports_mipmaps
 
 local fonts = {}
 
 local load_img_async_func
 
-function load_backface()
-  local s = love.image.newImageData("swordgirlsimages/900000L.jpg")
+function load_image_on_main_thread(id)
+  local s = love.image.newImageData("swordgirlsimages/"..id.."L.jpg")
   local w, h = s:getWidth(), s:getHeight()
   local wp = math.pow(2, math.ceil(math.log(w)/math.log(2)))
   local hp = math.pow(2, math.ceil(math.log(h)/math.log(2)))
@@ -78,7 +77,7 @@ function load_backface()
     s = padded
   end
   local ret = love.graphics.newImage(s)
-  if supports_mipmaps then
+  if SUPPORTS_MIPMAPS then
     ret:setMipmapFilter("linear", 0)
   else
     ret:setFilter("linear", "linear")
@@ -88,10 +87,13 @@ function load_backface()
       return ret,ret,ret,a
     end)
   local gray = love.graphics.newImage(s)
-  if supports_mipmaps then
+  if SUPPORTS_MIPMAPS then
     gray:setMipmapFilter("linear", 0)
   else
     gray:setFilter("linear", "linear")
+  end
+  if id ~= 900000 then
+    IMG_rdy[id] = true
   end
   return ret,gray,w,h,wp,hp
 end
@@ -102,24 +104,25 @@ function acquire_img(id)
   local img_arr = IMG_card
   local img_g_arr = IMG_gray_card
   local ready_arr = IMG_rdy
-  if img_arr[id] then
-    tstamps[id] = IMG_tstamp
-  else
+  tstamps[id] = IMG_tstamp
+  if not img_arr[id] then
     img_arr[id], img_g_arr[id] = load_img(id)
     IMG_count = IMG_count + 1
-    if IMG_count > max_cards_in_mem then
-      local smallest = IMG_tstamp
-      local del_id = 0
-      for idx, stamp in pairs(tstamps) do
-        if stamp < smallest then
-          del_id = idx
-          smallest = stamp
+    for i=1,3 do
+      if IMG_count > max_cards_in_mem then
+        local smallest = IMG_tstamp
+        local del_id = 0
+        for idx, stamp in pairs(tstamps) do
+          if stamp < smallest and ready_arr[idx] then
+            del_id = idx
+            smallest = stamp
+          end
         end
+        img_arr[del_id], img_g_arr[del_id] = nil, nil
+        ready_arr[del_id] = nil
+        tstamps[del_id] = nil
+        IMG_count = IMG_count - 1
       end
-      img_arr[del_id], img_g_arr[del_id] = nil
-      ready_arr[del_id] = false
-      tstamps[del_id] = nil
-      IMG_count = IMG_count - 1
     end
   end
   IMG_tstamp = IMG_tstamp + 1
@@ -141,13 +144,13 @@ function load_img(id)
   local s = love.image.newImageData(texture_width, texture_height)
   local s2 = love.image.newImageData(texture_width, texture_height)
   local ret = love.graphics.newImage(s)
-  if supports_mipmaps then
+  if SUPPORTS_MIPMAPS then
     ret:setMipmapFilter("linear", 0)
   else
     ret:setFilter("linear", "linear")
   end
   local gray = love.graphics.newImage(s2)
-  if supports_mipmaps then
+  if SUPPORTS_MIPMAPS then
     gray:setMipmapFilter("linear", 0)
   else
     gray:setFilter("linear", "linear")
@@ -200,10 +203,10 @@ function graphics_init()
   IMG_tstamp = 1
   IMG_count = 0
 
-  supports_mipmaps = love.graphics.isSupported("mipmap")
+  SUPPORTS_MIPMAPS = love.graphics.isSupported("mipmap")
 
   IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
-    texture_width, texture_height = load_backface()
+    texture_width, texture_height = load_image_on_main_thread(900000)
 
   card_width = card_width * card_scale
   card_height = card_height * card_scale
@@ -465,6 +468,9 @@ function draw_card(card, x, y, lighten_frame, text)
     id = 900000
   end
   acquire_img(id)
+  if not IMG_rdy[id] then
+    id = 900000
+  end
   if card.type == "character" or card.active then
     love.graphics.draw(IMG_card[id], x, y, 0, card_scale, card_scale)
   else
@@ -478,7 +484,7 @@ function draw_card(card, x, y, lighten_frame, text)
   local gray_shit_width = card_width - gray_shit_dx
   local middle = y+(card_height-gray_shit_height)/2
   love.graphics.setColor(255, 255, 255)
-  if not card.hidden and IMG_rdy[id] then
+  if not card.hidden then
     if card.type == "follower" then
       love.graphics.setFont(load_font("sg_assets/fonts/statwan_s.png"))
       love.graphics.printf(card.atk, x, y+102, card_width/3, "center")

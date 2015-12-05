@@ -3828,6 +3828,7 @@ end,
     impact[player.opponent][other_idx] = true
     impact[player][my_idx] = true
     impact:apply()
+    player.opponent:field_to_grave(other_idx)
     my_card:remove_skill(skill_idx)
   end
 end,
@@ -4466,7 +4467,7 @@ end,
   buff:apply()
   buff = OnePlayerBuff(player)
   idxs = player:field_idxs_with_preds(pred.follower)
-  local mag = math.floor(my_card.atk / 10) % 10
+  local mag = math.floor(math.abs(my_card.atk) / 10) % 10
   for _, idx in ipairs(idxs) do
     buff[idx] = {sta={"+", mag}}
   end
@@ -4914,17 +4915,11 @@ end,
 -- Cafe Sita
 -- Rest Time
 [1460] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card then
-    if other_card.skills[1] then
-      other_card.skills[1] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    elseif other_card.skills[2] then
-      other_card.skills[2] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    elseif other_card.skills[3] then
-      other_card.skills[3] = 1476
-      OneImpact(player.opponent, other_idx):apply()
-    end
+  if other_card and pred.skill(other_card) then
+    local skill_idx = other_card:first_skill_idx()
+    other_card:remove_skill(skill_idx)
+    other_card:gain_skill(1476)
+    OneImpact(player.opponent, other_idx):apply()
   end
 end,
 
@@ -5692,7 +5687,7 @@ end,
 [1527] = function(player, my_idx, my_card, skill_idx)
   local mag_def = #player:field_idxs_with_preds(pred.cook_club, pred.follower)
   local mag_atk = ceil(#player:field_idxs_with_preds(pred.V, pred.follower) / 2)
-  local mag_sta = #player:field_idxs_with_preds()
+  local mag_sta = #player:field_idxs_with_preds(pred.follower)
   player:field_buff_n_random_followers_with_preds(5, {atk={"+", mag_atk}, def={"+", mag_def}, sta={"+", mag_sta}})
   my_card:remove_skill(skill_idx)
 end,
@@ -5829,13 +5824,12 @@ end,
 [1541] = function(player, my_idx, my_card)
   local buff = OnePlayerBuff(player)
   local mag = 1
-  if my_idx > 1 and player.field[my_idx - 1] and pred.inter (pred.follower, pred.A) (player.field[my_idx - 1]) then
-    buff[my_idx - 1] = {sta={"+", 1}}
-    mag = mag + 1
-  end
-  if my_idx < 5 and player.field[my_idx + 1] and pred.inter (pred.follower, pred.A) (player.field[my_idx + 1]) then
-    buff[my_idx + 1] = {sta={"+", 1}}
-    mag = mag + 1
+  for idx = my_idx-1,my_idx+1,2 do
+    local card = player.field[idx]
+    if card and pred.A(card) and pred.follower(card) then
+      buff[idx] = {sta={"+", 1}}
+      mag = mag + 1
+    end
   end
   buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
   buff:apply()
@@ -5888,8 +5882,8 @@ end,
     for i = 1, min(#player.deck, 4 - #player.hand) do
       player:draw_a_card()
     end
-    my_card:remove_skill_until_refresh(skill_idx)
   end
+  my_card:remove_skill_until_refresh(skill_idx)
 end,
 
 -- Blue Cross Parfunte

@@ -3549,9 +3549,7 @@ end,
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower, pred.skill))
   if target and #player:field_idxs_with_preds(pred.follower) > 0 then
     local idx = opponent.field[target]:first_skill_idx()
-    if idx then
-      opponent.field[target]:remove_skill(idx)
-    end
+    opponent.field[target]:remove_skill(idx)
     opponent.field[target]:gain_skill(uniformly({1201, 1202}))
     halloween(player, opponent)
   end
@@ -7213,11 +7211,19 @@ Minority Report
     return
   end
   local card = player.field[idxs[2]]
+  local skill = nil
+  if pred.skill(card) then
+    skill = card.skills[card:first_skill_idx()]
+  end
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(idxs) do
     if idx ~= idxs[2] then
+      local skill_idx = player.field[idx]:first_skill_idx()
+      if skill and skill_idx then
+        player.field[idx]:remove_skill(skill_idx)
+        player.field[idx]:gain_skill(skill)
+      end
       buff[idx] = {size={"=",card.size}}
-      player.field[idx].skills[1] = card.skills[1]
     end
   end
   buff:apply()
@@ -8575,7 +8581,7 @@ end,
 end,
 
 --[[ New Student Orientation ]]
-[200525] = function(player, opponent)
+[200535] = function(player, opponent)
   local mag = ceil(10 / (1 + #opponent:field_idxs_with_preds(pred.follower)))
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
@@ -8585,7 +8591,7 @@ end,
 end,
 
 --[[ Ascension ]]
-[200526] = function(player)
+[200536] = function(player)
   local idx = player:deck_idxs_with_least_and_preds(pred.size)[1]
   if idx then
     local mag = player.deck[idx].size
