@@ -8827,7 +8827,7 @@ end,
 
 --[[ Witch, Witch Meeting ]]
 [200552] = function(player, opponent)
-  local pred_def = function(card) return card.def >= pred.A(player.character) and 2 or 3 end
+  local pred_def = function(card) return card.def >= (pred.A(player.character) and 2 or 3) end
   local idxs = opponent:field_idxs_with_preds(pred.follower, pred_def)
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(idxs) do
@@ -8878,7 +8878,7 @@ end,
 
 --[[ Office Attack ]]
 [200554] = function(player, opponent)
-  local my_idx = player:field_idxs_with_least_and_preds(pred.sta, pred.follower)
+  local my_idx = player:field_idxs_with_least_and_preds(pred.sta, pred.follower)[1]
   local op_idx = opponent:first_empty_field_slot()
   if my_idx and op_idx then
     opponent.field[op_idx], player.field[my_idx] = player.field[my_idx], nil
@@ -8991,7 +8991,7 @@ end,
     local orig = Card(card.id)
     return card.atk == orig.atk and card.def == orig.def and card.sta == orig.sta
   end
-  local idx = opponent:field_idxs_with_preds(pred.follower, pred_stat)
+  local idx = opponent:field_idxs_with_preds(pred.follower, pred_stat)[1]
   if idx then
     OneImpact(opponent, idx):apply()
     opponent:field_to_bottom_deck(idx)
@@ -9004,8 +9004,9 @@ end,
     local orig = Card(card.id)
     return card.atk >= orig.atk and card.def >= orig.def and card.sta >= orig.sta
   end
-  local idx = opponent:field_idxs_with_preds(pred.follower, pred_stat)
+  local idx = opponent:field_idxs_with_preds(pred.follower, pred_stat)[1]
   if idx then
+    local orig = Card(opponent.field[idx].id)
     local stat = uniformly({"atk", "def", "sta"})
     local mag = {}
     mag[stat] = {"=", orig[stat]}
@@ -9044,10 +9045,11 @@ end,
         card.skills[i] = nil
       end
     end
+  end
   for _, idx in ipairs(my_idxs) do
     remove_atk_skills(player.field[idx])
   end
-  for _, idx in ipairs(my_idxs) do
+  for _, idx in ipairs(op_idxs) do
     remove_atk_skills(opponent.field[idx])
   end
 end,
@@ -9140,30 +9142,11 @@ end,
     buff[idx] = pred.follower(player.field[idx]) and {size={"-", mag2}, atk={"+", mag}, def={"+", mag2}, sta={"+", mag}} or {size={"-", mag2}}
   end
   buff:apply()
-  for i = min(#player.grave, mag * 2), 1, -1
+  for i = min(#player.grave, mag * 2), 1, -1 do
     player:grave_to_bottom_deck(i)
   end
   player:field_to_exile(my_idx)
-end,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end
 
 }
 setmetatable(spell_func, {__index = function()return function() end end})
