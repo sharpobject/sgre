@@ -534,10 +534,11 @@ function Connection:try_dungeon(msg)
     lose_floor = max(my_floor-1, 1)
     win_floor = my_floor+1
   end
-  data.dungeon_floors[which] = lose_floor
   if which == 15 then
     data.last_muspel_date = today
+    lose_floor = my_floor
   end
+  data.dungeon_floors[which] = lose_floor
   modified_file(data)
   self:send_update_dungeon()
   function self:on_game_over(win)
