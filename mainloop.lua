@@ -2128,6 +2128,7 @@ local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11},
 local extra_dungeons = {{"Muspelheim Compendium", 15}, }
 
 function main_dungeon()
+  loveframes.SetState("lobby")
   if not frames.dungeon then
     frames.dungeon = {}
   end
@@ -2276,6 +2277,12 @@ function main_dungeon()
         image:SetY(50)
         image.OnClick = function()
           play_button_sound()
+          if dungeon_id == 15 and user_data.last_muspel_date == user_data.today then
+            from_dungeon = {main_modal_notice,
+              {"You can only enter Muspelheim once per day.",
+                {main_dungeon}}}
+            return
+          end
           from_dungeon = "start game"
           net_send({type="dungeon", idx=dungeon_id})
         end
