@@ -3357,6 +3357,61 @@ end,
   end
 end,
 
+-- Final Witness Kana GLS
+[100209] = function(player, opponent)
+  local pred_stat = function(card) return card.atk + card.def + card.sta > 30 end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_stat))
+  if idx then
+    OneBuff(opponent, idx, {size={"+", 2}}):apply()
+    opponent:field_to_top_deck(idx)
+  end
+end,
+
+--Knight's Parrot Kocchan
+[100210] = function(player, opponent)
+  local my_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local buff = GlobalBuff(player)
+  if my_idx then
+    buff.field[player][my_idx] = {atk={"+", 2}, sta={"-", 1}}
+  end
+  if op_idx then
+    buff.field[opponent][op_idx] = {atk={"+", 1}, sta={"-", 2}}
+  end
+  buff:apply()
+end,
+
+--Kindergarten Layna
+[100211] = function(player, opponent)
+  local my_idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.V))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  local buff = GlobalBuff(player)
+  if my_idx then
+    local mag = min(3, floor(player.field[my_idx].size / 2))
+    buff.field[player][my_idx] = {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}
+    if op_idx then
+      buff.field[opponent][my_idx] = {sta={"-", mag}}
+    end
+  end
+  buff:apply()
+end,
+
+--Victor Cinia
+[100212] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local check = opponent.field[idx].def == 0
+    OneBuff(opponent, idx, {def={"=", 0}}):apply()
+    local idx = opponent:first_empty_field_slot()
+    if check and idx then
+      opponent.field[idx] = Card(200070) --Thank You
+      OneImpact(opponent, idx):apply()
+    end
+  end
+end,
+
+
+
 -- Bunny Lady
 [110001] = function(player, opponent, my_card)
   buff_random(player, opponent, my_card, {sta={"+",1}})
@@ -6583,6 +6638,95 @@ end,
   end
 end,
 
+--1st Witness Kana DKD
+[110283] = function(player)
+  local idx1 = player:deck_idxs_with_preds(pred.faction[player.character.faction])[0]
+  local idx2 = player:first_empty_field_slot()
+  if idx1 and idx2 then
+    player:deck_to_field(idx1)
+    OneImpact(player, idx2):apply()
+  end
+  if player.character.life <= 9 then
+    OneBuff(player, 0, {life={"=", 15}}):apply()
+  end
+end,
+
+--2nd Witness Kana DND
+[110283] = function(player, opponent)
+  for i=1,2 do
+    local f = opponent:field_idxs_with_preds()
+    local g = #opponent.grave
+    local h = #opponent.hand
+    local idx = random(1, f + g + h)
+    if idx <= h then
+      opponent:hand_to_exile(idx)
+    else if idx <= h + g then
+      opponent:grave_to_exile(idx - h)
+    else
+      local idx = uniformly(opponent:field_idxs_with_preds())
+      OneImpact(opponent, idx):apply()
+      opponent:field_to_exile(idx)
+    end
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    local card = player.field[idx]
+    local mag = {}
+    for _, v in ipairs({"atk", "def", "sta"}) do
+      if card[v] < Card(card.id)[v] then
+        mag[v] = {"=", Card(card.id)[v]}
+      end
+    end
+    OneBuff(player, idx, mag):apply()
+  end
+end,
+
+--3rd Witness Kana DTD
+[110284] = function(player, opponent)
+  if player.game.turn == 1 then
+    local buff = GlobalBuff(player)
+    for idx = 1, #player.deck do
+      if pred.follower(player.deck[idx]) then
+        buff.deck[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+      end
+    end
+    buff:apply()
+  end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneImpact(opponent, idx):apply()
+    opponent.field[idx].skills = {}
+  end
+end,
+
+--4th Witness Kana DDT
+[110285] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local f = function(p, m)
+    for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
+      buff.field[p][idx] = m
+    end
+  end
+  if player.game.turn % 2 == 1 then
+    f (player, {atk={"+", 1}, sta={"+", 2}})
+  else
+    f (opponent, {sta={"-", 5}})
+  end
+end,
+
+--5th Witness Kana DDD
+[110286] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local buff = GlobalBuff(player)
+    local mag = floor(opponent.field[idx].size / 2)
+    buff.field[player][0] = {life={"+", mag}}
+    buff.field[opponent][idx] = {}
+    buff:apply()
+    opponent:field_to_bottom_deck()
+  end
+end,
+
 -- Gold Lion Nold
 [120001] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {size={"-",1}})
@@ -7113,7 +7257,7 @@ end,
   buff:apply()
 end,
 
--- Ping Pong Iri
+-- Homeless Cannelle
 [120033] = function(player, opponent)
   local buff = GlobalBuff(player)
   local hand_idxs = shuffle(player:hand_idxs_with_preds(pred.follower))
@@ -7132,6 +7276,19 @@ end,
     local buff = OnePlayerBuff(opponent)
     buff[idx] = {size={"-",1},atk={"-",1},def={"-",1},sta={"-",1}}
     buff:apply()
+  end
+end,
+
+--Final Witness Kana GLS
+[120034] = function(player, opponent)
+  local pred_stat = function(x) return function(card) return card.atk + card.def + card.sta >= x end end
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower, pred_stat(20)))
+  if idx then
+    OneBuff(opponent, idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    if pred_stat(30)(opponent.field[idx]) then
+      OneImpact(opponent, idx):apply()
+      opponent:destroy(idx)
+    end
   end
 end,
 
