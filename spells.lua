@@ -8729,7 +8729,7 @@ end,
 end,
 
 --[[ Coin Toss ]]
-[200545] = function(player, opponent)
+[200545] = function(player, opponent, my_idx, my_card)
   local pred_size = function(card) return card.size <= my_card.size end
   local buff = GlobalBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_size)) do
