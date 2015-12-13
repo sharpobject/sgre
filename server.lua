@@ -61,6 +61,8 @@ local chat_q = Queue()
 
 local reward_multiplier = 3
 
+local today = os.date("%Y%m%d")
+
 function no_string_keys(tab)
   for k,v in pairs(tab) do
     if (type(k) ~= "number") and (tonumber(k) ~= nil) then
@@ -461,6 +463,10 @@ function Connection:try_login(msg)
     end
     modified_file(data)
   end
+  if data.today ~= today then
+    data.today = today
+    modified_file(data)
+  end
   uid_to_connection[uid] = self
   self.state = "lobby"
   self:send({type="login_result", success=true})
@@ -477,6 +483,8 @@ function Connection:try_login(msg)
     friends = data.friends,
     active_deck = data.active_deck,
     cafe = data.cafe,
+    today = data.today,
+    last_muspel_date = data.last_muspel_date,
   }})
 end
 
@@ -517,7 +525,6 @@ function Connection:try_dungeon(msg)
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
-  local today = os.date("%Y%m%d")
   if which == 15 and today == data.last_muspel_date then
     return
   end
@@ -1139,6 +1146,16 @@ function main()
       for k,connection in pairs(connections) do
         if connection.state ~= "connected" then
           connection:send(msg)
+        end
+      end
+    end
+
+    local new_day = os.date("%Y%m%d")
+    if new_day ~= today then
+      today = new_day
+      for k,connection in pairs(connections) do
+        if connection.state ~= "connected" then
+          connection:send({type="today", today=today})
         end
       end
     end

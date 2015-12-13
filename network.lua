@@ -191,5 +191,9 @@ function handlers.update_dungeon(msg)
   user_data.dungeon_floors = msg.dungeon_floors
 end
 
+function handlers.today(msg)
+  user_data.today = msg.today
+end
+
 function handlers.zombie(msg)
 end
