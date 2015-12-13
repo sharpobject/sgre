@@ -95,7 +95,7 @@ function groups_init()
       for k,v in ipairs(ids) do
         t[v+0]=true
       end
-      pred[group] = function(card) return t[card.id] end
+      pred[group] = function(card) return not not t[card.id] end
       return pred[group](card)
     end
   end
@@ -118,7 +118,7 @@ for _,v in ipairs({"size","atk","def","sta"}) do
   local stat=v
   pred[v] = function(card) return card[stat] or -9000 end
 end
-pred.exists = function(card) return card end
+pred.exists = function(card) return not not card end
 pred.active = function(card) return card.active end
 pred.skill = function(card) return #card:squished_skills() > 0 end
 pred.neg = function(func) return function(card) return not func(card) end end
@@ -130,6 +130,7 @@ pred.union = function(...)
         return true
       end
     end
+    return false
   end
 end
 pred.inter = function(...)

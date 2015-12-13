@@ -1409,7 +1409,7 @@ end,
 [200101] = function(player, opponent)
   local map = {[300142]=300143,[300156]=300157}
   local target = player:field_idxs_with_preds(
-      function(card) return map[floor(card.id)] end)[1]
+      function(card) return map[floor(card.id)] ~= nil end)[1]
   if target then
     local dressup_id = map[player.field[target].id]
     player:field_to_grave(target)

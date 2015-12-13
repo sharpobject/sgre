@@ -442,10 +442,10 @@ function Player:grave_idxs_with_preds(...)
   for i=#self.grave,1,-1 do
     local incl = true
     for j=1,#preds do
-      incl = incl and preds[j](self.grave[i])
-      if GO_HARD then
-        assert(type(preds[j](self.field[i])) == "boolean")
+      if incl and GO_HARD then
+        assert(type(preds[j](self.grave[i])) == "boolean")
       end
+      incl = incl and preds[j](self.grave[i])
     end
     if incl then
       ret[#ret+1] = i
@@ -464,10 +464,10 @@ function Player:hand_idxs_with_preds(...)
     if self.hand[i] then
       local incl = true
       for j=1,#preds do
-        incl = incl and preds[j](self.hand[i])
-        if GO_HARD then
+        if incl and GO_HARD then
           assert(type(preds[j](self.hand[i])) == "boolean")
         end
+        incl = incl and preds[j](self.hand[i])
       end
       if incl then
         ret[#ret+1] = i
@@ -487,10 +487,10 @@ function Player:field_idxs_with_preds(...)
     if self.field[i] then
       local incl = true
       for j=1,#preds do
-        incl = incl and preds[j](self.field[i])
-        if GO_HARD then
+        if incl and GO_HARD then
           assert(type(preds[j](self.field[i])) == "boolean")
         end
+        incl = incl and preds[j](self.field[i])
       end
       if incl then
         ret[#ret+1] = i
@@ -510,10 +510,10 @@ function Player:deck_idxs_with_preds(...)
     if self.deck[i] then
       local incl = true
       for j=1,#preds do
-        incl = incl and preds[j](self.deck[i])
-        if GO_HARD then
+        if incl and GO_HARD then
           assert(type(preds[j](self.deck[i])) == "boolean")
         end
+        incl = incl and preds[j](self.deck[i])
       end
       if incl then
         ret[#ret+1] = i
@@ -706,7 +706,7 @@ function Player:ai_act()
   if self.character.id == 110181 then
     local stuff_to_play = {200178, 300202, 300138, 200030}
     for _, id in pairs(stuff_to_play) do
-      for i=1,#self.hand do
+      for i=#self.hand,1,-1 do
         if self.hand[i].id == id and self:can_play_card(i) then
           self.hand[i].hidden = true
           self:play_card(i)
