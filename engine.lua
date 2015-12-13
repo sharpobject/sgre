@@ -443,6 +443,9 @@ function Player:grave_idxs_with_preds(...)
     local incl = true
     for j=1,#preds do
       incl = incl and preds[j](self.grave[i])
+      if GO_HARD then
+        assert(type(preds[j](self.field[i])) == "boolean")
+      end
     end
     if incl then
       ret[#ret+1] = i
@@ -462,6 +465,9 @@ function Player:hand_idxs_with_preds(...)
       local incl = true
       for j=1,#preds do
         incl = incl and preds[j](self.hand[i])
+        if GO_HARD then
+          assert(type(preds[j](self.hand[i])) == "boolean")
+        end
       end
       if incl then
         ret[#ret+1] = i
@@ -482,6 +488,9 @@ function Player:field_idxs_with_preds(...)
       local incl = true
       for j=1,#preds do
         incl = incl and preds[j](self.field[i])
+        if GO_HARD then
+          assert(type(preds[j](self.field[i])) == "boolean")
+        end
       end
       if incl then
         ret[#ret+1] = i
@@ -502,6 +511,9 @@ function Player:deck_idxs_with_preds(...)
       local incl = true
       for j=1,#preds do
         incl = incl and preds[j](self.deck[i])
+        if GO_HARD then
+          assert(type(preds[j](self.deck[i])) == "boolean")
+        end
       end
       if incl then
         ret[#ret+1] = i
@@ -691,6 +703,17 @@ function Player:play_card(n)
 end
 
 function Player:ai_act()
+  if self.character.id == 110181 then
+    local stuff_to_play = {200178, 300202, 300138, 200030}
+    for _, id in pairs(stuff_to_play) do
+      for i=1,#self.hand do
+        if self.hand[i].id == id and self:can_play_card(i) then
+          self.hand[i].hidden = true
+          self:play_card(i)
+        end
+      end
+    end
+  end
   for i=1,3 do
     if #self.hand > 0 then
       local idx = math.random(#self.hand)

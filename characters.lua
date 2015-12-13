@@ -5209,6 +5209,49 @@ end,
   end
 end,
 
+-- gourmet disciple
+[110181] = function(player, opponent, my_card)
+  if player.game.turn == 1 then
+    player.deck = {
+      200035,
+      200035,
+      200035,
+      200035,
+      200035,
+      200035,
+      200035,
+      300363,
+      300363,
+      300363,
+      200185,
+      300363,
+      200185,
+      300363,
+      200030,
+      200185,
+      300138,
+      200178,
+      300202,
+    }
+    for i=1,20 do
+      opponent:deck_to_exile(#opponent.deck)
+    end
+    opponent.shuffles = 0
+    local buff = GlobalBuff(player)
+    buff.field[player][0] = {life={"=", 20}}
+    buff.field[opponent][0] = {life={"=", 20}}
+    buff:apply()
+  elseif player.game.turn == 3 then
+    local buff = GlobalBuff(player)
+    if player.character.life < opponent.character.life then
+      buff.field[player][0] = {life={"=", 0}}
+    else
+      buff.field[opponent][0] = {life={"=", 0}}
+    end
+    buff:apply()
+  end
+end,
+
 -- famed disciple
 [110182] = function(player, opponent, my_card)
   local even = opponent:field_idxs_with_preds(

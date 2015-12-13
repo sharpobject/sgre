@@ -2125,6 +2125,7 @@ local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5},
     {"Underground Altar", 24}, {"Royle City", 25}, {"Weekly The Legend", 33}, }
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11},
     {"Linia's World", 22}, }
+local extra_dungeons = {{"Muspelheim Compendium", 15}, }
 
 function main_dungeon()
   if not frames.dungeon then
@@ -2183,8 +2184,8 @@ function main_dungeon()
 
   local easybutton, normalbutton, hardbutton
   easybutton = loveframes.Create("button", frame)
-  easybutton:SetPos(150, 360)
-  easybutton:SetSize(80, 30)
+  easybutton:SetPos(135, 360)
+  easybutton:SetSize(75, 30)
   easybutton:SetText("EASY")
   easybutton:SetEnabled(false)
   function easybutton:OnClick()
@@ -2195,8 +2196,8 @@ function main_dungeon()
   end
 
   normalbutton = loveframes.Create("button", frame)
-  normalbutton:SetPos(260, 360)
-  normalbutton:SetSize(80, 30)
+  normalbutton:SetPos(225, 360)
+  normalbutton:SetSize(75, 30)
   normalbutton:SetText("NORMAL")
   function normalbutton:OnClick()
     play_button_sound()
@@ -2206,8 +2207,8 @@ function main_dungeon()
   end
 
   hardbutton = loveframes.Create("button", frame)
-  hardbutton:SetPos(370, 360)
-  hardbutton:SetSize(80, 30)
+  hardbutton:SetPos(315, 360)
+  hardbutton:SetSize(75, 30)
   hardbutton:SetText("HARD")
   function hardbutton:OnClick()
     play_button_sound()
@@ -2216,9 +2217,20 @@ function main_dungeon()
     update_dungeon_list(frame)
   end
 
+  hardbutton = loveframes.Create("button", frame)
+  hardbutton:SetPos(405, 360)
+  hardbutton:SetSize(75, 30)
+  hardbutton:SetText("EXTRA")
+  function hardbutton:OnClick()
+    play_button_sound()
+    frames.dungeon.difficulty = extra_dungeons
+    frames.dungeon.page_num = 1
+    update_dungeon_list(frame)
+  end
+
   local closebutton = loveframes.Create("button", frame)
-  closebutton:SetPos(520, 360)
-  closebutton:SetSize(60, 30)
+  closebutton:SetPos(495, 360)
+  closebutton:SetSize(75, 30)
   closebutton:SetText("CLOSE")
   function closebutton:OnClick()
     play_cancel_sound()

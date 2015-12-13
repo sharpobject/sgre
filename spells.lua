@@ -8070,7 +8070,7 @@ end,
 ]]
 [200503] = function(player, opponent, my_idx, my_card)
   local pred_size = function(card) return card.size == my_card.size end
-  local idx = player:deck_idxs_with_preds(pred.size, pred.spell)[1]
+  local idx = player:deck_idxs_with_preds(pred_size, pred.spell)[1]
   if idx then
     local idx2 = player:first_empty_field_slot()
     if idx2 then
