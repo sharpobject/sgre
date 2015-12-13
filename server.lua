@@ -517,6 +517,10 @@ function Connection:try_dungeon(msg)
   end
   local total_floors = #dungeons.npcs[which]
   local data = uid_to_data[self.uid]
+  local today = os.date("%Y%m%d")
+  if which == 15 and today == data.last_muspel_date then
+    return
+  end
   if not check_active_deck(data) then
     self:crash_and_burn()
     return false
@@ -531,6 +535,9 @@ function Connection:try_dungeon(msg)
     win_floor = my_floor+1
   end
   data.dungeon_floors[which] = lose_floor
+  if which == 15 then
+    data.last_muspel_date = today
+  end
   modified_file(data)
   self:send_update_dungeon()
   function self:on_game_over(win)
