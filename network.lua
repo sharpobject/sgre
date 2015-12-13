@@ -195,5 +195,9 @@ function handlers.today(msg)
   user_data.today = msg.today
 end
 
+function handlers.last_muspel_date(msg)
+  user_date.last_muspel_date = msg.last_muspel_date
+end
+
 function handlers.zombie(msg)
 end

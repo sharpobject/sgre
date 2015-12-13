@@ -543,6 +543,7 @@ function Connection:try_dungeon(msg)
   end
   if which == 15 then
     data.last_muspel_date = today
+    self:send({type="last_muspel_date", last_muspel_date=today})
     lose_floor = my_floor
   end
   data.dungeon_floors[which] = lose_floor
