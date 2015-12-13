@@ -6652,7 +6652,7 @@ end,
 end,
 
 --2nd Witness Kana DND
-[110283] = function(player, opponent)
+[110284] = function(player, opponent)
   for i=1,2 do
     local f = opponent:field_idxs_with_preds()
     local g = #opponent.grave
@@ -6660,7 +6660,7 @@ end,
     local idx = random(1, f + g + h)
     if idx <= h then
       opponent:hand_to_exile(idx)
-    else if idx <= h + g then
+    elseif idx <= h + g then
       opponent:grave_to_exile(idx - h)
     else
       local idx = uniformly(opponent:field_idxs_with_preds())
@@ -6682,7 +6682,7 @@ end,
 end,
 
 --3rd Witness Kana DTD
-[110284] = function(player, opponent)
+[110285] = function(player, opponent)
   if player.game.turn == 1 then
     local buff = GlobalBuff(player)
     for idx = 1, #player.deck do
@@ -6700,7 +6700,7 @@ end,
 end,
 
 --4th Witness Kana DDT
-[110285] = function(player, opponent)
+[110286] = function(player, opponent)
   local buff = GlobalBuff(player)
   local f = function(p, m)
     for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
@@ -6715,7 +6715,7 @@ end,
 end,
 
 --5th Witness Kana DDD
-[110286] = function(player, opponent)
+[110287] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     local buff = GlobalBuff(player)
