@@ -2183,7 +2183,7 @@ function main_dungeon()
     update_dungeon_list(frame)
   end
 
-  local easybutton, normalbutton, hardbutton
+  local easybutton, normalbutton, hardbutton, extrabutton
   easybutton = loveframes.Create("button", frame)
   easybutton:SetPos(135, 360)
   easybutton:SetSize(75, 30)
@@ -2218,11 +2218,11 @@ function main_dungeon()
     update_dungeon_list(frame)
   end
 
-  hardbutton = loveframes.Create("button", frame)
-  hardbutton:SetPos(405, 360)
-  hardbutton:SetSize(75, 30)
-  hardbutton:SetText("EXTRA")
-  function hardbutton:OnClick()
+  extrabutton = loveframes.Create("button", frame)
+  extrabutton:SetPos(405, 360)
+  extrabutton:SetSize(75, 30)
+  extrabutton:SetText("EXTRA")
+  function extrabutton:OnClick()
     play_button_sound()
     frames.dungeon.difficulty = extra_dungeons
     frames.dungeon.page_num = 1
@@ -2250,17 +2250,25 @@ function main_dungeon()
 
     index = 1
     if frames.dungeon.difficulty == easy_dungeons then
+      easybutton:SetEnabled(false)
       normalbutton:SetEnabled(true)
       hardbutton:SetEnabled(true)
-      easybutton:SetEnabled(false)
+      extrabutton:SetEnabled(true)
     elseif frames.dungeon.difficulty == normal_dungeons then
+      easybutton:SetEnabled(true)
       normalbutton:SetEnabled(false)
       hardbutton:SetEnabled(true)
+      extrabutton:SetEnabled(true)
+    elseif frames.dungeon.difficulty == hard_dungeons then
       easybutton:SetEnabled(true)
-    else
       normalbutton:SetEnabled(true)
       hardbutton:SetEnabled(false)
+      extrabutton:SetEnabled(true)
+    else
       easybutton:SetEnabled(true)
+      normalbutton:SetEnabled(true)
+      hardbutton:SetEnabled(true)
+      extrabutton:SetEnabled(false)
     end
     while index < 5 do
       local currentdungeon = frames.dungeon.difficulty[(frames.dungeon.page_num - 1) * 4 + index]
