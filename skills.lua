@@ -6007,13 +6007,9 @@ end,
 -- Space Time Witch Cinia
 -- Carpet Bombing
 [1559] = function(player, my_idx, my_card)
-  local buff = OnePlayerBuff(player.opponent)
   local idxs = player.opponent:field_idxs_with_preds(pred.follower)
   local mag = floor(my_card.size / #idxs)
-  for _, idx in ipairs(idxs) do
-    buff[idx] = {sta={"-", mag}}
-  end
-  buff:apply()
+  player.opponent:field_buff_n_random_followers_with_preds(5, {sta={"-", mag}})
 end,
 
 -- Counselor Soma
@@ -6026,16 +6022,18 @@ end,
   end
   impact:apply()
   my_card:remove_skill_until_refresh(skill_idx)
-  op_card.skills = {1076}
+  if op_card then
+    op_card.skills = {1076}
+  end
 end,
 
 -- Anti-Witch Queen Rose
 -- Victory
 [1561] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   local buff = GlobalBuff(player)
-  buff[player][my_idx] = {atk={"=", 6}}
+  buff.field[player][my_idx] = {atk={"=", 6}}
   if op_card then
-    buff[player.opponent][op_idx] = {def={"=", 1}}
+    buff.field[player.opponent][op_idx] = {def={"=", 1}}
   end
   buff:apply()
 end,
@@ -6064,7 +6062,7 @@ end,
 -- Trespassing
 [1565] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   if op_card then
-    local mag = max(3, floor(player:grave_idxs_with_preds(pred.gs) / 2))
+    local mag = max(3, floor(#player:grave_idxs_with_preds(pred.gs) / 2))
     OneBuff(player.opponent, op_idx, {def={"-", mag}}):apply()
   end
 end,
@@ -6179,7 +6177,6 @@ end,
 -- Unity
 [1578] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   if op_card and op_card.def + op_card.sta <= my_card.atk then
-    local buff = OnePlayerBuff(player)
     player:field_buff_n_random_followers_with_preds(5, {def={"+", 1}})
     my_card:remove_skill_until_refresh(skill_idx)
   end
@@ -6189,7 +6186,7 @@ end,
 -- Power of Will
 [1579] = function(player, my_idx)
   local mag = #player:field_idxs_with_preds(pred.C, pred.follower)
-  OneBuff(player, my_idx, {atk={"+", mag], sta={"+", mag}}):apply()
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
 end,
 
 -- Return of the King, Jaina
@@ -6261,7 +6258,7 @@ end,
 -- Mother Demon
 -- Initialization
 [1586] = function(player, my_idx, my_card)
-  OneBuff(player, my_idx, pred.D(player.character) and {size={"=", Card(my_card.id).size)}} or {}):apply()
+  OneBuff(player, my_idx, pred.D(player.character) and {size={"=", Card(my_card.id).size}} or {}):apply()
   if not pred.D(player.character) then
     my_card.skills = {}
   end
@@ -6272,8 +6269,8 @@ end,
 [1587] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   local impact = Impact(player)
   impact[player][my_idx] = true
-  if other_card then
-    impact[player.opponent][other_idx] = true
+  if op_card then
+    impact[player.opponent][op_idx] = true
   end
   impact:apply()
   player:field_to_grave(my_idx)
@@ -6290,6 +6287,7 @@ end,
     buff.field[player][0] = {life={"+", 1}}
     buff.field[player.opponent][0] = {life={"-", 1}}
     buff.field[player][my_idx] = {}
+    buff:apply()
   end
   my_card:remove_skill(skill_idx)
 end,
