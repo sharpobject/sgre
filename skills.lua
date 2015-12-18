@@ -5976,20 +5976,22 @@ end,
 
 -- Potion Witch Cultist
 -- Magic of 3
-[1557] = function(player, my_idx, my_card, skill_idx, op_idx)
-  local mag = 0
-  for _, stat in ipairs({"atk", "def", "sta"}) do
-    local n = my_card[stat]
-    while n > 0 do
-      if n % 10 == 3 then
-        mag = mag + 1
+[1557] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local mag = 0
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      local n = my_card[stat]
+      while n > 0 do
+        if n % 10 == 3 then
+          mag = mag + 1
+        end
+        n = floor(n / 10)
       end
-      n = floor(n / 10)
     end
-  end
-  if mag >= 3 then
-    OneImpact(player.opponent, op_idx):apply()
-    player.opponent:destroy(op_idx)
+    if mag >= 3 then
+      OneImpact(player.opponent, op_idx):apply()
+      player.opponent:destroy(op_idx)
+    end
   end
 end,
 
