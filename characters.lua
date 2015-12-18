@@ -3384,13 +3384,13 @@ end,
 --Kindergarten Layna
 [100211] = function(player, opponent)
   local my_idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.V))
-  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   if my_idx then
     local mag = min(3, floor(player.field[my_idx].size / 2))
     buff.field[player][my_idx] = {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if op_idx then
-      buff.field[opponent][my_idx] = {sta={"-", mag}}
+      buff.field[opponent][op_idx] = {sta={"-", mag}}
     end
   end
   buff:apply()
@@ -3409,8 +3409,6 @@ end,
     end
   end
 end,
-
-
 
 -- Bunny Lady
 [110001] = function(player, opponent, my_card)
@@ -6611,18 +6609,20 @@ end,
 --2nd Witness Kana DND
 [110283] = function(player, opponent)
   for i=1,2 do
-    local f = opponent:field_idxs_with_preds()
+    local f = #opponent:field_idxs_with_preds()
     local g = #opponent.grave
     local h = #opponent.hand
-    local idx = random(1, f + g + h)
-    if idx <= h then
-      opponent:hand_to_exile(idx)
-    else if idx <= h + g then
-      opponent:grave_to_exile(idx - h)
-    else
-      local idx = uniformly(opponent:field_idxs_with_preds())
-      OneImpact(opponent, idx):apply()
-      opponent:field_to_exile(idx)
+    if f + g + h > 0 then
+      local idx = random(1, f + g + h)
+      if idx <= h then
+        opponent:hand_to_exile(idx)
+      elseif idx <= h + g then
+        opponent:grave_to_exile(idx - h)
+      else
+        local idx = uniformly(opponent:field_idxs_with_preds())
+        OneImpact(opponent, idx):apply()
+        opponent:field_to_exile(idx)
+      end
     end
   end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
@@ -6669,6 +6669,7 @@ end,
   else
     f (opponent, {sta={"-", 5}})
   end
+  buff:apply()
 end,
 
 --5th Witness Kana DDD
@@ -6680,7 +6681,7 @@ end,
     buff.field[player][0] = {life={"+", mag}}
     buff.field[opponent][idx] = {}
     buff:apply()
-    opponent:field_to_bottom_deck()
+    opponent:field_to_bottom_deck(idx)
   end
 end,
 
