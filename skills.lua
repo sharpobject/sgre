@@ -5968,6 +5968,11 @@ end,
   end
 end,
 
+-- DTD (Muspelheim)
+[1663] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player.opponent, 0, {life={"=",0}}):apply()
+end,
+
 -- Strong Attack!
 [1704] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
