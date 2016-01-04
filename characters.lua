@@ -4833,7 +4833,7 @@ end,
 
 -- gart
 [110150] = function(player, opponent, my_card)
-  if player.game.turn == 14 then
+  if player.game.turn >= 14 then
     OneBuff(opponent, 0, {life={"=",0}}):apply()
   end
   recycle_one(player)

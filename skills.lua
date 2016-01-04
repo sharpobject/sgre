@@ -1720,9 +1720,14 @@ end,
     local grave_target_idx = math.random(#player.opponent.grave)
     player.opponent:grave_to_exile(grave_target_idx)
   end
+  local buff = {}
   for _,stat in ipairs({"atk", "def", "sta"}) do
-    my_card[stat] = Card(my_card.id)[stat]
+    local orig = Card(my_card.id)[stat]
+    if my_card[stat] < orig then
+      buff[stat] = {"=", orig}
+    end
   end
+  OneBuff(player, my_idx, buff):apply()
 end,
 
 -- sword's shield
