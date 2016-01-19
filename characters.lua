@@ -3113,7 +3113,7 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     local card = player.field[idx]
-    local mag = floor(abs(card.atk - card.sta))
+    local mag = floor(abs(card.atk - card.sta)/2)
     if card.atk > card.sta then
       OneBuff(player, idx, {sta={"+", mag}}):apply()
     elseif card.atk < card.sta then
