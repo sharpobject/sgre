@@ -4290,7 +4290,6 @@ end,
 
 -- youngest's day
 [200300] = function(player, opponent, my_idx, my_card)
-  if true then return end -- I think this spell is bugged and actually does nothing...
   local buff = OnePlayerBuff(opponent)
   local sz_amt = 5-#opponent:field_idxs_with_preds()
   local targets = opponent:field_idxs_with_preds(pred.follower)
