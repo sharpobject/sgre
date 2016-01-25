@@ -154,7 +154,7 @@ function newobject:mousepressed(x, y, button)
 	
 	if hover then
 		local col = loveframes.util.BoundingBox(self.x, x, self.y, y, self.width, 1, self.closedheight, 1)
-		if button == "l" and col then
+		if button == 1 and col then
 			local baseparent = self:GetBaseParent()
 			if baseparent and baseparent.type == "frame" then
 				baseparent:MakeTop()
@@ -198,7 +198,7 @@ function newobject:mousereleased(x, y, button)
 	local children = self.children
 	local curobject = children[1]
 	
-	if hover and col and down and button == "l" then
+	if hover and col and down and button == 1 then
 		if open then
 			self:SetOpen(false)
 		else

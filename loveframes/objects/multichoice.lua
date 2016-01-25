@@ -137,7 +137,7 @@ function newobject:mousepressed(x, y, button)
 	local haslist = self.haslist
 	local enabled = self.enabled
 	
-	if hover and not haslist and enabled and button == "l" then
+	if hover and not haslist and enabled and button == 1 then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()

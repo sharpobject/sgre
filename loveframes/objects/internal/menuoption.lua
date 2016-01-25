@@ -188,7 +188,7 @@ function newobject:mousereleased(x, y, button)
 	
 	local hover = self.hover
 	local option_type = self.option_type
-	if hover and option_type ~= "divider" and button == "l" then
+	if hover and option_type ~= "divider" and button == 1 then
 		local func = self.func
 		if func then
 			local text = self.text

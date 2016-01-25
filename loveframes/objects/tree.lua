@@ -193,7 +193,8 @@ function newobject:draw()
 	-- set the object's draw order
 	self:SetDrawOrder()
 	
-	love.graphics.setStencil(stencilfunc)
+	love.graphics.stencil(stencilfunc)
+	love.graphics.setStencilTest("lequal", 255)
 	
 	if draw then
 		draw(self)
@@ -205,7 +206,7 @@ function newobject:draw()
 		v:draw()
 	end
 	
-	love.graphics.setStencil()
+	love.graphics.setStencilTest()
 	
 	for k, v in ipairs(self.internals) do
 		v:draw()

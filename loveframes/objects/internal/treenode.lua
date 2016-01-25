@@ -157,7 +157,7 @@ function newobject:mousepressed(x, y, button)
 		v:mousepressed(x, y, button)
 	end
 	
-	if self.hover and button == "l" then
+	if self.hover and button == 1 then
 		local time = os.time()
 		if self.lastclick + 0.40 > time then
 			self.open = not self.open

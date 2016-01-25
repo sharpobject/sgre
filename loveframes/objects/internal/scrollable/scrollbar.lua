@@ -247,7 +247,7 @@ function newobject:mousepressed(x, y, button)
 	local dragging = self.dragging
 	
 	if not dragging then
-		if button == "l" then
+		if button == 1 then
 			self.starty = self.staticy
 			self.startx = self.staticx
 			self.clickx = x

@@ -131,7 +131,7 @@ function newobject:mousepressed(x, y, button)
 	local hover = self.hover
 	local internals = self.internals
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
@@ -158,8 +158,8 @@ function newobject:mousereleased(x, y, button)
 	local parent = self.parent
 	local tabnumber = self.tabnumber
 	
-	if hover and button == "l" then
-		if button == "l" then
+	if hover and button == 1 then
+		if button == 1 then
 			local tab = parent.tab
 			local internals = parent.internals
 			local onopened = self.OnOpened

@@ -177,7 +177,7 @@ function newobject:mousepressed(x, y, button)
 	local slidetype = self.slidetype
 	local scrollable = self.scrollable
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		if slidetype == "horizontal" then
 			local xpos = x - self.x
 			local button = internals[1]

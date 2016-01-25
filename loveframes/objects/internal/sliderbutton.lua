@@ -193,7 +193,7 @@ function newobject:mousepressed(x, y, button)
 	
 	local hover = self.hover
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()

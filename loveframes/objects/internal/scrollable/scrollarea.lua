@@ -175,7 +175,7 @@ function newobject:mousepressed(x, y, button)
 	local hover = self.hover
 	local delayamount = self.delayamount
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		self.down = true
 		self.scrolldelay = time + delayamount + 0.5
 		local baseparent = self:GetBaseParent()
@@ -218,7 +218,7 @@ function newobject:mousereleased(x, y, button)
 	
 	local internals = self.internals
 	
-	if button == "l" then
+	if button == 1 then
 		self.down = false
 	end
 	

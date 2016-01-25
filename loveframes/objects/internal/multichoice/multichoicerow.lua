@@ -120,7 +120,7 @@ function newobject:mousepressed(x, y, button)
 	
 	local hover = self.hover
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		self.down = true
 		loveframes.downobject = self
 	end
@@ -141,7 +141,7 @@ function newobject:mousereleased(x, y, button)
 	
 	local text = self.text
 	
-	if self.hover and self.down and self.canclick and button == "l" then
+	if self.hover and self.down and self.canclick and button == 1 then
 		self.parent.list:SelectChoice(text)
 	end
 	

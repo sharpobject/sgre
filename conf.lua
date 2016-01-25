@@ -7,7 +7,7 @@ function love.conf(t)
   t.modules.physics = false
 
   -- DEFAULTS FROM HERE DOWN
-  t.version = "0.9.0"         -- The LÖVE version this game was made for (string)
+  t.version = "0.10.0"         -- The LÖVE version this game was made for (string)
   t.console = false           -- Attach a console (boolean, Windows only)
   t.release = false           -- Enable release mode (boolean)
   (t.window or t.screen).fullscreen = false -- Enable fullscreen (boolean)

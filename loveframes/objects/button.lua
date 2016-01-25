@@ -144,7 +144,7 @@ function newobject:mousepressed(x, y, button)
 	
 	local hover = self.hover
 	
-	if hover and button == "l" then
+	if hover and button == 1 then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
@@ -180,7 +180,7 @@ function newobject:mousereleased(x, y, button)
 	local enabled = self.enabled
 	local onclick = self.OnClick
 	
-	if hover and down and clickable and button == "l" then
+	if hover and down and clickable and button == 1 then
 		if enabled then
 			if onclick then
 				onclick(self, x, y)

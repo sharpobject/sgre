@@ -203,6 +203,12 @@ function graphics_init()
   IMG_tstamp = 1
   IMG_count = 0
 
+  if not love.graphics.isSupported then
+    function love.graphics.isSupported(s)
+      return love.graphics.getSupported()[s]
+    end
+  end
+
   SUPPORTS_MIPMAPS = love.graphics.isSupported("mipmap")
 
   IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
