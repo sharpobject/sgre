@@ -8343,8 +8343,9 @@ end,
   local buff = GlobalBuff(player)
   local mag = 0
   for i = 1, min(3, #player.deck) do
-    if pred.gs(player.deck[i]) or pred.apostle(player.deck[i]) or pred.aletheian(player.deck[i]) then
-      buff.deck[player][#player.deck - i + 1] = {size={"-", 1}}
+    local idx = #player.deck - i + 1
+    if pred.union (pred.gs, pred.apostle, pred.aletheian) (player.deck[idx]) then
+      buff.deck[player][idx] = {size={"-", 1}}
       mag = mag + 1
     end
   end

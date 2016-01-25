@@ -5946,9 +5946,357 @@ end,
   end
 end,
 
+-- Cook Club Linfield
+-- Cold
+[1552] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, my_idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Surrounded Asmis
+-- No Escape
+[1553] = function(player, my_idx, my_card, skill_idx)
+  player.opponent.shuffles = max(0, player.opponent.shuffles - 1)
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Observer of the past and future
+-- Future's Moment
+[1554] = function(player, my_idx, my_card, skill_idx)
+  OneImpact(player, my_idx):apply()
+  my_card.skills[skill_idx] = 1555 -- Impending Future
+end,
+
+-- Observer of the past and future
+-- Impending Future
+[1555] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"-", 2}, sta={"-", 2}}):apply()
+end,
+
+-- Observer of the past and future
+-- Sage's Moment
+[1556] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", 3}, sta={"+", 3}}):apply()
+end,
+
+-- Potion Witch Cultist
+-- Magic of 3
+[1557] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local mag = 0
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      local n = my_card[stat]
+      while n > 0 do
+        if n % 10 == 3 then
+          mag = mag + 1
+        end
+        n = floor(n / 10)
+      end
+    end
+    if mag >= 3 then
+      OneImpact(player.opponent, op_idx):apply()
+      player.opponent:destroy(op_idx)
+    end
+  end
+end,
+
+-- Pursuer Linus Falco
+-- Assistance
+[1558] = function(player)
+  local pred_sta = function(card) return card.sta >= 3 end
+  local buff = OnePlayerBuff(player)
+  for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_sta)) do
+    buff[idx] = {sta={"+", 3}}
+  end
+  buff:apply()
+end,
+
+-- Space Time Witch Cinia
+-- Carpet Bombing
+[1559] = function(player, my_idx, my_card)
+  local idxs = player.opponent:field_idxs_with_preds(pred.follower)
+  local mag = floor(my_card.size / #idxs)
+  player.opponent:field_buff_n_random_followers_with_preds(5, {sta={"-", mag}})
+end,
+
+-- Counselor Soma
+-- Lock
+[1560] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  local impact = Impact(player)
+  impact[player][my_idx] = true
+  if op_card then
+    impact[player.opponent][my_idx] = true
+  end
+  impact:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+  if op_card then
+    op_card.skills = {1076}
+  end
+end,
+
+-- Anti-Witch Queen Rose
+-- Victory
+[1561] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"=", 6}}
+  if op_card then
+    buff.field[player.opponent][op_idx] = {def={"=", 1}}
+  end
+  buff:apply()
+end,
+
+-- Seeker Luthica
+-- Stamina Training
+[1562] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, {atk={"=", 2 + my_card.sta}}):apply()
+end,
+
+-- Seeker Luthica
+-- Spirit Training
+[1563] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, {sta={"=", 3 + my_card.atk}}):apply()
+end,
+
+-- GS Special Ops
+-- Request Aid
+[1564] = function(player, my_idx, my_card, skill_idx)
+  OneImpact(player, my_idx):apply()
+  my_card:remove_skill(skill_idx)
+  player.grave[#player.grave + 1] = Card(300193) -- GS Fighter
+end,
+
+-- GS 8th Star
+-- Trespassing
+[1565] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local mag = max(3, floor(#player:grave_idxs_with_preds(pred.gs) / 2))
+    OneBuff(player.opponent, op_idx, {def={"-", mag}}):apply()
+  end
+end,
+
+-- GS 9th Star
+-- Mind's Eye
+[1566] = function(player, my_idx, my_card, skill_idx)
+  if pred.follower(player.deck[#player.deck]) then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  else
+    local impact = Impact(player)
+    impact[player][my_idx] = true
+    local idx = player.opponent:field_idxs_with_preds(pred.spell)[1]
+    if idx then
+      impact[player.opponent][idx] = true
+    end
+    impact:apply()
+    if idx then
+      player.opponent:field_to_grave(idx)
+    end
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Magical Girl Layna
+-- Magical Force
+[1567] = function(player, my_idx)
+  local mag = #player:field_idxs_with_preds(pred.follower)
+  OneBuff(player, my_idx, {atk={"+", mag}}):apply()
+end,
+
+-- Magical Girl Layna
+-- Magical Force
+[1568] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"+", #player.hand}}):apply()
+end,
+
+-- Magical Girl Layna
+-- Divine Crash
+[1569] = function(player, my_idx, my_card)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[player.opponent][idx] = {}
+    buff.field[player][my_idx] = {}
+    local orig = Card(my_card.id)
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      if my_card[stat] > orig[stat] then
+        buff.field[player][my_idx][stat] = {"=", orig[stat]}
+      end
+    end
+  end
+  buff:apply()
+end,
+
+-- Amrita's Lost Property
+-- Comeback
+[1570] = function(player, my_idx, my_card, skill_idx)
+  OneBuff(player, my_idx, {atk={"=", Card(my_card.id).atk + 3}}):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
 -- Training
 [1571] = function(player, my_idx)
   OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+end,
+
+-- Discoverer Orte
+-- Unification
+[1572] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    OneBuff(player, my_idx, {atk={"=", op_card.atk}}):apply()
+  end
+end,
+
+-- Discoverer Orte
+-- Weaken
+[1573] = function(player, my_idx)
+  OneBuff(player, my_idx, {atk={"-", 1}}):apply()
+end,
+
+-- Fugitive Amrita
+-- Zero
+[1574] = function() end,
+
+-- Fugitive Amrita
+-- Zero
+[1575] = function() end,
+
+-- Detectives Linus and Asmis
+-- Welcome!
+[1576] = function(player)
+  local idx = player:first_empty_field_slot()
+  if idx then
+    OneImpact(player, idx):apply()
+    player.field[idx] = Card(200002) -- New Student Orientation
+  end
+end,
+
+-- Detectives Linus and Asmis
+-- Cleanup
+[1577] = function(player, my_idx)
+  local pred_name = function(card) return card.name == Card(200002).name end -- New Student Orientation
+  local idx = player:grave_idxs_with_preds(pred_name)[1]
+  if idx then
+    player:grave_to_exile(idx)
+    OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
+  end
+end,
+
+-- Crux Knight Swimie
+-- Unity
+[1578] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card and op_card.def + op_card.sta <= my_card.atk then
+    player:field_buff_n_random_followers_with_preds(5, {def={"+", 1}})
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Return of the King, Jaina
+-- Power of Will
+[1579] = function(player, my_idx)
+  local mag = #player:field_idxs_with_preds(pred.C, pred.follower)
+  OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
+-- Return of the King, Jaina
+-- Knight Summon
+[1580] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if player.grave[1] then
+    player:grave_to_bottom_deck(#player.grave)
+    local mag = floor(player.deck[1].size / 2)
+    local buff = GlobalBuff(player)
+    buff.field[player][my_idx] = {sta={"-", mag}}
+    if op_card then
+      buff.field[player.opponent][op_idx] = {sta={"-", mag}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Crimson Witch Cinia
+-- Crimson Magic
+[1581] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local buff = GlobalBuff(player)
+    buff.field[player.opponent][op_idx] = {}
+    local mag = #Card(op_card.id).skills
+    buff.field[player][my_idx] = pred.A(player.character) and {atk={"+", mag}, sta={"+", mag}} or {}
+    buff:apply()
+    op_card.skills = {1076}
+    my_card:remove_skill_until_refresh(skill_idx)
+  end
+end,
+
+-- Scardel Kirie
+-- Addition
+[1582] = function(player, my_idx, my_card, skill_idx)
+  OneImpact(player, my_idx):apply()
+  player.shuffles = player.shuffles + (pred.D(player.character) and 1 or 0)
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Aletheian Missionary B-NA
+-- Painful Attack
+[1583] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {atk={"+", 1}}
+  if op_card then
+    buff.field[player.opponent][op_idx] = {sta={"-", 1}}
+  end
+  buff:apply()
+end,
+
+-- Mother Demon
+-- Advent
+[1584] = function(player, my_idx)
+  OneBuff(player, my_idx, {size={"+", 1}, atk={"+", 1}, sta={"+", 1}}):apply()
+end,
+
+-- Mother Demon
+-- Materialization
+[1585] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  local buff = GlobalBuff(player)
+  buff.field[player][my_idx] = {size={"=", 1}}
+  if op_card then
+    local mag = ceil((my_card.size - 1) / 2)
+    buff.field[player.opponent][op_idx] = {atk={"-", mag}, def={"-", mag}, sta={"-", mag}}
+  end
+  buff:apply()
+end,
+
+-- Mother Demon
+-- Initialization
+[1586] = function(player, my_idx, my_card)
+  OneBuff(player, my_idx, pred.D(player.character) and {size={"=", Card(my_card.id).size}} or {}):apply()
+  if not pred.D(player.character) then
+    my_card.skills = {}
+  end
+end,
+
+-- Unity
+-- Extinction
+[1587] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  local impact = Impact(player)
+  impact[player][my_idx] = true
+  if op_card then
+    impact[player.opponent][op_idx] = true
+  end
+  impact:apply()
+  player:field_to_grave(my_idx)
+  player.opponent:field_to_exile(op_idx)
+end,
+
+-- Celine and Nanai in the calm before the storm
+-- Tea Time
+[1588] = function(player, my_idx, my_card, skill_idx)
+  if player.opponent:is_npc() then
+    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+  else
+    local buff = GlobalBuff(player)
+    buff.field[player][0] = {life={"+", 1}}
+    buff.field[player.opponent][0] = {life={"-", 1}}
+    buff.field[player][my_idx] = {}
+    buff:apply()
+  end
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Cook Club Svia
