@@ -5325,6 +5325,17 @@ end,
 
 -- disciple shuru
 [110183] = function(player, opponent, my_card)
+  local function str_to_deck(s)
+    s = s:sub(s:find("%d%d%d%d[%dDPC]+")):split("DPC")
+    local t = {}
+    t[1] = s[1] + 0
+    for i=2,#s,2 do
+      for j=1,s[i]+0 do
+        t[#t+1] = s[i+1]+0
+      end
+    end
+    return t
+  end
   if player.game.turn == 1 then
     local decks = {V="http://swogitools.com/index.php?deck=100001D2P300007C3P300005C2P300006C3P300004C2P300008C3P300003C3P300002C3P300001C2P200003C2P200002C2P200005C1P200001C2P200004C&compression=false",
         A="http://swogitools.com/index.php?deck=100002D2P300025C3P300023C2P300024C3P300022C2P300026C3P300021C3P300020C3P300019C2P200012C2P200011C2P200015C1P200014C2P200013C&compression=false",
