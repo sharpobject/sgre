@@ -750,12 +750,20 @@ function main_lobby()
       from_lobby = {main_xmute}
     end
 --    table.insert(frames.lobby.game_buttons, button)
+    local deck_warn_text = loveframes.Create("text")
+    deck_warn_text:SetText({{color = {215, 0, 0, 255}}, "Active deck is invalid! Needs 31 cards!"})
+    deck_warn_text:SetY(5)
+    deck_warn_text:CenterX()
+    deck_warn_text:SetVisible(false)
+    deck_warn_text:SetState("lobby")
+    frames.lobby.deck_warn_text = deck_warn_text
   end
 
   local enable_buttons = check_active_deck()
   for _,button in ipairs(frames.lobby.game_buttons) do
     button:SetEnabled(enable_buttons)
   end
+  frames.lobby.deck_warn_text:SetVisible(not enable_buttons)
 
   loveframes.SetState("lobby")
   play_bgm("lobby")
