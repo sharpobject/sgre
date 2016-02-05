@@ -151,7 +151,7 @@ function handlers.update_cafe(msg)
     frames.cafe.refresh_stats_pane()
     if msg.transform and loveframes.GetState() == "cafe" then
       frames.cafe.stats_pane:Remove()
-      frames.cafe.popup_notification("Transformation!")
+      frames.cafe.popup_notification(msg.transform.from_id, msg.transform.to_id)
     end
   end
 end

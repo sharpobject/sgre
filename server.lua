@@ -914,7 +914,7 @@ function Connection:feed_card(msg)
       transform_id = giftable[eater_id][4]
     end
     self:update_collection({[eater_id]=-1, [transform_id]=1})
-    transform = true
+    transform = {from_id=eater_id, to_id=transform_id}
     table.remove(data.cafe[eater_id], cafe_id)
     eater_id = nil
     cafe_id = nil
