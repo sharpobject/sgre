@@ -4882,7 +4882,7 @@ end,
     buff.field[player][my_idx] = {atk={"=", other_card.atk}, def={"=", other_card.def}, sta={"=", other_card.sta}}
     buff.field[player.opponent][other_idx] = {atk={"=", my_card.atk}, def={"=", my_card.def}, sta={"=", my_card.sta}}
     buff:apply()
-    my_card.skill, other_card.skills = other_card.skills, {}
+    my_card.skills, other_card.skills = other_card.skills, {}
   end
 end,
 

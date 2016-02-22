@@ -6651,7 +6651,7 @@ end,
 
 --1st Witness Kana DKD
 [110283] = function(player)
-  local idx1 = player:deck_idxs_with_preds(pred.faction[player.character.faction])[0]
+  local idx1 = player:deck_idxs_with_preds(pred.faction[player.character.faction])[1]
   local idx2 = player:first_empty_field_slot()
   if idx1 and idx2 then
     player:deck_to_field(idx1)
