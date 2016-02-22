@@ -1326,11 +1326,11 @@ end,
   local ndebuff = 0
   for i=1,3 do
     if #player.deck > 0 then
-      local card = player.deck[#player.deck]
+      local card = player.deck[1]
       if pred.faction.D(card) and pred.follower(card) then
         ndebuff = ndebuff + 1
       end
-      player:deck_to_grave(#player.deck)
+      player:deck_to_grave(1)
     end
   end
   local targets = shuffle(opponent:field_idxs_with_preds(pred.follower))
