@@ -1,6 +1,6 @@
 To generate npc_decks.json from the current corpus of games...
 1. edit bar2.lua to include the dungeons u want
-2. lua bar2.lua > butt
+2. lua bar2.lua | python -mjson.tool > butt
 3. lua baz.lua | python -mjson.tool > npc_decks.json
 
 To get which NPCs appear on which dungeon...
