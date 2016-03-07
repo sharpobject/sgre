@@ -7989,11 +7989,11 @@ end,
   local mag = 0
   for i = 1, 5 do
     if player.field[i] and pred.follower(player.field[i]) and (not pred.V(player.field[i])) and player.field[i].def >= 3 then
-      player:field_to_bottom_deck(i)
+      player:field_to_grave(i)
       mag = mag + 1
     end
     if opponent.field[i] and pred.follower(opponent.field[i]) and opponent.field[i].def >= 3 then
-      opponent:field_to_bottom_deck(i)
+      opponent:field_to_grave(i)
       mag = mag + 1
     end
   end
