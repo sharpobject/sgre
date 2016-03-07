@@ -6069,7 +6069,7 @@ end,
 -- Trespassing
 [1565] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   if op_card then
-    local mag = max(3, floor(#player:grave_idxs_with_preds(pred.gs) / 2))
+    local mag = min(3, ceil(#player:grave_idxs_with_preds(pred.gs) / 2))
     OneBuff(player.opponent, op_idx, {def={"-", mag}}):apply()
   end
 end,
