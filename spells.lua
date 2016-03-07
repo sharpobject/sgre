@@ -8905,7 +8905,7 @@ end,
 --[[ The Truth Revealed ]]
 [200556] = function(player, opponent)
   local buff = GlobalBuff(opponent)
-  for _, p in ipairs(player, opponent) do
+  for _, p in ipairs({player, opponent}) do
     for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
       local orig = Card(p.field[idx].id)
       local mag = -2
