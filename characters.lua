@@ -7505,6 +7505,9 @@ end,
     end
   end
   buff:apply()
+  while player.grave[1] do
+    player:grave_to_bottom_deck(1)
+  end
 end,
 
 -- Do not touch that curly brace!
