@@ -9167,7 +9167,201 @@ end,
     player:grave_to_bottom_deck(i)
   end
   player:field_to_exile(my_idx)
-end
+end,
 
+--[[ Witness ]]
+[200573] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  for _, p in ipairs({player, opponent}) do
+    local idxs = p:field_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      local card = p.field[idx]
+      local mag = 0
+      for i = (card:first_skill_idx() or 4) + 1, 3 do
+        if card.skills[i] then
+          card.skills[i] = nil
+          mag = mag + 1
+        end
+      end
+      buff.field[p][idx] = (p == player) and {atk={"+", mag}, def={"+", mag}, sta={"+", mag}} or {}
+    end
+  end
+  buff:apply()
+end,
+
+--[[ Power Unleashed ]]
+[200574] = function(player, opponent)
+  local idxs = player:field_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  local mag = 3 - #idxs
+  for _, idx in ipairs(idxs) do
+    buff.field[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+  end
+  buff.field[opponent][0] = {life={"-", mag}}
+  buff:apply()
+end,
+
+--[[ Secret of Kana ]]
+[200575] = function(player, opponent)
+  local buff = OnePlayerBuff(opponent)
+  local idx = opponent:first_empty_field_slot()
+  if idx then
+    local idx2 = opponent:deck_idxs_with_preds(pred.follower)[1]
+    if idx2 then
+      opponent:deck_to_field(idx2)
+      buff[idx] = {atk={"=", 5}}
+    end
+  end
+  local idx = opponent:first_empty_field_slot()
+  if idx then
+    local idx2 = opponent:deck_idxs_with_preds()[1]
+    if idx2 then
+      opponent:deck_to_field(idx2)
+      buff[idx] = pred.follower(opponent.field[idx]) and {atk={"=", 5}} or {}
+    end
+  end
+  buff:apply()
+end,
+
+--[[ Three Swords ]]
+[200576] = function(player)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  if idxs[3] then
+    local buff = OnePlayerBuff(player)
+    local mag = ceil((max(player.field[idxs[1]].atk, player.field[idxs[2]].atk, player.field[idxs[3]].atk) + min(player.field[idxs[1]].atk, player.field[idxs[2]].atk, player.field[idxs[3]].atk)) / 2)
+    for i = 1, 3 do
+      buff[idxs[i]] = {atk={"=", mag}}
+    end
+    buff:apply()
+  end
+end,
+
+--[[ Family's Reproach ]]
+[200577] = function(player, opponent)
+  local idx = uniformly(player:hand_idxs_with_preds(pred.follower, pred.maid))
+  if idx then
+    player:to_bottom_deck(table.remove(player.hand, idx))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      local mag = {}
+      for _, stat in ipairs({"atk", "def", "sta"}) do
+        mag[stat] = {"=", opponent.field[opponent:field_idxs_with_least_and_preds(pred[stat], pred.follower)[1]][stat]}
+      end
+      OneBuff(opponent, idx, mag):apply()
+    end
+  end
+end,
+
+--[[ Maid's Obstruction ]]
+[200578] = function(player)
+  local idxs = player:deck_idxs_with_preds(pred.follower, pred.maid)
+  local buff = OnePlayerBuff(player)
+  for i = 1, min(#player:empty_field_slots(), #idxs) do
+    buff[player:first_empty_field_slot()] = {size={"=", 2}}
+    player:deck_to_field(idxs[i])
+  end
+  buff:apply()
+end,
+
+--[[ Discovery of a Gate ]]
+[200579] = function(player)
+  if player.deck[1] and pred.follower(player.deck[1]) then
+    local buff = GlobalBuff(player)
+    buff.deck[player][1] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
+    buff:apply()
+    if not player.hand[5] then
+      player:deck_to_hand(1)
+    end
+  end
+end,
+
+--[[ Enhanced Talentium ]]
+[200580] = function(player)
+  --[[
+  local mag = uniformly({}) -- Strong Attack, Strong Attack, Fountain
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower()))
+  if idx then
+    OneImpact(player, idx):apply()
+    player.field[idx]:gain_skill(mag)
+  end
+  ]]
+end,
+
+--[[ Forced Return ]]
+[200581] = function(player, opponent)
+  local pl_idx = player:field_idxs_with_preds(pred.follower, pred.skill)[1]
+  if pl_idx then
+    local impact = Impact(player)
+    impact[player][pl_idx] = true
+    local op_idxs = opponent:field_idxs_with_preds(pred.follower, pred.skill)
+    for _, idx in ipairs(op_idxs) do
+      impact[opponent][idx] = true
+    end
+    local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+    if op_idx then
+      impact[opponent][op_idx] = true
+    end
+    impact:apply()    
+    player:field_to_bottom_deck(pl_idx)
+    for _, idx in ipairs(op_idxs) do
+      opponent:field_to_bottom_deck(idx)
+    end
+    if op_idx then
+      opponent:field_to_bottom_deck(op_idx)
+    end
+  end
+end,
+
+--[[ Key Acquired ]]
+[200582] = function(player)
+  local buff = OnePlayerBuff(player)
+  local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
+  for i = 1, min(#idxs, 2) do
+    local mag = (i == 1) and 4 or 5
+    buff[idxs[i]] = {sta={"+", mag}}
+  end
+  buff:apply()
+end,
+
+--[[ Relocation Recommendation ]]
+[200583] = function(player, opponent)
+  if opponent:field_idxs_with_preds(pred.spell)[2] then
+    local idx = uniformly(opponent:field_idxs_with_preds())
+    OneImpact(opponent, idx):apply()
+    opponent:destroy(idx)
+  end
+end,
+
+--[[ Altar's Ritual ]]
+[200584] = function(player, opponent)
+  local impact = Impact(player)
+  for _, idx in ipairs(opponent:field_idxs_with_preds()) do
+    impact[opponent][idx] = true
+  end
+  impact:apply()
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  if idx then
+    opponent:field_to_top_deck(idx)
+  end
+  for _, idx in ipairs(opponent:field_idxs_with_preds()) do
+    opponent.field[idx].active = false
+  end
+end,
+
+--[[ Kana Unleashed ]]
+[200585] = function(player)
+  local impact = Impact(player)
+  local idxs = shuffle(player:grave_idxs_with_preds(pred.kana))
+  if idxs[3] then
+    for i = 1, 3 do
+      local idx = player:first_empty_field_slot()
+      if idx then
+        player.field[idx] = Card(player.grave[idxs[i]].id)
+        impact[player][idx] = true
+      end
+    end
+  end
+  impact:apply()
+end,
 }
 setmetatable(spell_func, {__index = function()return function() end end})
