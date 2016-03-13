@@ -2851,6 +2851,34 @@ end,
   end
 end,
 
+-- Blessed Form Nexia
+[100222] = function(player)
+  if #player.hand <= 1 then
+    local idx = player:deck_idxs_with_preds(pred.follower)[1]
+    if idx then
+      player:to_bottom_deck(table.remove(player.deck, idx))
+    end
+  elseif #player.hand <= 3 then
+    while player.hand[1] do
+      player:to_bottom_deck(table.remove(player.hand, 1))
+    end
+    player.shuffles = player.shuffles + 1
+  else
+    player:field_buff_n_random_followers_with_preds(1, {atk={"+", 1}, sta={"+", 2}})
+  end
+end,
+
+-- Dig Queen Conundrum
+[100223] = function(player)
+  local mag = (player.game.turn % 2 == 1) and {atk={"+", 1}, def={"+", 1}, sta={"+", 1}} or {atk={"-", 1}, def={"-", 1}}
+  local idxs = player:deck_idxs_with_preds(pred.follower)
+  local buff = GlobalBuff(player)
+  for _, idx in ipairs(idxs) do
+    buff.deck[player][idx] = mag
+  end
+  buff:apply()
+end,
+
 -- Wedding Dress Asmis
 [100228] = function(player, opponent, my_card)
   local buff = GlobalBuff(player)
@@ -3408,6 +3436,17 @@ end,
       OneImpact(opponent, idx):apply()
     end
   end
+end,
+
+-- Guardian Novic
+[100217] = function(player)
+  local idxs = player:field_idxs_with_preds(pred.follower)
+  local impact = Impact(player)
+  for _, idx in ipairs(idxs) do
+    player.field[idx].skills = {1076} -- Refresh
+    impact[player][idx] = true
+  end
+  impact:apply()
 end,
 
 -- Bunny Lady
@@ -6741,6 +6780,146 @@ end,
   end
 end,
 
+-- Lamia of the Water
+[110288] = function(player, opponent)
+  local op_idx = opponent:hand_idxs_with_preds(pred.spell)[1]
+  local pl_idx = player:first_empty_field_slot()
+  if op_idx and pl_idx then
+    player.field[pl_idx] = table.remove(opponent.hand, op_idx)
+    OneImpact(player, pl_idx):apply()
+  end
+end,
+
+-- Medusa of the Earth
+[110289] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneImpact(opponent, idx):apply()
+    opponent.field[idx].active = false
+  end
+end,
+
+-- Devil Carrie
+[110290] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local orig = Card(opponent.field[idx].id)
+    OneBuff(opponent, idx, {atk={"=", orig.atk}, def={"=", orig.def}, sta={"=", orig.sta}, size={"=", orig.size}}):apply()
+  end
+end,
+
+-- G Lamia
+[110291] = function(player, opponent)
+  if player.game.turn % 2 == 1 then
+    local impact = Impact(player)
+    for _, p in ipairs({pred.spell, pred.follower}) do
+      local op_idx = opponent:hand_idxs_with_preds(p)[1]
+      local pl_idx = player:first_empty_field_slot()
+      if op_idx and pl_idx then
+        player.field[pl_idx] = table.remove(opponent.hand, op_idx)
+        impact[player][pl_idx] = true
+      end
+    end
+    impact:apply()
+  end
+end,
+
+-- G Medusa
+[110292] = function(player, opponent)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    OneBuff(opponent, idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
+    if opponent.field[idx] then
+      opponent.field[idx].active = false
+    end
+  end
+end,
+
+-- G Devil
+[110290] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+  if idx then
+    local orig = Card(opponent.field[idx].id)
+    buff.field[opponent][idx] = {atk={"=", orig.atk}, def={"=", orig.def}, sta={"=", orig.sta}, size={"=", orig.size}}
+  end
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  if idx then
+    buff.field[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+  end
+  buff:apply()
+end,
+
+-- Jaina Preventer
+[110294] = function(player)
+  player:field_buff_n_random_followers_with_preds(1, {atk={"+", 3}, sta={"+", 3}})
+  if player.game.turn == 1 then
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {def={"+", 1}, sta={"+", 1}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Cinia Pacifica
+[110295] = function(player, opponent)
+  if player.game.turn % 2 == 1 then
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneImpact(player, idx):apply()
+      player.field[idx] = Card(300402) -- Delinquent Witch Cadet
+    end
+  else
+    player:field_buff_n_random_followers_with_preds(1, {atk={"+", 1}, def={"+", 1}, sta={"+", 1}})
+  end
+end,
+
+-- Rose Pacifica
+[110296] = function(player, opponent)
+  if player.hand[5] then
+    player:to_top_deck(table.remove(player.hand, 1))
+  end
+  local buff = GlobalBuff(player)
+  local mag = #player:empty_hand_slots()
+  local idx = player:deck_idxs_with_preds(pred.follower)[1]
+  if idx then
+    buff.deck[player][idx] = {atk={"+", mag}, sta={"+", mag}}
+  end
+  buff:apply()
+  if opponent.grave[1] then
+    opponent:grave_to_exile(random(1, #opponent.grave))
+    local idx = uniformly(player:grave_idxs_with_preds(pred.follower))
+    if idx then
+      player:to_bottom_deck(table.remove(player.grave, idx))
+    end
+  end
+end,
+
+-- Rue K. Artend
+[110297] = function(player, opponent)
+  local mag = #player.grave + #opponent.grave
+  local buff = GlobalBuff(player)
+  if mag <= 10 then
+    local idxs = opponent:hand_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.hand[opponent][idx] = {atk={"-", 1}}
+    end
+  elseif mag <= 20 then
+    local idxs = player:hand_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.hand[player][idx] = {atk={"+", 1}, sta={"+", 1}}
+    end
+  else
+    local idxs = player:deck_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {atk={"+", 2}, sta={"+", 2}}
+    end
+  end
+  buff:apply()
+end,
+
 -- Gold Lion Nold
 [120001] = function(player, opponent, my_card)
   buff_all(player, opponent, my_card, {size={"-",1}})
@@ -7304,6 +7483,28 @@ end,
       opponent:destroy(idx)
     end
   end
+end,
+
+-- Altar Guardian Novic
+[120035] = function(player, opponent)
+  local buff = GlobalBuff(player)
+  for i = 1, 2 do
+    local p = (i == 1) and player or opponent
+    local mag = (i == 1) and 2 or -2
+    local idxs = p:field_idxs_with_preds(pred.follower)
+    for _, idx in ipairs(idxs) do
+      buff.field[p][idx] = {}
+      local card = p.field[idx]
+      local orig = Card(card.id)
+      local check = function(s) if (i == 1) then return card[s] < orig[s] else return card[s] > orig[s] end end
+      for _, stat in ipairs({"atk", "def", "sta"}) do
+        if check(stat) then
+          buff.field[p][idx][stat] = {"=", orig[stat] + mag}
+        end
+      end
+    end
+  end
+  buff:apply()
 end,
 
 -- Do not touch that curly brace!
