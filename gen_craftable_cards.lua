@@ -56,6 +56,7 @@ local dungeon_mats = {
   210045, -- replica stick (ep13)
   210046, -- commemorative medal (ex4)
   210047, -- Dimensional Fragment (ep14)
+  210048, -- Kana's Fragment (ep15)
 }
 local materials = {s1_fight, s2_fight, ore, dungeon_mats}
 local reachable_cards = {}
