@@ -6836,7 +6836,7 @@ end,
 end,
 
 -- G Devil
-[110290] = function(player, opponent)
+[110293] = function(player, opponent)
   local buff = GlobalBuff(player)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
