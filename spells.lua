@@ -9279,7 +9279,7 @@ end,
 --[[ Enhanced Talentium ]]
 [200580] = function(player)
   local skill = uniformly({1610, 1704, 1643})
-  local idx = uniformly(player:field_idxs_with_preds(pred.follower()))
+  local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneImpact(player, idx):apply()
     player.field[idx]:gain_skill(mag)
