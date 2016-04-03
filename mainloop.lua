@@ -2123,7 +2123,7 @@ local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5},
     {"Vita Public School", 12}, {"Vivid World", 13}, {"Catacombs", 16},
     {"Ancient Sanctuary", 17}, {"Catch That Cat", 21}, {"Underground Library", 23},
     {"Underground Altar", 24}, {"Royle City", 25}, {"Weekly The Legend", 33}, 
-    {"Dimensional Rift", 34}, }
+    {"Dimensional Rift", 34}, {"Altar of Kana", 35},}
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11},
     {"Linia's World", 22}, }
 local extra_dungeons = {{"Muspelheim Compendium", 15}, }
