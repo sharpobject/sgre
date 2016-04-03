@@ -8923,9 +8923,10 @@ end,
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     local mag = 10
-    for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
+    for _, idx in ipairs(player:field_idxs_with_preds()) do
       mag = mag - player.field[idx].size
     end
+    mag = min(5, mag)
     OneBuff(opponent, idx, {sta={"-", mag}}):apply()
   end
 end,
