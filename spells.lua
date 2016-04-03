@@ -8958,7 +8958,7 @@ end,
   end
   if opponent.character.life <= 5 then
     OneBuff(opponent, 0, {life={"=", 1}}):apply()
-  end 
+  end
 end,
 
 --[[ Backup from another detective ]]
@@ -9278,14 +9278,12 @@ end,
 
 --[[ Enhanced Talentium ]]
 [200580] = function(player)
-  --[[
-  local mag = uniformly({}) -- Strong Attack, Strong Attack, Fountain
+  local skill = uniformly({1610, 1704, 1643})
   local idx = uniformly(player:field_idxs_with_preds(pred.follower()))
   if idx then
     OneImpact(player, idx):apply()
     player.field[idx]:gain_skill(mag)
   end
-  ]]
 end,
 
 --[[ Forced Return ]]
@@ -9302,7 +9300,7 @@ end,
     if op_idx then
       impact[opponent][op_idx] = true
     end
-    impact:apply()    
+    impact:apply()
     player:field_to_bottom_deck(pl_idx)
     for _, idx in ipairs(op_idxs) do
       opponent:field_to_bottom_deck(idx)
