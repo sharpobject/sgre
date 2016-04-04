@@ -6083,18 +6083,20 @@ end,
 -- GS 9th Star
 -- Mind's Eye
 [1566] = function(player, my_idx, my_card, skill_idx)
-  if pred.follower(player.deck[#player.deck]) then
-    OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
-  else
-    local impact = Impact(player)
-    impact[player][my_idx] = true
-    local idx = player.opponent:field_idxs_with_preds(pred.spell)[1]
-    if idx then
-      impact[player.opponent][idx] = true
-    end
-    impact:apply()
-    if idx then
-      player.opponent:field_to_grave(idx)
+  if #player.deck > 0 then
+    if pred.follower(player.deck[#player.deck]) then
+      OneBuff(player, my_idx, {atk={"+", 2}, sta={"+", 2}}):apply()
+    else
+      local impact = Impact(player)
+      impact[player][my_idx] = true
+      local idx = player.opponent:field_idxs_with_preds(pred.spell)[1]
+      if idx then
+        impact[player.opponent][idx] = true
+      end
+      impact:apply()
+      if idx then
+        player.opponent:field_to_grave(idx)
+      end
     end
   end
   my_card:remove_skill_until_refresh(skill_idx)

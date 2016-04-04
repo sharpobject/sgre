@@ -9282,7 +9282,7 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneImpact(player, idx):apply()
-    player.field[idx]:gain_skill(mag)
+    player.field[idx]:gain_skill(skill)
   end
 end,
 
