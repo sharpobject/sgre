@@ -793,7 +793,7 @@ function Connection:try_chat(msg)
       return true
     end
   end
-  if data.username == "kingkong" then
+  if data.username == "kingkong" or data.username == "ShadowFade" then
     self:send({type="general_chat", from=data.username, text=msg.text})
     return true
   end

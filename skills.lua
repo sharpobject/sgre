@@ -5025,7 +5025,7 @@ end,
 
 -- Luthica of Crux
 -- Tactical Movement
-[1469] = function(player, my_idx, my_card)
+[1469] = function(player, my_idx, my_card, skill_idx)
   local slots = {1, 2, 3, 4, 5}
   table.remove(slots, my_idx)
   local idx = uniformly(slots)
@@ -5033,6 +5033,9 @@ end,
   impact[player][my_idx] = true
   if player.field[idx] then
     impact[player][idx] = true
+  end
+  if idx > my_idx then
+    my_card.skills[skill_idx] = 1076
   end
   player.field[my_idx], player.field[idx] = player.field[idx], my_card
 end,
