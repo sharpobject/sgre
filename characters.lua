@@ -6868,8 +6868,8 @@ end,
   if player.game.turn % 2 == 1 then
     local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
-      OneImpact(player, idx):apply()
-      player.field[idx] = Card(300402) -- Delinquent Witch Cadet
+      OneImpact(opponent, idx):apply()
+      opponent.field[idx] = Card(300402) -- Delinquent Witch Cadet
     end
   else
     player:field_buff_n_random_followers_with_preds(1, {atk={"+", 1}, def={"+", 1}, sta={"+", 1}})

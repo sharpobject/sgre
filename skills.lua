@@ -6329,7 +6329,11 @@ end,
 -- Book Appreciation
 [1592] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
   if op_card then
-    OneBuff(player, my_idx, op_card:squished_skills()[1] and {atk={"+", 2}, def={"+", 2}, sta={"+", 2}} or {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
+    if pred.skill(op_card) then
+      OneBuff(player, my_idx, {atk={"+", 2}, def={"+", 1}, sta={"+", 2}}):apply()
+    else
+      OneBuff(player, my_idx, {atk={"-", 1}, def={"-", 1}, sta={"-", 1}}):apply()
+    end
   end
 end,
 
@@ -6476,11 +6480,10 @@ end,
   local pred_diff = function(card) return card ~= my_card end
   local idx = uniformly(player:field_idxs_with_preds(pred.follower, pred_diff))
   if idx then
-    local buff = OnePlayerBuff(player)
-    buff[idx] = {atk={"+", 1}, sta={"+", 1}}
+    OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
     local mag = floor(player.field[idx].size / 2)
-    buff[my_idx] = {atk={"+", mag}, sta={"+", mag}}
-    buff:apply()
+    player:field_to_top_deck(idx)
+    OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
   end
 end,
 
@@ -6493,6 +6496,18 @@ end,
     player:deck_to_field(idx)
     OneBuff(player, idx2, {size={"-", 1}}):apply()
   end
+end,
+
+-- Secret of Kana
+-- idk lol
+[1608] = function(player, my_idx, my_card, skill_idx)
+  player:field_to_top_deck(my_idx)
+end,
+
+-- Enhanced Talentium
+-- idk lol
+[1610] = function(player, my_idx, my_card, skill_idx, op_idx, op_card)
+  OneBuff(player, my_idx, {atk={"+", 3}}):apply()
 end,
 
 -- Chuseok Asmis
@@ -6580,6 +6595,12 @@ end,
   local buff = GlobalBuff(player)
   buff.field[player][my_idx] = {atk={"+",player.field[my_idx].def}}
   buff:apply()
+end,
+
+-- Enhanced Talentium
+-- idk lol
+[1643] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {sta={"+", 3}}):apply()
 end,
 
 -- Master of Games

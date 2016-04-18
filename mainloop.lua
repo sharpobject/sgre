@@ -24,7 +24,6 @@ local frames = frames
 local gobacktodungeon
 
 function fmainloop()
-  --local func, arg = main_craft, nil
   local func, arg = main_login, nil
   --local func, arg = main_go_hard, nil
   while true do

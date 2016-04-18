@@ -5726,7 +5726,6 @@ end,
 
 --[[
 She who stands at the top
-If your Shuffles >= 1, then all Followers in your Field/Hand get ATK +2/STA +2
 ]]
 [200377] = function(player)
   if player.shuffles < 1 then
@@ -6675,6 +6674,7 @@ Ritual of Unity
       pred.flina(card) or pred.scardel(card) end
   local mag = #player:grave_idxs_with_preds(pred.union(pred_vampire,
       function(card) return card.name == my_card.name end))
+  mag = min(9, mag)
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
@@ -8483,7 +8483,7 @@ end,
 --[[ Tighten Security ]]
 [200528] = function(player, opponent)
   local mag1 = #player.hand
-  local mag2 = #player:hand_idxs_with_preds(pred.A)
+  local mag2 = #player:hand_idxs_with_preds(pred.A, pred.follower)
   local buff = GlobalBuff(player)
   for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
     buff.field[opponent][idx] = {atk={"-", mag1}}
@@ -8945,8 +8945,8 @@ end,
     if idx then
       OneImpact(opponent, idx):apply()
       opponent:field_to_grave(idx)
-      player.shuffles = player.shuffles + 1
     end
+    player.shuffles = player.shuffles + 1
   end
   if opponent.character.life >= 6 then
     local buff = OnePlayerBuff(opponent)
@@ -8954,7 +8954,7 @@ end,
       buff[idx] = {size={"+", 1}}
     end
     buff:apply()
-    opponent.shuffles = opponent.shuffles - 1
+    opponent.shuffles = max(opponent.shuffles - 1, 0)
   end
   if opponent.character.life <= 5 then
     OneBuff(opponent, 0, {life={"=", 1}}):apply()
@@ -9096,7 +9096,7 @@ end,
       buff[idx] = {atk={"+", 2}, sta={"+", 2}}
     end
     buff:apply()
-  else
+  elseif mag >= 3 then
     local mag = floor(player:field_size() / 2)
     local buff = OnePlayerBuff(player)
     for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
@@ -9210,6 +9210,7 @@ end,
     local idx2 = opponent:deck_idxs_with_preds(pred.follower)[1]
     if idx2 then
       opponent:deck_to_field(idx2)
+      opponent.field[idx].skills = {1608}
       buff[idx] = {atk={"=", 5}}
     end
   end
@@ -9218,7 +9219,10 @@ end,
     local idx2 = opponent:deck_idxs_with_preds()[1]
     if idx2 then
       opponent:deck_to_field(idx2)
-      buff[idx] = pred.follower(opponent.field[idx]) and {atk={"=", 5}} or {}
+      if pred.follower(opponent.field[idx]) then
+        opponent.field[idx].skills = {1608}
+        buff[idx] = {atk={"=", 5}}
+      end
     end
   end
   buff:apply()
@@ -9255,13 +9259,15 @@ end,
 
 --[[ Maid's Obstruction ]]
 [200578] = function(player)
-  local idxs = player:deck_idxs_with_preds(pred.follower, pred.maid)
-  local buff = OnePlayerBuff(player)
-  for i = 1, min(#player:empty_field_slots(), #idxs) do
-    buff[player:first_empty_field_slot()] = {size={"=", 2}}
-    player:deck_to_field(idxs[i])
+  if pred.A(player.character) then
+    local idxs = player:deck_idxs_with_preds(pred.follower, pred.maid)
+    local buff = OnePlayerBuff(player)
+    for i = 1, min(#player:empty_field_slots(), #idxs) do
+      buff[player:first_empty_field_slot()] = {size={"=", 2}}
+      player:deck_to_field(idxs[i])
+    end
+    buff:apply()
   end
-  buff:apply()
 end,
 
 --[[ Discovery of a Gate ]]
@@ -9290,23 +9296,18 @@ end,
 [200581] = function(player, opponent)
   local pl_idx = player:field_idxs_with_preds(pred.follower, pred.skill)[1]
   if pl_idx then
+    player.field[pl_idx].skills = {}
     local impact = Impact(player)
     impact[player][pl_idx] = true
     local op_idxs = opponent:field_idxs_with_preds(pred.follower, pred.skill)
+    op_idxs[#op_idxs+1] = uniformly(opponent:field_idxs_with_preds(pred.spell))
     for _, idx in ipairs(op_idxs) do
       impact[opponent][idx] = true
-    end
-    local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
-    if op_idx then
-      impact[opponent][op_idx] = true
     end
     impact:apply()
     player:field_to_bottom_deck(pl_idx)
     for _, idx in ipairs(op_idxs) do
       opponent:field_to_bottom_deck(idx)
-    end
-    if op_idx then
-      opponent:field_to_bottom_deck(op_idx)
     end
   end
 end,
