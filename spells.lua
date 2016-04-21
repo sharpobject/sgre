@@ -2448,7 +2448,10 @@ end,
   local target = player:field_idxs_with_most_and_preds(pred.size, pred.follower)[1]
   if target then
     local size = player.field[target].size
-    OneBuff(player, target, {size={"=",1},atk={"+",size-1},sta={"+",size-1}}):apply()
+    local mag = size - 1
+    OneBuff(player, target, {size={"=",1},atk={"+",mag},def={"+",floor(mag/2)},sta={"+",mag}}):apply()
+    OneBuff(player, 0, {life={"+", floor(mag/2)}}):apply()
+    player.shuffles = player.shuffles + 1
   end
 end,
 
@@ -4922,13 +4925,11 @@ end,
 -- endless appetite
 [200334] = function(player, opponent, my_idx, my_card)
   for _,p in ipairs({player, opponent}) do
-    local targets = p:field_idxs_with_preds(pred.follower,
-        function(card) return card.size ~= 1 end)
+    local targets = p:field_idxs_with_preds(function(card) return card.size ~= 1 end)
     for _,idx in ipairs(targets) do
       p.field[idx].active = false
     end
-    targets = p:field_idxs_with_preds(pred.follower,
-        function(card) return card.size == 5 end)
+    targets = p:field_idxs_with_preds(function(card) return card.size == 5 end)
     for _,idx in ipairs(targets) do
       p:destroy(idx)
     end
@@ -8769,7 +8770,7 @@ end,
     OneBuff(opponent, idx, {atk={"=", orig.atk}, def={"=", orig.def}, sta={"=", orig.sta}}):apply()
     opponent:field_to_top_deck(idx)
   end
-  if opponent:is_npc() then
+  if not opponent:is_npc() then
     player.shuffles = player.shuffles + 1
   end
 end,
