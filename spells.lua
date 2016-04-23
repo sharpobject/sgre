@@ -8615,7 +8615,7 @@ end,
   if idx then
     local idx2 = player:last_empty_field_slot()
     if idx2 then
-      local mag = idx2 - idx
+      local mag = abs(idx2 - idx)
       local buff = GlobalBuff(player)
       local idxs = opponent:deck_idxs_with_preds(pred.follower)
       for i = 1, min(4, #idxs) do
