@@ -3955,9 +3955,10 @@ end,
 [1372] = function(player, my_idx, my_card, skill_idx)
   if my_card.size >= 4 then
     my_card:remove_skill(skill_idx)
+  else
+    local mag = my_card.size
+    OneBuff(player, my_idx, {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
   end
-  local mag = my_card.size
-  OneBuff(player, my_idx, {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}):apply()
 end,
 
 -- Library Club Bernoulli
