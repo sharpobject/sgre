@@ -7499,22 +7499,21 @@ end,
 Investigation Progress
 ]]
 [200470] = function(player, opponent)
-  for i = 1, 5 do
-    local card = opponent.field[i]
-    if card then
-      local pred_name = function(card2) return card.name == card.name end
-      local idxs = opponent:field_idxs_with_preds(pred_name)
-      if idxs[2] then
-        local impact = Impact(opponent)
-        for _, idx in ipairs(idxs) do
-          impact[opponent][idx] = true
-        end
-        impact:apply()
-        for _, idx in ipairs(idxs) do
-          opponent:field_to_grave(idx)
-        end
-      end
-    end
+  local idxs = opponent:field_idxs_with_preds()
+  local name_to_count = {}
+  for _, idx in ipairs(idxs) do
+    local name = opponent.field[idx].name
+    name_to_count[name] = (name_to_count[name] or 0) + 1
+  end
+  local pred_same_name = function(card) return name_to_count[card.name] > 1 end
+  idxs = opponent:field_idxs_with_preds(pred_same_name)
+  local impact = Impact(opponent)
+  for _, idx in ipairs(idxs) do
+    impact[opponent][idx] = true
+  end
+  impact:apply()
+  for _, idx in ipairs(idxs) do
+    opponent:field_to_grave(idx)
   end
 end,
 
