@@ -9415,7 +9415,7 @@ end,
     for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
       local c = pl.field[idx]
       for i = 1, 3 do
-        if c.skills[i] and skill_id_to_type[c].skills[i]] == "defend" then
+        if c.skills[i] and skill_id_to_type[c.skills[i]] == "defend" then
           c.skills[i] = 1575 -- Zero
         end
       end
@@ -9561,7 +9561,7 @@ end,
   local buff = OnePlayerBuff(pl)
   local pred_6 = function(c) return c.sta <= 6 end
   for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_6)) do
-    buff[idx] = {sta={"=", pl.field[idx].sta * 2}
+    buff[idx] = {sta={"=", pl.field[idx].sta * 2}}
   end
   buff:apply()
 end,
@@ -9644,7 +9644,7 @@ end,
   end
 end,
 
---[[ Pursuit ]]]
+--[[ Pursuit ]]
 [200617] = function(pl)
   pl:field_buff_n_random_followers_with_preds(5, "_ _ _ -1", pred.neg(pred.skill))
 end,
@@ -9662,11 +9662,11 @@ end,
     end
     return ans
   end
-  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig))
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig)) do
     buff[idx] = pred.cook_club(pl.field[idx]) and "_ _ _" or "-1 _ -1"
   end
   buff:apply()
-  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig))
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig)) do
     pl.field[idx].skills = Card(pl.field[idx].id).skills
   end
 end,
