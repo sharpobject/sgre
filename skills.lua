@@ -1481,8 +1481,8 @@ end,
       end
     end
     local buff_size = 0
-    for i=1,10 do
-      if sizes[i] then buff_size = buff_size + 1 end
+    for k,v in pairs(sizes) do
+      buff_size = buff_size + 1
     end
     local buff = GlobalBuff(player)
     buff.field[player.opponent][other_idx] = {atk={"-",buff_size}, sta={"-",buff_size}}
@@ -3414,7 +3414,8 @@ end,
     return
   end
   OneBuff(player.opponent, other_idx, {def={"-", 3}}):apply()
-  OneBuff(player, my_idx, {def={"+", math.abs(other_card.def)}}):apply()
+  local mag = math.abs(other_card.def)
+  OneBuff(player, my_idx, {atk={"+",mag}, sta={"+",mag}}):apply()
 end,
 
 -- Train Stop
@@ -5481,10 +5482,12 @@ end,
 
 -- Marionette Witch
 -- Confidence
-[1506] = function(player, my_idx, my_card)
+[1506] = function(player, my_idx, my_card, skill_idx)
   local check = false
   for i = 1, 3 do
-    check = check or my_card.skills[i] ~= 1506
+    if i ~= skill_idx then
+      check = check or (my_card.skills[i] ~= nil)
+    end
   end
   if check then
     OneBuff(player, my_idx, {atk={"+", 1}, sta={"+", 1}}):apply()
@@ -5748,8 +5751,8 @@ end,
 -- Dignity
 [1532] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.size <= my_card.size then
-    local mag_atk = uniformly({1, 2, 3, 4})
-    local mag_sta = uniformly({1, 2, 3, 4})
+    local mag_atk = uniformly({0, 1, 2, 3, 4})
+    local mag_sta = uniformly({0, 1, 2, 3, 4})
     OneBuff(player.opponent, other_idx, {atk={"-", mag_atk}, sta={"-", mag_sta}}):apply()
   end
 end,
@@ -6013,7 +6016,7 @@ end,
 -- Pursuer Linus Falco
 -- Assistance
 [1558] = function(player)
-  local pred_sta = function(card) return card.sta >= 3 end
+  local pred_sta = function(card) return card.sta <= 3 end
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_sta)) do
     buff[idx] = {sta={"+", 3}}

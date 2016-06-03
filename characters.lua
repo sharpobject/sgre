@@ -1571,8 +1571,16 @@ end,
 
 -- Ereshkigal
 [100117] = function(player, opponent, my_card)
-  local turn = player.game.turn
-  if turn % 2 == 1 then
+  if player.game.turn == 1 then
+    local muspel_pred = function(card) return card.id == 200351 or card.id == 300414 end
+    local idxs = player:deck_idxs_with_preds(muspel_pred)
+    local buff = GlobalBuff(player)
+    for _, idx in ipairs(idxs) do
+      buff.deck[player][idx] = {size={"-", 1}}
+    end
+    buff:apply()
+  end
+  if player.game.turn % 2 == 1 then
     local buff = GlobalBuff(player)
     local idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
@@ -2211,7 +2219,7 @@ end,
 
 -- Mania Layna
 [100160] = function(player)
-  if player.game.turn == 1 then
+  if player.game.turn % 10 == 1 then
     local idxs = player:deck_idxs_with_preds(pred.follower)
     local buff = GlobalBuff(player)
     for _, idx in ipairs(idxs) do
@@ -2313,22 +2321,22 @@ end,
   if idx then
     OneBuff(opponent, idx, {atk={"-", 1}, sta={"-", 1}}):apply()
   end
-  local check = {false, false, false}
+  local check = {0, 0, 0}
   local life = player.character.life
   while life > 0 do
-      check[life % 10] = true
+      check[life % 10] = (check[life % 10] or 0) + 1
       life = math.floor(life / 10)
   end
-  if check[3] then
+  for i=1,check[3] do
     idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
       OneBuff(player, idx, {atk={"+", 1}, sta={"+", 1}}):apply()
     end
   end
-  if check[2] then
+  for i=1,check[2] do
     OneBuff(opponent, 0, {life={"-", 1}}):apply()
   end
-  if check[1] then
+  for i=1,check[1] do
     OneBuff(player, 0, {life={"+", 1}}):apply()
   end
 end,
@@ -5293,7 +5301,10 @@ end,
 
 -- chenin blanc
 [110180] = function(player, opponent, my_card)
-  OneBuff(opponent, 0, {life={"=",10}}):apply()
+  local buff = GlobalBuff(player)
+  buff.field[player][0] = {life={"=", 10}}
+  buff.field[opponent][0] = {life={"=", 10}}
+  buff:apply()
   for _,p in ipairs({player, opponent}) do
     for i=1,5 do
       p.field[i] = Card(200035)

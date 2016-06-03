@@ -5233,6 +5233,9 @@ All enemy Followers in Field/Hand/Deck get ATK -1/STA -1
   local idxs = player:field_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
     buff.field[player][idx] = {atk={"+",1},sta={"+",1}}
+    if player.field[idx].id == 300414 then
+      buff.field[player][idx] = {atk={"+",2},def={"+",1},sta={"+",2}}
+    end
   end
   idxs = player:hand_idxs_with_preds(pred.follower)
   for _,idx in ipairs(idxs) do
@@ -6095,7 +6098,7 @@ If you have a Crux Character
   All Followers in the enemy Deck get STA- 1
   This card is exiled
 ]]
-[200395] = function(player, opponent)
+[200395] = function(player, opponent, my_idx)
   if not pred.C(player.character) then
     return
   end
@@ -6113,6 +6116,7 @@ If you have a Crux Character
     buff.deck[opponent][idx] = {sta={"-",1}}
   end
   buff:apply()
+  player:field_to_exile(my_idx)
 end,
 
 --[[
@@ -6390,8 +6394,8 @@ Underground City
 [200410] = function(player)
   local pred_vampire = function(card) return pred.crescent(card) or
       pred.flina(card) or pred.scardel(card) end
-  local mag = #player:field_idxs_with_preds(pred.follower, pred_vampire)
-      + #player:hand_idxs_with_preds(pred.follower, pred_vampire)
+  local mag = #player:field_idxs_with_preds(pred_vampire)
+      + #player:hand_idxs_with_preds(pred_vampire)
   local idxs = player:field_idxs_with_preds(pred.follower, pred_vampire)
   local buff = OnePlayerBuff(player)
   for _,idx in ipairs(idxs) do
