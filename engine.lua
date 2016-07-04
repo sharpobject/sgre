@@ -351,6 +351,12 @@ function Player:to_grave(card)
   self.grave[#self.grave + 1] = card
 end
 
+function Player:to_hand(card)
+  if not self.hand[5] then
+    self.hand[#self.hand + 1] = card
+  end
+end
+
 function Player:mill(n)
   for i=1,n do
     self.grave[#self.grave + 1] = self.deck[#self.deck]

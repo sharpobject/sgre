@@ -6557,6 +6557,17 @@ end,
   end
 end,
 
+-- 2nd Princess Hanobelle
+-- Princess Attack
+[1615] = function(pl, pl_idx, pl_c)
+  for i = 1, pl_c:upgrade_lvl() do
+    local idx = uniformly(pl.opponent:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(pl.opponent, idx, "_ _ -1"):apply()
+    end
+  end
+end,
+
 -- Chuseok Asmis
 -- Moonlight Addition!
 [1616] = function(player, my_idx, my_card)
@@ -6597,6 +6608,78 @@ end,
   end
 end,
 
+-- Library Club Gatekeeper
+-- Book's Harmony
+[1620] = function(pl, pl_idx, pl_c, sk_idx)
+  local mag = 0
+  for i = 1, min(#pl.deck, 6) do
+    mag = mag + (pred.spell(pl.deck[i]) and 1 or 0)
+  end
+  mag = max(mag, 1)
+  local buff = OnePlayerBuff(pl)
+  for _, idx in ipairs(pl:field_idxs_with_preds()) do
+    buff[idx] = {size={"=", mag}}
+  end
+  buff:apply()
+end,
+
+-- Lady Marie Lunen
+-- Girl's Heart
+[1621] = function(pl, pl_idx, pl_c, sk_idx)
+  local buff = OnePlayerBuff(pl)
+  local mag = 0
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.lady)) do
+    buff[idx] = {size={"-", 1}}
+    mag = mag + min(pl.field[idx].size - 1, 1)
+  end
+  buff[pl_idx].atk = {"+", mag}
+  buff:apply()
+  pl_c:remove_skill_until_refresh(sk_idx)
+end,
+
+-- Blue Cross Floria
+-- Strategy Request
+[1622] = function(pl, pl_idx, pl_c, sk_idx)
+  if pl.shuffles <= 1 then
+    OneBuff(pl, pl_idx, "-2 _ _"):apply()
+    pl_c:remove_skill(sk_idx)
+  end
+end,
+
+-- Blue Cross Floria
+-- Strategy Change
+[1623] = function(pl, pl_idx, pl_c, sk_idx)
+  if pl.shuffles <= 1 then
+    OneBuff(pl, pl_idx, "_ _ -2"):apply()
+    pl_c:remove_skill(sk_idx)
+  end
+end,
+
+-- GS Researcher Nitro
+-- Member Arrangement
+[1624] = function(pl, pl_idx)
+  local mag = 1
+  for i = 1, #pl.hand do
+    local idx = pl:hand_idxs_with_preds(pred.gs)[1]
+    if idx then
+      mag = mag + 1
+      pl:hand_to_bottom_deck(idx)
+    end
+  end
+  if mag > 0 then
+    OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- GS Researcher Nitro
+-- Member Management
+[1625] = function(pl)
+  local idx = pl:deck_idxs_with_preds(pred.gs, pred.follower)
+  if idx then
+    pl:deck_to_hand(idx)
+  end
+end,
+
 -- Cook Club Svia
 [1626] = function(player, my_idx)
   local buff = GlobalBuff(player)
@@ -6609,6 +6692,171 @@ end,
 [1643] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {sta={"+", 3}}):apply()
 end,
+
+-- Girl of Gray, Ann
+-- Ripples of Dreams
+[1644] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  pl.opponent.deck = shuffle(pl.opponent.deck)
+  if op_c then
+    mag = {}
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      mag[stat] = {"=", random(0, op_c[stat] * 2 + 1)}
+    end
+    OneBuff(pl.opponent, op_idx, mag):apply()
+  end
+end,
+
+-- Anyte Annus
+-- Wild Card
+[1645] = function(pl, pl_idx, pl_c, sk_idx)
+  OneBuff(pl, pl_idx, "_ _ +3"):apply()
+  if uniformly({true, false, false}) then
+    pl_c:remove_skill(sk_idx)
+  end
+end,
+
+-- Cookie Hunter Sita
+-- Chocolate?
+[1646] = function(pl)
+  local buff = OnePlayerBuff(pl.opponent)
+  for _, idx in ipairs(uniformly({1, 3, 5}, {2, 4})) do
+    if pred.inter(pred.exists, pred.follower)(pl.opponent.field[idx]) then
+      buff[idx] = "_ _ -2"
+    end
+  end
+  buff:apply()
+end,
+
+-- Cookie Hunter Sita
+-- Cookie?
+[1647] = function(pl)
+  local buff = OnePlayerBuff(pl.opponent)
+  for _, idx in ipairs(uniformly({1, 3, 5}, {2, 4})) do
+    if pred.inter(pred.exists, pred.follower)(pl.opponent.field[idx]) then
+      buff[idx] = "-1 _ _"
+    end
+  end
+  buff:apply()
+end,
+
+-- Lady Seresty
+-- Public Power
+[1648] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  local buff = OnePlayerBuff(pl.opponent)
+  if op_c then
+    buff[op_idx] = "_ _ -2 -1"
+  end
+  if pred.A(pl.character) then
+    buff[0] = {life={"-", 1}}
+  end
+  buff:apply()
+end,
+
+-- Knight Engineer
+-- Borrow Shield
+[1649] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c then
+    OneBuff(pl, pl_idx, {def={"=", op_c.def}}):apply()
+  end
+end,
+
+-- Knight Agent Mytyl
+-- Terrain Adaptation
+[1650] = function(pl, pl_idx)
+  if pl_idx % 2 == 1 then
+    OneBuff(pl, pl_idx, "+1 _ +1"):apply()
+  end
+end,
+
+-- Knight Agent Mytyl
+-- United Will
+[1651] = function(pl, pl_idx)
+  local buff = OnePlayerBuff(pl)
+  local mag = 0
+  if pl_idx > 1 and pred.inter(pred.exists, pred.follower)(pl.field[pl_idx - 1]) then
+    buff[pl_idx - 1] = "-1 _ -1"
+    mag = mag + 2
+  end
+  if pl_idx < 5 and pred.inter(pred.exists, pred.follower)(pl.field[pl_idx + 1]) then
+    buff[pl_idx + 1] = "-1 _ -1"
+    mag = mag + 2
+  end
+  buff[pl_idx] = {atk={"+", mag}, sta={"+", mag}}
+  buff:apply()
+end,
+
+-- Crescent Nazo
+-- Full Moon Ritual
+[1652] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+    buff[idx] = pl.union(pl.scardel, pl.crescent)(pl.field[idx]) and "+1 _ +2" or "-1 _ -2"
+  end
+  buff:apply()
+end,
+
+-- Succubus Vermille
+-- Mist Body
+[1653] = function(pl, pl_idx, pl_c)
+  if pl_c.size <= 2 then
+    OneBuff(pl, pl_idx, "_ _ _ +1"):apply()
+    if pl:first_empty_hand_slot() then
+      pl:field_to_top_deck(pl_idx)
+    end
+  end
+end,
+
+-- Succubus Vermille
+-- Dream Eater
+[1654] = function(pl, pl_idx, pl_c)
+  if pl_c.size >= 3 then
+    local mag = abs(pl_c.def)
+    OneBuff(pl, pl_idx, {atk={"+"}, def={"=", 0}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- Inspection
+-- Thorn Shield
+[1655] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c then
+    local buff = GlobalBuff(pl)
+    buff.field[pl.opponent][op_idx] = {sta={"-", op_c.atk}}
+    buff.field[pl][my_idx] = {}
+    buff:apply()
+    pl_c.skills[sk_idx] = nil
+  end
+end,
+
+-- Master of Cards
+-- I play this card face down
+[1656] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c then
+    OneImpact(pl.opponent, op_idx):apply()
+    op_c:gain_skill(1658) -- Zero
+  end
+end,
+
+-- Master of Cards
+-- You activated my trap card!
+[1657] = function(pl)
+  local sk_id = 1658
+  local pred_skill = function(c) 
+    return c.skills[1] == sk_id or c.skills[2] == sk_id or c.skills[3] == sk_id
+  end
+  local impact = Impact(pl)
+  local idxs = pl.opponent:field_idxs_with_preds(pred.follower, pred_skill)
+  for _, idx in ipairs(idxs) do
+    impact[pl.opponent][idx] = true
+  end
+  impact:apply()
+  for _, idx in ipairs(idxs) do
+    pl.opponent:destroy(idx)
+  end
+end,
+
+-- Master of Cards
+-- Zero
+[1658] = function() end,
 
 -- Master of Games
 -- Game Mastery
@@ -6625,9 +6873,314 @@ end,
   end
 end,
 
+-- Eisenwane
+-- Awakening
+[1661] = function(pl, my_idx, my_c, sk_idx)
+  local mag = 7 - my_c:upgrade_lvl()
+  OneBuff(pl, my_idx, {atk={"+", my_c.size - mag}, sta={"+", my_c.size - mag}, size={"=", mag}}):apply()
+end,
+
+-- 2nd Princess Hanobelle
+-- Princess Ward
+[1662] = function(pl, pl_idx, pl_c, sk_idx)
+  local mag = pl_c:upgrade_lvl()
+  OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+end,
+
 -- DTD (Muspelheim)
 [1663] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player.opponent, 0, {life={"=",0}}):apply()
+end,
+
+-- Student Council Treasurer Amy
+-- Budget Cutback!
+[1664] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c then
+    local orig = Card(op_c.id)
+    local mag = {}
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      if op_c[stat] > orig[stat] then
+        mag[stat] = max(orig[stat] - 5, 2 * orig[stat] - op_c[stat])
+      end
+    end
+    OneBuff(pl, pl_idx, mag):apply()
+  end
+end,
+
+-- Witch Cadet Fade
+-- Meditation
+[1665] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  local buff = GlobalBuff(pl)
+  if op_c then
+    buff.field[pl.opponent][op_idx] = {sta={"+", ceil(pl_c.atk / 2)}}
+  end
+  buff.field[pl][pl_idx] = "_ _ +3"
+  buff:apply()
+end,
+
+-- Witch Cadet Fade
+-- Soul Taker
+[1666] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c then
+    OneBuff(pl.opponent, op_idx, {sta={"-", ceil(pl_c.atk / 2)}}):apply()
+  end
+end,
+
+-- Special Flag Bearer Frett
+-- Frett Tech!
+[1667] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  local buff = GlobalBuff(pl)
+  if pl_c.def >= 6 then
+    local orig = Card(pl_c.id)
+    local mag = ceil(abs(pl_c.def - orig.def) / 2)
+    buff.field[pl][pl_idx] = {atk={"+", mag}, def={"=", orig.def}}
+    if op_c then
+      buff.field[pl.opponent][op_idx] = {atk={"+", mag}, sta={"+", mag}}
+    end
+    buff:apply()
+  end
+end,
+
+-- Special Flag Bearer Frett
+-- Charge!
+[1668] = function(pl, pl_idx)
+  OneBuff(pl, pl_idx, pred.C(pl.character) and "_ +2 +1" or "_ +1 _"):apply()
+end,
+
+-- Scardel Unit Dualgun
+-- Showtime!
+[1669] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if op_c and op.def + op.sta <= pl_c.atk then
+    local buff = GlobalBuff(pl)
+    if pl_c.active then
+      buff.field[pl][pl_idx] = "+2 _ +2"
+    else
+      buff.field[pl][pl_idx] = "_ +1 _"
+      buff.field[pl.opponent][0] = {life={"-", 1}}
+    end
+    buff:apply()
+    pl_c.active = not pl_c.active
+  end
+end,
+
+-- Vita Guardian Gart
+-- Manifest!
+[1670] = function(pl, pl_idx)
+  if pred.V(pl.character) and #pl:deck_idxs_with_preds(pred.V) > #pl.deck / 2 then
+    OneImpact(pl, pl_idx):apply()
+    pl:field_to_exile(pl_idx)
+    local idx = pl:first_empty_field_slot()
+    pl.field[idx] = Card(300750) -- Star Bird Gart
+    OneImpact(pl, idx):apply()
+  end
+end,
+
+-- Star Bird Gart
+-- Dreams!
+[1671] = function(pl, pl_idx)
+  local buff = GlobalBuff(pl)
+  local idxs = pl.opponent:field_idxs_with_preds()
+  local mag = #idxs
+  for _, idx in ipairs(idxs) do
+    buff.field[pl.opponent][idx] = "_ _ _"
+  end
+  buff.field[pl][pl_idx] = {atk={"+", mag}, sta={"+", mag}}
+  buff:apply()
+  for _, idx in ipairs(idxs) do
+    pl.opponent.field[idx].active = false
+  end
+end,
+
+-- Star Bird Gart
+-- Endless Night
+[1672] = function(pl)
+  local op = pl.opponent
+  local idx = uniformly(op:field_idxs_with_preds(pred.neg(pred.active)))
+  if idx then
+    OneImpact(op, idx):apply()
+    op:field_to_top_deck(idx)
+  end
+end,
+
+-- Sita and Vernika
+-- Hang in there!
+[1671] = function(pl, pl_idx, pl_c)
+  if pred.V(pl.character) then
+    local buff = OnePlayerBuff(pl)
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      buff[idx] = idx ~= pl_idx and "+1 _ +1" or "_ _ _"
+    end
+    buff:apply()
+    local idx = uniformly(pl:empty_field_slots())
+    if idx then
+      pl.field[pl_idx], pl.field[idx] = nil, pl_c
+    end
+  end
+end,
+    
+
+-- Flower Cinia
+-- Hang in there!
+[1672] = function(pl, pl_idx, pl_c)
+  if pred.A(pl.character) then
+    local buff = OnePlayerBuff(pl)
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      buff[idx] = idx ~= pl_idx and "+1 _ +1" or "_ _ _"
+    end
+    buff:apply()
+    local idx = uniformly(pl:empty_field_slots())
+    if idx then
+      pl.field[pl_idx], pl.field[idx] = nil, pl_c
+    end
+  end
+end,
+
+-- Hanbok Knight Pintail
+-- Hang in there!
+[1673] = function(pl, pl_idx, pl_c)
+  if pred.C(pl.character) then
+    local buff = OnePlayerBuff(pl)
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      buff[idx] = idx ~= pl_idx and "+1 _ +1" or "_ _ _"
+    end
+    buff:apply()
+    local idx = uniformly(pl:empty_field_slots())
+    if idx then
+      pl.field[pl_idx], pl.field[idx] = nil, pl_c
+    end
+  end
+end,
+
+-- Halloween Rion Flina
+-- Hang in there!
+[1674] = function(pl, pl_idx, pl_c)
+  if pred.D(pl.character) then
+    local buff = OnePlayerBuff(pl)
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      buff[idx] = idx ~= pl_idx and "+1 _ +1" or "_ _ _"
+    end
+    buff:apply()
+    local idx = uniformly(pl:empty_field_slots())
+    if idx then
+      pl.field[pl_idx], pl.field[idx] = nil, pl_c
+    end
+  end
+end,
+
+-- Sita and Vernika
+-- Magical Tuning!
+[1675] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if pred.V(pl.character) then
+    local buff = GlobalBuff(pl)
+    if op_c then
+      buff.field[pl.opponent][op_idx] = "_ _ -3"
+    end
+    buff.field[pl][pl_idx] = "_ _ -3"
+    buff:apply()
+    if pl.field[pl_idx] then
+      local idx = uniformly(pl:empty_field_slots())
+      if idx then
+        pl.field[pl_idx], pl.field[idx] = nil, pl_c
+      end
+    end
+  end
+end,  
+
+-- Flower Cinia
+-- Magical Tuning!
+[1676] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if pred.A(pl.character) then
+    local buff = GlobalBuff(pl)
+    if op_c then
+      buff.field[pl.opponent][op_idx] = "_ _ -3"
+    end
+    buff.field[pl][pl_idx] = "_ _ -3"
+    buff:apply()
+    if pl.field[pl_idx] then
+      local idx = uniformly(pl:empty_field_slots())
+      if idx then
+        pl.field[pl_idx], pl.field[idx] = nil, pl_c
+      end
+    end
+  end
+end,
+
+-- Hanbok Knight Pintail
+-- Magical Tuning!
+[1677] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if pred.C(pl.character) then
+    local buff = GlobalBuff(pl)
+    if op_c then
+      buff.field[pl.opponent][op_idx] = "_ _ -3"
+    end
+    buff.field[pl][pl_idx] = "_ _ -3"
+    buff:apply()
+    if pl.field[pl_idx] then
+      local idx = uniformly(pl:empty_field_slots())
+      if idx then
+        pl.field[pl_idx], pl.field[idx] = nil, pl_c
+      end
+    end
+  end
+end,
+
+-- Halloween Rion Flina
+-- Magical Tuning!
+[1678] = function(pl, pl_idx, pl_c, sk_idx, op_idx, op_c)
+  if pred.D(pl.character) then
+    local buff = GlobalBuff(pl)
+    if op_c then
+      buff.field[pl.opponent][op_idx] = "_ _ -3"
+    end
+    buff.field[pl][pl_idx] = "_ _ -3"
+    buff:apply()
+    if pl.field[pl_idx] then
+      local idx = uniformly(pl:empty_field_slots())
+      if idx then
+        pl.field[pl_idx], pl.field[idx] = nil, pl_c
+      end
+    end
+  end
+end,
+
+-- Cook Club Poplar
+-- Homing Instinct
+[1681] = function(pl, pl_idx, pl_c)
+  if pred.V(pl.character) then
+    local orig = Card(pl_c.id)
+    local mag = abs(orig.size - pl_c.size)
+    OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}, size={"=", orig.size}}):apply()
+  end
+end,
+
+-- Chief Maid Carrie
+-- Homing Instinct
+[1682] = function(pl, pl_idx, pl_c)
+  if pred.A(pl.character) then
+    local orig = Card(pl_c.id)
+    local mag = abs(orig.size - pl_c.size)
+    OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}, size={"=", orig.size}}):apply()
+  end
+end,
+
+-- Knight's Assistant Clarice
+-- Homing Instinct
+[1683] = function(pl, pl_idx, pl_c)
+  if pred.C(pl.character) then
+    local orig = Card(pl_c.id)
+    local mag = abs(orig.size - pl_c.size)
+    OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}, size={"=", orig.size}}):apply()
+  end
+end,
+
+-- Wind Witch
+-- Homing Instinct
+[1684] = function(pl, pl_idx, pl_c)
+  if pred.D(pl.character) then
+    local orig = Card(pl_c.id)
+    local mag = abs(orig.size - pl_c.size)
+    OneBuff(pl, pl_idx, {atk={"+", mag}, sta={"+", mag}, size={"=", orig.size}}):apply()
+  end
 end,
 
 -- Strong Attack!

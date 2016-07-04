@@ -9367,5 +9367,487 @@ end,
   end
   impact:apply()
 end,
+
+--[[ Underground Library ]]
+[200586] = function(pl, op)
+  local mag = 0
+  for i = 1, min(#pl.deck, 4) do
+    mag = mag + (pred.follower(pl.deck[i]) and 1 or 0)
+  end
+  local pred_size = function(c) return c.size < mag end
+  local idx = uniformly(op:field_idxs_with_preds(pred.spell))
+  if idx then
+    OneImpact(op, idx):apply()
+    op:field_to_exile(idx)
+  end
+  local pred_id = function(c) return c.id == 0 end
+  local idx = player:deck_idxs_with_preds(pred_id)
+  if idx then
+    pl:deck_to_top_deck(idx)
+  end
+end,
+
+--[[ Secret Garden ]]
+[200587] = function(pl, op, my_idx, my_card)
+  local buff = OnePlayerBuff(pl)
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred.lady)) do
+    local c = pl.field[idx]
+    local mag = {}
+    if c.size >= 3 then
+      mag.atk = {"+", 1}
+      mag.size = {"-", 1}
+    elseif c.size <= 3 then
+      mag.sta = {"+", c.size}
+    end
+    buff[idx] = mag
+  end
+  buff:apply()
+  my_card.active = false
+end,
+
+--[[ Azure Cross's Power ]]
+[200588] = function(pl, op)
+  local buff = GlobalBuff(pl)
+  for _, pl in ipairs({pl, op}) do
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      local c = pl.field[idx]
+      buff.field[pl][idx] = pred.blue_cross(c) and "+1 +1 +2" or pred.C(c) "+1 _ +1" or "_ _ _"
+    end
+  end
+  buff:apply()
+  for _, pl in ipairs({pl, op}) do
+    for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+      local c = pl.field[idx]
+      for i = 1, 3 do
+        if c.skills[i] and skill_id_to_type[c.skills[i]] == "defend" then
+          c.skills[i] = 1575 -- Zero
+        end
+      end
+    end
+  end
+end,
+
+--[[ Star's Return ]]
+[200589] = function(pl)
+  for i = 1, min(#pl.deck, 2) do
+    pl:deck_to_exile(1)
+  end
+  local idx = pl:deck_idxs_with_preds(pred.gs, pred.follower)[1]
+  if idx then
+    pl:deck_to_field(idx)
+    OneBuff(pl, idx, "+2 _ +2")
+  end
+end,
+
+--[[ Zero Serve ]]
+[200603] = function(pl)
+  local idx = pl:field_idxs_with_preds(pred.follower)[2]
+  if idx then
+    local buff = GlobalBuff(pl)
+    local card = pl.field[idx]
+    local idxs = pl:deck_idxs_with_preds(pred.cook_club, pred.follower)
+    for i = 1, min(#idxs, 2) do
+      buff.deck[pl][idxs[i]] = {atk={"=", card.atk}, def={"=", card.def}, sta={"=", card.sta}}
+    end
+    buff:apply()
+  end
+end,
+
+--[[ Victims ]]
+[200604] = function(pl, op)
+  local buff = GlobalBuff(pl)
+  local pred_defend = function(card)
+    for _, id in pairs(card.skills) do
+      if skill_id_to_type[id] == "defend" then
+        return false
+      end
+    end
+    return true
+  end
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_defend)) do
+    buff.field[pl][idx] = "_ _ -3"
+  end
+  for _, idx in ipairs(op:field_idxs_with_preds(pred.follower, pred.skill)) do
+    buff.field[op][idx] = "-2 _ -2"
+  end
+  buff:apply()
+end,
+
+--[[ Secret Art: Gale Flash ]]
+[200605] = function(pl, op)
+  local idx = pl:field_idxs_with_least_and_preds(pred.add(pred.def, pred.sta), pred.follower)[1]
+  if idx then
+    local buff = GlobalBuff(pl)
+    buff.field[pl][idx] = {}
+    local mag = 0
+    local idx2 = op:field_idxs_with_preds(pred.follower)
+    if idx2 then
+      buff.field[op][idx2] = {}
+      mag = mag + op.field[idx2].size / 3
+    end
+    local idx3 = op:deck_idxs_with_preds(pred.follower)
+    if idx3 then
+      mag = mag + op.deck[idx3].size / 3
+    end
+    mag = floor(mag)
+    buff.field[pl][0] = {life={"-", mag}}
+    buff:apply()
+    pl:destroy(idx)
+    if idx2 then
+      op:field_to_exile(idx2)
+    end
+    if idx3 then
+      op:deck_to_exile(idx3)
+    end
+  end
+end,
+
+--[[ Flowers of Doubt ]]
+[200606] = function(pl)
+  local buff = GlobalBuff(pl)
+  for _, idx in ipairs(pl:deck_idxs_with_preds(pred.lady, pred.follower)) do
+    buff.deck[pl][idx] = "+1 +1 +1 +2"
+  end
+  buff:apply()
+end,
+
+--[[ Discovery ]]
+[200607] = function(pl, op)
+  local idx = uniformly(pl:field_idxs_with_preds(pred.follower))
+  if idx then
+    local mag_atk = floor(pl.field[idx].atk / 2)
+    local mag_def = 0
+    local mag_sta = 0
+    for i = 1, 5 do
+      if pred.inter(pred.exists, pred.follower)(pl.field[i]) and pl.field[i].sta > mag_sta then
+        mag_sta = pl.field[i].sta
+      end
+      if pred.inter(pred.exists, pred.follower)(op.field[i]) and op.field[i].sta > mag_sta then
+        mag_sta = op.field[i].sta
+      end
+    end
+    OneBuff(pl, idx, {atk={"=", mag_atk}, def={"=", mag_def}, sta={"=", mag_sta}}):apply()
+  end
+end,
+
+--[[ Homing Instinct ]]
+[200608] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local idxs = shuffle(pl:field_idxs_with_preds(pred.follower))
+  for i = 1, min(#idxs, 2) do
+    local c = pl.field[idxs[i]]
+    local o = Card(c.id)
+    local mag = {}
+    for _, stat in ipairs({"atk", "def", "sta"}) do
+      if c[stat] > o[stat] then
+        mag[stat] = {"+", c[stat] - o[stat]}
+      end
+    end
+    buff[idxs[i]] = mag
+  end
+  buff:apply()
+end,
+
+--[[ Duty Assignment ]]
+[200609] = function(pl, op)
+  local buff = GlobalBuff(pl)
+  for _, idx in ipairs(pl:field_idxs_with_preds()) do
+    buff.field[pl][idx] = {size={(pl.field[idx].size % 2 == 1) and "+" or "-"}, 1}
+  end
+  for _, idx in ipairs(op:field_idxs_with_preds()) do
+    buff.field[op][idx] = {size={(pl.field[idx].size % 2 == 1) and "+" or "-"}, 1}
+  end
+  buff:apply()
+end,
+
+--[[ Migration ]]
+[200610] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local pred_6 = function(c) return c.sta <= 6 end
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_6)) do
+    buff[idx] = {sta={"=", pl.field[idx].sta * 2}}
+  end
+  buff:apply()
+end,
+
+--[[ Temporary Transfer ]]
+[200611] = function(pl, op)
+  local pred_22 = function(c) return c.atk + c.def + c.sta <= 22 end
+  local idx = pl:field_idxs_with_most_and_preds(
+    pred.add(pred.atk, pred.def, pred.sta), pred.follower, pred_22)
+  if idx then
+    local c = pl.field[idx]
+    local mag = {atk={"+", floor(c.atk / 2)}, def={"+", floor(c.def / 2)}, sta={"+", floor(c.sta / 2)}}
+    local buff = OnePlayerBuff(pl)
+    local pred_diff = function(c) return c ~= pl.field[idx] end
+    local idx = uniformly(pl:field_idxs_with_preds(pred.follower, pred_diff))
+    if idx then
+      buff[idx] = mag
+    end
+    buff:apply()
+  end
+end,
+
+--[[ Doubt Attack ]]
+[200612] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local idxs = shuffle(pl:field_idxs_with_preds(pred.follower))
+  for i = 1, min(#idxs, 2) do
+    buff[idxs[i]] = pl.field[idxs[i]].atk % 2 == 0 and "+3 _ +3" or "+1 _ +1"
+  end
+  buff:apply()
+end,
+
+--[[ Forced Apprehension ]]
+[200613] = function(pl, op)
+  local pl_idx = uniformly(pl:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(op:field_idxs_with_preds(pred.follower))
+  if pl_idx and op_idx then
+    local impact = Impact(pl)
+    impact[pl][pl_idx] = true
+    impact[op][op_idx] = true
+    impact:apply()
+    pl.field[pl_idx].skills, op.field[op_idx].skills = op.field[op_idx].skills, pl.field[pl_idx].skills
+  end
+end,
+
+--[[ Inspection ]]
+[200614] = function(pl)
+  local impact = Impact(pl)
+  local idxs = pl:field_idxs_with_preds(pred.D, pred.follower)
+  for _, idx in ipairs(idxs) do
+    impact[pl][idx] = true
+  end
+  impact:apply()
+  for _, idx in ipairs(idxs) do
+    pl.field[idx].active = false
+    pl.field[idx]:gain_skill(1655) -- Thorn Shield
+  end
+end,
+
+--[[ Life of Study ]]
+[200615] = function(pl, op, my_idx)
+  if pl.shuffles == op.shuffles then
+    pl.shuffles = pl.shuffles + 1
+    op.shuffles = op.shuffles + 1
+    pl:field_to_top_deck(my_idx)
+  else
+    pl.shuffles = op.shuffles
+    local idx = uniformly(pl:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneBuff(pl, idx, {def={"-", pl.shuffles}}):apply()
+    end
+  end
+end,
+
+--[[ Receipt ]]
+[200616] = function(pl)
+  pl:field_buff_n_random_followers_with_preds(1, "+3 _ +3")
+  if uniformly({true, false}) then
+    pl:field_buff_n_random_followers_with_preds(1, "-2 _ -2")
+  end
+end,
+
+--[[ Pursuit ]]
+[200617] = function(pl)
+  pl:field_buff_n_random_followers_with_preds(5, "_ _ _ -1", pred.neg(pred.skill))
+end,
+
+--[[ Service Award ]]
+[200618] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local pred_orig = function(c)
+    local ans = false
+    local orig = Card(c.id)
+    for i = 1, 3 do
+      if c.skills[i] ~= orig.skills[i] then
+        ans = true
+      end
+    end
+    return ans
+  end
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig)) do
+    buff[idx] = pred.cook_club(pl.field[idx]) and "_ _ _" or "-1 _ -1"
+  end
+  buff:apply()
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower, pred_orig)) do
+    pl.field[idx].skills = Card(pl.field[idx].id).skills
+  end
+end,
+
+--[[ Table Flip ]]
+[200619] = function(pl, op)
+  local mag = pl:field_idxs_with_preds(pred.follower, pred.lady)[1] and "_ _ -4" or "_ _ -3"
+  op:field_buff_n_random_followers_with_preds(5, mag)
+end,
+
+--[[ Request ]]
+[200620] = function(pl, op, my_idx, my_c)
+  local idx = op:last_empty_field_slot()
+  if idx then
+    if my_c.size >= 2 then
+      OneBuff(pl, my_idx, "_ _ _ -1"):apply()
+      pl.field[my_idx], op.field[idx] = nil, my_c
+      my_c.active = false
+    else
+      local idx2 = op:hand_idxs_with_preds(pred.follower)[1]
+      if idx2 then
+        op.field[idx] = table.remove(op.hand, idx2)
+        OneImpact(op, idx):apply()
+      end
+    end
+  end
+end,
+
+--[[ The door to getting a job ]]
+[200621] = function(pl)
+  local pred_size = function(c) return c.size <= 3 end
+  local idx = pl:deck_idxs_with_preds(pred.A, pred.follower, pred.size)[1]
+  if not pl.hand[5] and idx then
+    local buff = GlobalBuff(pl)
+    buff.deck[pl][idx] = pred.maid(pl.deck[idx]) and "+2 +2 +2" or "+1 _ +2 +1"
+    buff:apply()
+    pl:deck_to_hand(idx)
+  end
+end,
+
+--[[ Shopping ]]
+[200622] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local mv4 = nil
+  if pred.inter(pred.exists, pred.follower)(pl.field[4]) then
+    if not pl.field[5] then
+      mv4 = 5
+      buff[4] = "_ _ _"
+    else
+      buff[4] = "+1 _ +1"
+    end
+  end
+  local mv2 = nil
+  if pred.inter(pred.exists, pred.follower)(pl.field[2]) then
+    if not pl.field[3] then
+      mv2 = 3
+      buff[2] = "_ _ _"
+    elseif not pl.field[4] or mv4 then
+      mv2 = 4
+      buff[2] = "_ _ _"
+    elseif not pl.field[5] then
+      mv4 = 5
+      buff[2] = "_ _ _"
+    else
+      buff[2] = "+1 _ +1"
+    end
+  end
+  buff:apply()
+  if mv4 then
+    pl.field[4], pl.field[mv4] = nil, pl.field[4]
+  end
+  if mv2 then
+    pl.field[2], pl.field[mv2] = nil, pl.field[2]
+  end
+end,
+
+--[[ Rivalry ]]
+[200623] = function(pl, op)
+  for i = 1, pred.C(pl.character) and 2 or 1 do
+    local idx = uniformly(op:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneImpact(op, idx):apply()
+      local c = op.field[idx]
+      for i = 1, 3 do
+        if c.skills[i] and skill_id_to_type[c.skills[i]] == "attack" then
+          c.skills[i] = nil
+        end
+      end
+    end
+  end
+end,
+
+--[[ Sending Information ]]
+[200624] = function(pl)
+  local impact = Impact(pl)
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.follower)) do
+    impact[pl][idx] = true
+  end
+  if pred.C(pl.character) then
+    local idx = pl:first_empty_field_slot()
+    if idx then
+      pl.field[idx] = Card(200212) -- Inside Enemy/Enemy Within
+      impact[pl][idx] = true
+    end
+    pl:to_top_deck(Card(200212)) -- Inside Enemy/Enemy Within
+  end
+  buff:apply()
+end,
+
+--[[ Alibi ]]
+[200625] = function(pl)
+  local idx = pl:field_idxs_with_preds(pred.neg(pred.active))[1]
+  if idx then
+    OneBuff(pl, idx, pred.follower(pl.field[idx]) and "+3 _ +3" or "_ _ _"):apply()
+  end
+end,
+
+--[[ Still Alive ]]
+[200626] = function(pl, op)
+  local idx = uniformly(op:field_idxs_with_preds(pred.follower))
+  if idx then
+    local o = Card(op.field[idx].id)
+    local mag = abs(o.size - op.field[idx].size)
+    OneBuff(op, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+end,
+
+--[[ Sherlock ]]
+[200627] = function(pl, op)
+  local buff = GlobalBuff(pl)
+  local mag = 0
+  for _, idx in ipairs(op:hand_idxs_with_preds(pred.follower)) do
+    buff.hand[op][idx] = "_ _ -2"
+    mag = mag + min(op.hand[idx].sta - 1, 2)
+  end
+  for _, idx in ipairs(pl:field_idxs_with_preds(pred.union(pred.crescent, pred.scardel), pred.follower)) do
+    buff.field[pl][idx] = {sta={"+", mag}}
+  end
+  buff:apply()
+end,
+
+--[[ White Whale Rush ]]
+[200628] = function(pl, op, my_idx)
+  local buff = GlobalBuff(pl)
+  local pl_idx = uniformly(pl:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(op:field_idxs_with_preds(pred.spell))
+  if pl_idx then
+    buff.field[pl][pl_idx] = op_idx and "+1 _ +2" or "+1 _ +1"
+  end
+  if op_idx then
+    buff.field[op][op_idx] = "_ _ _"
+  end
+  buff:apply()
+  if op_idx then
+    op:field_to_bottom_deck(op_idx)
+  end
+  pl:field_to_exile(my_idx)
+end,
+
+--[[ Girl's Dream ]]
+[200629] = function(pl, op)
+  local buff = GlobalBuff(pl)
+  local mag = {atk={"+", #pl:field_idxs_with_preds()}, sta={"+", #pl:hand_idxs_with_preds()}}
+  local idxs = shuffle(pl:field_idxs_with_preds(pred.follower))
+  for i = 1, min(#idxs, 2) do
+    buff.field[pl][idxs[i]] = mag
+  end
+  local idx = uniformly(op:field_idxs_with_preds(pred.follower))
+  if idxs[1] then
+    buff.field[op][idx] = true
+  end
+  buff:apply()
+  if idxs[1] then
+    pl:field_to_bottom_deck(idxs[i])
+    op:field_to_bottom_deck(idx)
+  end
+end,
+
 }
 setmetatable(spell_func, {__index = function()return function() end end})
