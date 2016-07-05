@@ -1,5 +1,6 @@
 local min,max = math.min,math.max
 local floor = math.floor
+local type = type
 
 Card = class(function(self, id, upgrade_lvl)
     self.upgrade_lvl = upgrade_lvl or 0
@@ -1036,11 +1037,27 @@ end,
 end
 }
 
+local str_to_buff_effects = {}
+
+local function parse_buff_str(str)
+  local parts = str:split(" ")
+  print(parts)
+  return {size={"+",5}}
+end
+
 function Game:apply_buff(buff)
   local anything_happened = false
   for _,zone in ipairs({"field", "hand", "deck"}) do
     for player,idx_to_effect in pairs(buff[zone]) do
       for idx,effects in pairs(idx_to_effect) do
+        if type(effects) == "string" then
+          local str = effects
+          effects = str_to_buff_effects[str]
+          if not effects then
+            effects = parse_buff_str(str)
+            str_to_buff_effects[str] = effects
+          end
+        end
         for stat,effect in pairs(effects) do
           anything_happened = true
           local which, howmuch = unpack(effect)

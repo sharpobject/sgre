@@ -2907,9 +2907,9 @@ end,
   if idx then
     local buff = GlobalBuff(player)
     buff.hand[player][idx] = "_ _ _ -1"
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-    if pred.lady(player.hand[idx]) and idx then
-      buff.field[player][idx] = "+1 _ +2"
+    local field_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if field_idx and pred.lady(player.hand[idx]) then
+      buff.field[player][field_idx] = "+1 _ +2"
     end
     buff:apply()
   end
@@ -3202,7 +3202,7 @@ end,
 
 -- Sleep Club Sita
 [100240] = function(player, opponent)
-  local pred_1 = function(card) return string.match("" + card.atk + card.def + card.sta, "1") end
+  local pred_1 = function(card) return not not string.match("" .. card.atk .. card.def .. card.sta, "1") end
   local idxs = opponent:field_idxs_with_preds(pred.follower, pred_1)
   local buff = OnePlayerBuff(opponent)
   for _, idx in ipairs(idxs) do
@@ -3291,6 +3291,7 @@ end,
       buff.field[player][idx] = "_ _ +1"
     end
     buff.field[opponent][0] = {life={"-", 1}}
+    buff:apply()
   end
 end,
 
@@ -3358,13 +3359,13 @@ end,
     local mag = {def={"+", 1}}
     if pred.V(player.field[idx]) then
       mag.atk = {"+", 0}
-      mag.def = {"+", 0}
+      mag.sta = {"+", 0}
       for i = 1, 2 do
         local stat = uniformly({"atk", "def", "sta"})
         mag[stat][2] = mag[stat][2] + 1
       end
     end
-    buff:apply()
+    OneBuff(player, idx, mag):apply()
   end
 end,
 
@@ -7184,9 +7185,9 @@ end,
   if idx then
     local buff = GlobalBuff(player)
     buff.hand[player][idx] = "_ _ _ -1"
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
-    if pred.lady(player.hand[idx]) and idx then
-      buff.field[player][idx] = "+1 _ +2"
+    local field_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    if field_idx and pred.lady(player.hand[idx]) then
+      buff.field[player][field_idx] = "+1 _ +2"
     end
     buff:apply()
   end
@@ -7235,8 +7236,8 @@ end,
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     OneImpact(opponent, idx):apply()
-    for idx, _ in ipairs(opponent.field[idx].skills) do
-      opponent.field[idx]:remove_skill_until_refresh(idx)
+    for skill_idx, _ in pairs(opponent.field[idx].skills) do
+      opponent.field[idx]:remove_skill_until_refresh(skill_idx)
     end
   end
 end,
@@ -7245,7 +7246,7 @@ end,
 [110304] = function(player, opponent)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = floor(opponent.life / 10)
+    local mag = floor(opponent.character.life / 10)
     OneBuff(player, idx, {sta={"+", mag}}):apply()
   end
 end,
@@ -7265,8 +7266,8 @@ end,
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(opponent, idx, "-1 _ -1"):apply()
-    for idx, _ in ipairs(opponent.field[idx].skills) do
-      opponent.field[idx]:remove_skill_until_refresh(idx)
+    for s_idx, _ in pairs(opponent.field[idx].skills) do
+      opponent.field[idx]:remove_skill_until_refresh(s_idx)
     end
   end
 end,
@@ -7275,7 +7276,7 @@ end,
 [110307] = function(player, opponent)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = floor(opponent.life / 10)
+    local mag = floor(opponent.character.life / 10)
     OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
   end
 end,
