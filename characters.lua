@@ -7872,7 +7872,7 @@ end,
 end,
 
 -- Gardening Maid
-[100242] = function(player, opponent)
+[120036] = function(player, opponent)
   local buff = GlobalBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
     buff.field[player][idx] = "+2 _ -2"
