@@ -1,6 +1,6 @@
 ep_order = {"EP0", "EP1", "EP2", "EP3", "EX1", "EP4", "EP5",
     "EP6", "EX2", "EP7", "EP8", "EP9", "UE1", "EX3", "EP10",
-    "EP11", "EP12", "UE2", "EP13", "EP14", "EP15", }
+    "EP11", "EP12", "UE2", "EP13", "EP14", "EP15", "EP16", }
 eps_up_to_ep = {}
 for i=1,#ep_order do
   eps_up_to_ep[ep_order[i]] = {}
@@ -32,6 +32,7 @@ ep_cap = {
   EP13="EP13",
   EP14="EP14",
   EP15="EP15",
+  EP16="EP16",
 }
 -- Some NPCs can have more than 3 of a card. Most cannot....
 can_exceed_3 = {
