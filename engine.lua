@@ -1057,7 +1057,7 @@ function Game:apply_buff(buff)
             effects = parse_buff_str(str)
             str_to_buff_effects[str] = effects
           end
-          idx_to_effect[idx] = efects
+          idx_to_effect[idx] = effects
         end
         for stat,effect in pairs(effects) do
           anything_happened = true
