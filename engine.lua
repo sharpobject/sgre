@@ -1038,11 +1038,19 @@ end
 }
 
 local str_to_buff_effects = {}
+local stat_order = {"atk", "def", "sta", "size"}
+local is_operator = {["-"] = true, ["+"] = true, ["="] = true}
 
 local function parse_buff_str(str)
   local parts = str:split(" ")
-  print(parts)
-  return {size={"+",5}}
+  local ret = {}
+  for i=1,4 do
+    local part = parts[i]
+    if part ~= nil and is_operator[part[1]] then
+      ret[stat_order[i]] = {part[1], tonumber(part:sub(2))}
+    end
+  end
+  return ret
 end
 
 function Game:apply_buff(buff)
