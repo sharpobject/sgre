@@ -5827,7 +5827,7 @@ end,
 -- Witch Rianna
 -- Equalize
 [1540] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and pred.A(player) and other_card.atk > Card(other_card.id).atk then
+  if other_card and pred.A(player.character) and other_card.atk > Card(other_card.id).atk then
     local mag = ceil((my_card.atk + other_card.atk) / 2)
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"=", mag}}
