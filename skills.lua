@@ -6766,7 +6766,7 @@ end,
 -- Knight Agent Mytyl
 -- Terrain Adaptation
 [1650] = function(player, my_idx)
-  if my_idx % 2 == 1 then
+  if my_idx % 2 == 0 then
     OneBuff(player, my_idx, "+1 _ +1"):apply()
   end
 end,
