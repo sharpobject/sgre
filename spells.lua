@@ -9496,7 +9496,7 @@ end,
       mag = mag + opponent.deck[idx3].size
     end
     mag = floor(mag / 3)
-    buff.field[player][0] = {life={"-", mag}}
+    buff.field[opponent][0] = {life={"-", mag}}
     buff:apply()
     player:destroy(idx)
     if idx2 then
