@@ -6920,7 +6920,7 @@ end,
 [1665] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
   if other_card then
-    buff.field[player.opponent][other_idx] = {sta={"+", ceil(my_card.atk / 2)}}
+    buff.field[player.opponent][other_idx] = {sta={"+", floor(my_card.atk / 2)}}
   end
   buff.field[player][my_idx] = "_ _ +3"
   buff:apply()
