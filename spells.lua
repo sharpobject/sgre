@@ -8545,7 +8545,8 @@ end,
 
 --[[ Pass the Blood ]]
 [200532] = function(player)
-  if player.field[3] and pred.follower(player.field[3]) then
+  local card = player.field[3]
+  if card and pred.follower(card) and pred.faction.D(card) then
     local mag = min(3, #player:field_idxs_with_preds(pred.follower))
     OneBuff(player, 3, {def={"+", mag}}):apply()
   end
