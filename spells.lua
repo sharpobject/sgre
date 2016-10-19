@@ -9695,7 +9695,7 @@ end,
   local idx = opponent:last_empty_field_slot()
   if idx then
     if my_card.size >= 2 then
-      OneBuff(player, my_idx, "_ _ _ -1"):apply()
+      OneBuff(player, my_idx, {size={"=",1}}):apply()
       player.field[my_idx], opponent.field[idx] = nil, my_card
       my_card.active = false
     else
