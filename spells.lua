@@ -9817,6 +9817,10 @@ end,
     buff.hand[opponent][idx] = "_ _ -2"
     mag = mag + min(opponent.hand[idx].sta - 1, 2)
   end
+  for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    buff.field[opponent][idx] = "_ _ -2"
+    mag = mag + min(opponent.field[idx].sta, 2)
+  end
   for _, idx in ipairs(player:field_idxs_with_preds(pred.union(pred.crescent, pred.scardel), pred.follower)) do
     buff.field[player][idx] = {sta={"+", mag}}
   end
