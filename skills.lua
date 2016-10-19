@@ -6356,6 +6356,7 @@ end,
     end
     buff:apply()
     player.field[idx], player.field[my_idx] = my_card, nil
+    my_card.active = false
   end
 end,
 
