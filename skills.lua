@@ -6901,12 +6901,17 @@ end,
   if other_card then
     local orig = Card(other_card.id)
     local mag = {}
+    local check = false
     for _, stat in ipairs({"atk", "def", "sta"}) do
       if other_card[stat] > orig[stat] then
         mag[stat] = {"=", max(orig[stat] - 5, other_card[stat] - 2 * (other_card[stat] - orig[stat]))}
+        check = true
       end
     end
-    OneBuff(player, my_idx, mag):apply()
+    OneBuff(player.opponent, other_idx, mag):apply()
+	if check then
+      my_card:remove_skill_until_refresh(skill_idx)
+	end
   end
 end,
 
