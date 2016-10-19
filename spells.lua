@@ -9822,23 +9822,8 @@ end,
   buff:apply()
 end,
 
---[[ White Whale Rush ]]
-[200628] = function(player, opponent, my_idx)
-  local buff = GlobalBuff(player)
-  local player_idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
-  if player_idx then
-    buff.field[player][player_idx] = op_idx and "+1 _ +2" or "+1 _ +1"
-  end
-  if op_idx then
-    buff.field[opponent][op_idx] = {}
-  end
-  buff:apply()
-  if op_idx then
-    opponent:field_to_bottom_deck(op_idx)
-  end
-  player:field_to_exile(my_idx)
-end,
+--[[ Maple Viewing ]]
+[200628] = function() end, --Added this in case the missing id matters so code this later
 
 --[[ Girl's Dream ]]
 [200629] = function(player, opponent)
@@ -9859,6 +9844,24 @@ end,
       opponent:field_to_bottom_deck(idx)
     end
   end
+end,
+
+--[[ White Whale Rush ]]
+[200630] = function(player, opponent, my_idx)
+  local buff = GlobalBuff(player)
+  local player_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  if player_idx then
+    buff.field[player][player_idx] = op_idx and "+1 _ +2" or "+1 _ +1"
+  end
+  if op_idx then
+    buff.field[opponent][op_idx] = {}
+  end
+  buff:apply()
+  if op_idx then
+    opponent:field_to_bottom_deck(op_idx)
+  end
+  player:field_to_exile(my_idx)
 end,
 
 }
