@@ -6938,7 +6938,7 @@ end,
     local mag = ceil(abs(my_card.def - orig.def) / 2)
     buff.field[player][my_idx] = {atk={"+", mag}, def={"=", orig.def}}
     if other_card then
-      buff.field[player.opponent][other_idx] = {atk={"+", mag}, sta={"+", mag}}
+      buff.field[player.opponent][other_idx] = {atk={"-", mag}, sta={"-", mag}}
     end
     buff:apply()
   end
