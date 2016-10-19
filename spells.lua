@@ -1451,7 +1451,7 @@ end,
 [200104] = function(player)
   local targets = shuffle(player:field_idxs_with_preds({pred.faction.A,pred.follower}))
   if #targets >= 2 then
-    local buff_amt = math.abs(player.field[targets[1]].size - player.field[targets[2]].size)
+    local buff_amt = min(4, math.abs(player.field[targets[1]].size - player.field[targets[2]].size))
     local buff = OnePlayerBuff(player)
     for i=1,2 do
       buff[targets[i]] = {atk={"+",buff_amt},sta={"+",buff_amt}}
