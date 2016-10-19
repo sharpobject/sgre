@@ -7265,10 +7265,10 @@ end,
 [110306] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    OneBuff(opponent, idx, "-1 _ -1"):apply()
     for s_idx, _ in pairs(opponent.field[idx].skills) do
       opponent.field[idx]:remove_skill_until_refresh(s_idx)
     end
+    OneBuff(opponent, idx, "-1 _ -1"):apply()
   end
 end,
 
