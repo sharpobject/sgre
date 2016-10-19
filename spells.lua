@@ -9777,6 +9777,7 @@ end,
   local impact = Impact(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
     impact[player][idx] = true
+    player.field[idx]:gain_skill(1574) -- Zero
   end
   if pred.C(player.character) then
     local idx = player:first_empty_field_slot()
