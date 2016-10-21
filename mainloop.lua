@@ -1865,7 +1865,7 @@ function main_xmute()
             table.insert(card_list,{k,v})
           end
         elseif xmute_type=="accessory" then
-          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) then
+          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) or (k >= 210049 and k <= 210053) then
             table.insert(card_list,{k,v})
           end
         elseif xmute_type=="ore" then
