@@ -2251,7 +2251,7 @@ end,
 
 -- a single flower
 [200155] = function(player, opponent, my_idx, my_card)
-  local amt = abs(#player.hand - #opponent.hand)
+  local amt = max(0, abs(#player.hand - #opponent.hand) - 1)
   for _,p in ipairs({player, opponent}) do
     while #p.hand > 0 do
       p:hand_to_bottom_deck(1)
