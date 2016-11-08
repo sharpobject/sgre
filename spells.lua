@@ -9276,12 +9276,13 @@ end,
 
 --[[ Discovery of a Gate ]]
 [200579] = function(player)
-  if player.deck[1] and pred.follower(player.deck[1]) then
+  local idx = #player.deck
+  if player.deck[idx] and pred.follower(player.deck[idx]) then
     local buff = GlobalBuff(player)
-    buff.deck[player][1] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
+    buff.deck[player][idx] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
     buff:apply()
     if not player.hand[5] then
-      player:deck_to_hand(1)
+      player:deck_to_hand(idx)
     end
   end
 end,
