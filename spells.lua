@@ -6305,7 +6305,7 @@ Limit Break
     return
   end
   local f_idx = player:first_empty_field_slot()
-  local d_idx = #player.deck - 8
+  local d_idx = #player.nth_deck_idx(8)
   if not f_idx or d_idx < 1 then
     return
   end
