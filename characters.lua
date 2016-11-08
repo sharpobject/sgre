@@ -3107,8 +3107,6 @@ end,
   if player.character.life < 12 then
     player.shuffles = 0
     return
-  elseif player.character.life == 12 then
-    return
   end
   local buff = GlobalBuff(player)
   if player.deck[1] then
@@ -3132,8 +3130,6 @@ end,
   end
   if player.character.life < 12 then
     player.shuffles = 0
-    return
-  elseif player.character.life == 12 then
     return
   end
   local buff = GlobalBuff(player)
@@ -3159,8 +3155,6 @@ end,
   if player.character.life < 12 then
     player.shuffles = 0
     return
-  elseif player.character.life == 12 then
-    return
   end
   local buff = GlobalBuff(player)
   local idxs = player:deck_idxs_with_preds(pred.follower)
@@ -3184,8 +3178,6 @@ end,
   end
   if player.character.life < 12 then
     player.shuffles = 0
-    return
-  elseif player.character.life == 12 then
     return
   end
   local buff = GlobalBuff(player)
