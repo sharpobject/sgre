@@ -593,6 +593,10 @@ function Player:hand_idxs_with_most_and_preds(func, ...)
   return self:hand_idxs_with_least_and_preds(function(...)return -func(...) end, ...)
 end
 
+function Player:nth_deck_idx(n)
+  return #self.deck - n + 1
+end
+
 function Player:empty_hand_slots()
   local t = {}
   for i=1,5 do

@@ -3843,12 +3843,14 @@ end,
 -- Trade!
 [1363] = function(player, my_idx, my_card, skill_idx)
   local mag = 0
+  local didx
   for i = 1, 4 do
-    if player.deck[1] then
-      if pred.A(player.deck[1]) and pred.spell(player.deck[1]) then
+    didx = #player.deck
+    if player.deck[didx] then
+      if pred.A(player.deck[didx]) and pred.spell(player.deck[didx]) then
         mag = mag + 1
       end
-      player:deck_to_grave(1)
+      player:deck_to_grave(didx)
     end
   end
   for i = 1, mag do

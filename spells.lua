@@ -2251,7 +2251,7 @@ end,
 
 -- a single flower
 [200155] = function(player, opponent, my_idx, my_card)
-  local amt = abs(#player.hand - #opponent.hand)
+  local amt = max(0, abs(#player.hand - #opponent.hand) - 1)
   for _,p in ipairs({player, opponent}) do
     while #p.hand > 0 do
       p:hand_to_bottom_deck(1)
@@ -6305,7 +6305,7 @@ Limit Break
     return
   end
   local f_idx = player:first_empty_field_slot()
-  local d_idx = #player.deck - 8
+  local d_idx = #player.nth_deck_idx(8)
   if not f_idx or d_idx < 1 then
     return
   end
@@ -7708,7 +7708,8 @@ end,
   Sita's Delivery
 ]]
 [200482] = function(player)
-  for _,deck_idx in ipairs({5,7}) do
+  local idx5, idx7, idx9 = player.nth_deck_idx(5), player.nth_deck_idx(7), player.nth_deck_idx(9)
+  for _,deck_idx in ipairs({idx5,idx7}) do
     if player.deck[deck_idx] and pred.V(player.deck[deck_idx]) then
       local field_idx = player:first_empty_field_slot()
       if field_idx then
@@ -7716,8 +7717,8 @@ end,
       end
     end
   end
-  if player.deck[9] and pred.V(player.deck[9]) and #player.hand < 5 then
-    player.hand[#player.hand + 1] = deepcpy(player.deck[9])
+  if player.deck[idx9] and pred.V(player.deck[idx9]) and #player.hand < 5 then
+    player.hand[#player.hand + 1] = deepcpy(player.deck[idx9])
   end
 end,
 
@@ -9277,12 +9278,13 @@ end,
 
 --[[ Discovery of a Gate ]]
 [200579] = function(player)
-  if player.deck[1] and pred.follower(player.deck[1]) then
+  local idx = #player.deck
+  if player.deck[idx] and pred.follower(player.deck[idx]) then
     local buff = GlobalBuff(player)
-    buff.deck[player][1] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
+    buff.deck[player][idx] = {size={"-", 1}, atk={"+", 2}, sta={"+", 2}}
     buff:apply()
     if not player.hand[5] then
-      player:deck_to_hand(1)
+      player:deck_to_hand(idx)
     end
   end
 end,
