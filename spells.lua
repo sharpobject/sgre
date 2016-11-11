@@ -1451,7 +1451,7 @@ end,
 [200104] = function(player)
   local targets = shuffle(player:field_idxs_with_preds({pred.faction.A,pred.follower}))
   if #targets >= 2 then
-    local buff_amt = math.abs(player.field[targets[1]].size - player.field[targets[2]].size)
+    local buff_amt = min(4, math.abs(player.field[targets[1]].size - player.field[targets[2]].size))
     local buff = OnePlayerBuff(player)
     for i=1,2 do
       buff[targets[i]] = {atk={"+",buff_amt},sta={"+",buff_amt}}
@@ -8545,7 +8545,8 @@ end,
 
 --[[ Pass the Blood ]]
 [200532] = function(player)
-  if player.field[3] and pred.follower(player.field[3]) then
+  local card = player.field[3]
+  if card and pred.follower(card) and pred.faction.D(card) then
     local mag = min(3, #player:field_idxs_with_preds(pred.follower))
     OneBuff(player, 3, {def={"+", mag}}):apply()
   end
@@ -9495,7 +9496,7 @@ end,
       mag = mag + opponent.deck[idx3].size
     end
     mag = floor(mag / 3)
-    buff.field[player][0] = {life={"-", mag}}
+    buff.field[opponent][0] = {life={"-", mag}}
     buff:apply()
     player:destroy(idx)
     if idx2 then
@@ -9695,7 +9696,7 @@ end,
   local idx = opponent:last_empty_field_slot()
   if idx then
     if my_card.size >= 2 then
-      OneBuff(player, my_idx, "_ _ _ -1"):apply()
+      OneBuff(player, my_idx, {size={"=",1}}):apply()
       player.field[my_idx], opponent.field[idx] = nil, my_card
       my_card.active = false
     else
@@ -9777,6 +9778,7 @@ end,
   local impact = Impact(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower)) do
     impact[player][idx] = true
+    player.field[idx]:gain_skill(1574) -- Zero
   end
   if pred.C(player.character) then
     local idx = player:first_empty_field_slot()
@@ -9815,29 +9817,18 @@ end,
     buff.hand[opponent][idx] = "_ _ -2"
     mag = mag + min(opponent.hand[idx].sta - 1, 2)
   end
+  for _, idx in ipairs(opponent:field_idxs_with_preds(pred.follower)) do
+    buff.field[opponent][idx] = "_ _ -2"
+    mag = mag + min(opponent.field[idx].sta, 2)
+  end
   for _, idx in ipairs(player:field_idxs_with_preds(pred.union(pred.crescent, pred.scardel), pred.follower)) do
     buff.field[player][idx] = {sta={"+", mag}}
   end
   buff:apply()
 end,
 
---[[ White Whale Rush ]]
-[200628] = function(player, opponent, my_idx)
-  local buff = GlobalBuff(player)
-  local player_idx = uniformly(player:field_idxs_with_preds(pred.follower))
-  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
-  if player_idx then
-    buff.field[player][player_idx] = op_idx and "+1 _ +2" or "+1 _ +1"
-  end
-  if op_idx then
-    buff.field[opponent][op_idx] = {}
-  end
-  buff:apply()
-  if op_idx then
-    opponent:field_to_bottom_deck(op_idx)
-  end
-  player:field_to_exile(my_idx)
-end,
+--[[ Maple Viewing ]]
+[200628] = function() end, --Added this in case the missing id matters so code this later
 
 --[[ Girl's Dream ]]
 [200629] = function(player, opponent)
@@ -9858,6 +9849,24 @@ end,
       opponent:field_to_bottom_deck(idx)
     end
   end
+end,
+
+--[[ White Whale Rush ]]
+[200630] = function(player, opponent, my_idx)
+  local buff = GlobalBuff(player)
+  local player_idx = uniformly(player:field_idxs_with_preds(pred.follower))
+  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  if player_idx then
+    buff.field[player][player_idx] = op_idx and "+1 _ +2" or "+1 _ +1"
+  end
+  if op_idx then
+    buff.field[opponent][op_idx] = {}
+  end
+  buff:apply()
+  if op_idx then
+    opponent:field_to_bottom_deck(op_idx)
+  end
+  player:field_to_exile(my_idx)
 end,
 
 }

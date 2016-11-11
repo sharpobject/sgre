@@ -32,6 +32,12 @@ local ep7_recycle = function(player)
   end
 end
 
+local starter_burn = function(player)
+  if player.opponent:is_npc() then
+    OneBuff(player.opponent,0,{life={"-",1}}):apply()
+  end
+end
+
 local wedding_shuffles = function(player)
   if (not player.opponent:is_npc()) and player.shuffles == 0 then
     player.shuffles = 1
@@ -47,9 +53,6 @@ local sita_vilosa = function(player)
     end
   end
   buff:apply()
-  if player.opponent:is_npc() then
-    OneBuff(player.opponent,0,{life={"-",1}}):apply()
-  end
 end
 
 local cinia_pacifica = function(player)
@@ -57,9 +60,6 @@ local cinia_pacifica = function(player)
   if #target_idxs > 0 then
     local target_idx = uniformly(target_idxs)
     OneBuff(player.opponent,target_idx,{atk={"-",1},sta={"-",1}}):apply()
-  end
-  if player.opponent:is_npc() then
-    OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
 end
 
@@ -69,16 +69,10 @@ local luthica_preventer = function(player)
     local target_idx = uniformly(target_idxs)
     OneBuff(player,target_idx,{atk={"+",1},sta={"+",1}}):apply()
   end
-  if player.opponent:is_npc() then
-    OneBuff(player.opponent,0,{life={"-",1}}):apply()
-  end
 end
 
 local iri_flina = function(player)
   if player:field_size() > player.opponent:field_size() then
-    OneBuff(player.opponent,0,{life={"-",1}}):apply()
-  end
-  if player.opponent:is_npc() then
     OneBuff(player.opponent,0,{life={"-",1}}):apply()
   end
 end
@@ -266,16 +260,28 @@ end
 characters_func = {
 
 --Mysterious Girl Sita Vilosa
-[100001] = sita_vilosa,
+[100001] = function(player)
+  sita_vilosa(player)
+  starter_burn(player)
+end,
 
 --Beautiful and Smart Cinia Pacifica
-[100002] = cinia_pacifica,
+[100002] = function(player)
+  cinia_pacifica(player)
+  starter_burn(player)
+end,
 
 --Crux Knight Luthica
-[100003] = luthica_preventer,
+[100003] = function(player)
+  luthica_preventer(player)
+  starter_burn(player)
+end,
 
 --Runaway Iri Flina
-[100004] = iri_flina,
+[100004] = function(player)
+  iri_flina(player)
+  starter_burn(player)
+end,
 
 --Nold
 [100005] = function(player)
@@ -756,24 +762,28 @@ end,
 -- wedding dress sita
 [100036] = function(player)
   sita_vilosa(player)
+  starter_burn(player)
   wedding_shuffles(player)
 end,
 
 -- wedding dress cinia
 [100037] = function(player)
   cinia_pacifica(player)
+  starter_burn(player)
   wedding_shuffles(player)
 end,
 
 -- wedding dress luthica
 [100038] = function(player)
   luthica_preventer(player)
+  starter_burn(player)
   wedding_shuffles(player)
 end,
 
 -- wedding dress iri
 [100039] = function(player)
   iri_flina(player)
+  starter_burn(player)
   wedding_shuffles(player)
 end,
 
@@ -2020,16 +2030,16 @@ end,
 end,
 
 -- Sita Vilosa
-[100140] = sita_vilosa,
+[100140] = sita_vilosa, -- not sure if this should have the anti-NPC burn
 
 -- Cinia Pacifica
-[100141] = cinia_pacifica,
+[100141] = cinia_pacifica, -- not sure if this should have the anti-NPC burn
 
 -- Luthica Preventer
-[100142] = luthica_preventer,
+[100142] = luthica_preventer, -- not sure if this should have the anti-NPC burn
 
 -- Iri Flina
-[100143] = iri_flina,
+[100143] = iri_flina, -- not sure if this should have the anti-NPC burn
 
 -- Henlifei
 [100144] = function(player, opponent)
@@ -7265,10 +7275,10 @@ end,
 [110306] = function(player, opponent)
   local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
   if idx then
-    OneBuff(opponent, idx, "-1 _ -1"):apply()
     for s_idx, _ in pairs(opponent.field[idx].skills) do
       opponent.field[idx]:remove_skill_until_refresh(s_idx)
     end
+    OneBuff(opponent, idx, "-1 _ -1"):apply()
   end
 end,
 

@@ -5827,7 +5827,7 @@ end,
 -- Witch Rianna
 -- Equalize
 [1540] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  if other_card and pred.A(player) and other_card.atk > Card(other_card.id).atk then
+  if other_card and pred.A(player.character) and other_card.atk > Card(other_card.id).atk then
     local mag = ceil((my_card.atk + other_card.atk) / 2)
     local buff = GlobalBuff(player)
     buff.field[player][my_idx] = {atk={"=", mag}}
@@ -6356,6 +6356,7 @@ end,
     end
     buff:apply()
     player.field[idx], player.field[my_idx] = my_card, nil
+    my_card.active = false
   end
 end,
 
@@ -6765,7 +6766,7 @@ end,
 -- Knight Agent Mytyl
 -- Terrain Adaptation
 [1650] = function(player, my_idx)
-  if my_idx % 2 == 1 then
+  if my_idx % 2 == 0 then
     OneBuff(player, my_idx, "+1 _ +1"):apply()
   end
 end,
@@ -6900,12 +6901,17 @@ end,
   if other_card then
     local orig = Card(other_card.id)
     local mag = {}
+    local check = false
     for _, stat in ipairs({"atk", "def", "sta"}) do
       if other_card[stat] > orig[stat] then
         mag[stat] = {"=", max(orig[stat] - 5, other_card[stat] - 2 * (other_card[stat] - orig[stat]))}
+        check = true
       end
     end
-    OneBuff(player, my_idx, mag):apply()
+    OneBuff(player.opponent, other_idx, mag):apply()
+	if check then
+      my_card:remove_skill_until_refresh(skill_idx)
+	end
   end
 end,
 
@@ -6914,7 +6920,7 @@ end,
 [1665] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local buff = GlobalBuff(player)
   if other_card then
-    buff.field[player.opponent][other_idx] = {sta={"+", ceil(my_card.atk / 2)}}
+    buff.field[player.opponent][other_idx] = {sta={"+", floor(my_card.atk / 2)}}
   end
   buff.field[player][my_idx] = "_ _ +3"
   buff:apply()
@@ -6937,7 +6943,7 @@ end,
     local mag = ceil(abs(my_card.def - orig.def) / 2)
     buff.field[player][my_idx] = {atk={"+", mag}, def={"=", orig.def}}
     if other_card then
-      buff.field[player.opponent][other_idx] = {atk={"+", mag}, sta={"+", mag}}
+      buff.field[player.opponent][other_idx] = {atk={"-", mag}, sta={"-", mag}}
     end
     buff:apply()
   end
