@@ -3,6 +3,21 @@ local love = love
 
 local generic_text_color = {155, 94, 33, 255}
 local cardinfo_text_color = {128, 82, 36}
+do
+  local function unsetstencil()
+    love.graphics.rectangle("fill", -100,-100,9999,9999)
+  end
+  if not love.graphics.setStencil then
+    love.graphics.setStencil = function(f)
+      love.graphics.stencil(f or unsetstencil)
+    end
+    local oprint = love.graphics.print
+    local floor = math.floor
+    love.graphics.print = function(text, x, y, ...)
+      oprint(text, floor(x), floor(y), ...)
+    end
+  end
+end
 
 do
   local font_map = {}
@@ -203,7 +218,7 @@ function graphics_init()
   IMG_tstamp = 1
   IMG_count = 0
 
-  SUPPORTS_MIPMAPS = love.graphics.isSupported("mipmap")
+  SUPPORTS_MIPMAPS = false and love.graphics.getSupported("mipmap")
 
   IMG_card[900000], IMG_gray_card[900000], card_width, card_height,
     texture_width, texture_height = load_image_on_main_thread(900000)

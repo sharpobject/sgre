@@ -1,9 +1,15 @@
+local mouse_map = {
+  "l",
+  "r",
+}
 function love.mousepressed(x,y,which)
-  loveframes.mousepressed(x, y, which)
+  print(x,y,which)
+  loveframes.mousepressed(x, y, mouse_map[which] or which)
 end
 
 function love.mousereleased(x, y, which)
-  loveframes.mousereleased(x, y, which)
+  print(x,y,which)
+  loveframes.mousereleased(x, y, mouse_map[which] or which)
 end
 
 function love.keypressed(key, unicode)
