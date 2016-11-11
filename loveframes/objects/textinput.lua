@@ -813,9 +813,11 @@ function newobject:RunKey(key, istext)
 			lines[line] = text
 			self:MoveIndicator(1)
 		elseif indicatornum == #text then
-			text = text .. key
-			lines[line] = text
-			self:MoveIndicator(1)
+			if (key:byte() > 31 and key:byte() < 127) then
+				text = text .. key
+				lines[line] = text
+				self:MoveIndicator(1)
+			end
 		elseif indicatornum == 0 then
 			text = self:AddIntoText(key, indicatornum)
 			lines[line] = text
@@ -1850,6 +1852,12 @@ function newobject:Paste()
 			end
 		end
 	end
+	local replaceinvalidchar = function(a)
+		if a:byte() < 32 or a:byte() > 126 then
+			return ""
+		end
+	end
+	text = text:gsub(".", replaceinvalidchar)
 	local charcheck = function(a)
 		if #usable > 0 then
 			if not loveframes.util.TableHasValue(usable, a) then
