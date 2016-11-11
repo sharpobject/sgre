@@ -1865,7 +1865,7 @@ function main_xmute()
             table.insert(card_list,{k,v})
           end
         elseif xmute_type=="accessory" then
-          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) then
+          if (k >= 210001 and k <= 210007) or (k >= 210022 and k <= 210028) or (k >= 210049 and k <= 210053) then
             table.insert(card_list,{k,v})
           end
         elseif xmute_type=="ore" then
@@ -2116,13 +2116,13 @@ end
 
 local easy_dungeons = {{"Beginner Dungeon", 1}, {"Intermediate Dungeon", 2},
     {"Advanced Dungeon", 3}, {"Bamboo Garden", 8}, {"Dream Island", 14},
-    {"2S Detective Agency", 18}, {"Muzisitter Land", 28}, }
+    {"2S Detective Agency", 18}, {"Muzisitter Land", 28}, {"Attack on Royle", 36}, }
 local normal_dungeons = {{"Frontier Ruins", 4}, {"Witch's Tower", 5},
     {"Crux Training Camp", 7}, {"Linia's Mansion", 9}, {"Vampire Lands", 10},
     {"Vita Public School", 12}, {"Vivid World", 13}, {"Catacombs", 16},
     {"Ancient Sanctuary", 17}, {"Catch That Cat", 21}, {"Underground Library", 23},
     {"Underground Altar", 24}, {"Royle City", 25}, {"Weekly The Legend", 33}, 
-    {"Dimensional Rift", 34}, {"Altar of Kana", 35}, {"Attack on Royle", 36}}
+    {"Dimensional Rift", 34}, {"Altar of Kana", 35}, }
 local hard_dungeons = {{"Shadowland", 6}, {"Goddess Tower", 11},
     {"Linia's World", 22}, }
 local extra_dungeons = {{"Muspelheim Compendium", 15}, }
