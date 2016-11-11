@@ -749,12 +749,20 @@ function main_lobby()
       from_lobby = {main_xmute}
     end
 --    table.insert(frames.lobby.game_buttons, button)
+    local deck_warn_text = loveframes.Create("text")
+    deck_warn_text:SetText({{color = {215, 0, 0, 255}}, "Active deck is invalid! Needs 31 cards!"})
+    deck_warn_text:SetY(5)
+    deck_warn_text:CenterX()
+    deck_warn_text:SetVisible(false)
+    deck_warn_text:SetState("lobby")
+    frames.lobby.deck_warn_text = deck_warn_text
   end
 
   local enable_buttons = check_active_deck()
   for _,button in ipairs(frames.lobby.game_buttons) do
     button:SetEnabled(enable_buttons)
   end
+  frames.lobby.deck_warn_text:SetVisible(not enable_buttons)
 
   loveframes.SetState("lobby")
   play_bgm("lobby")
@@ -1642,28 +1650,55 @@ function main_cafe()
     end
     frames.cafe.update_feeding_list()
 
-    function frames.cafe.popup_notification(message)
+    function frames.cafe.popup_notification(from_id, to_id)
+      -- clean up decks if last character used
+      if not user_data.collection[from_id] then
+        for i,deck in pairs(user_data.decks) do
+          if deck[from_id] then
+            local diff = {}
+            diff[from_id] = -1
+            diff[to_id] = 1
+            update_deck(user_data.decks[i], diff)
+            net_send({type="update_deck", idx=i, diff=diff})
+          end
+        end
+      end
       local notification = loveframes.Create("frame", cafe)
       frames.cafe.notification = notification
       notification:SetState("cafe")
       notification:SetName("Attention!")
-      notification:SetWidth(250)
-      notification:SetHeight(180)
+      notification:SetWidth(300)
+      notification:SetHeight(200)
       notification:CenterX()
       notification:CenterY()
       notification:SetModal(true)
+      notification:SetDraggable(false)
       loveframes.modalobject.modalbackground:SetState("cafe")
       notification:ShowCloseButton(false)
 
       local text = loveframes.Create("text", notification)
       text:SetDefaultColor(generic_text_color)
-      text:SetText(message)
-      text:Center()
+      text:SetText("Transformation!")
+      text:CenterX()
+      text:SetY(30)
+
+      local button = card_list_button(from_id, false, nil, function() end)
+      button:SetParent(notification)
+      button:SetPos(30, 50)
+
+      local arrow = loveframes.Create("text", notification)
+      arrow:SetDefaultColor(generic_text_color)
+      arrow:SetText("->")
+      arrow:Center()
+
+      local button = card_list_button(to_id, false, nil, function() end)
+      button:SetParent(notification)
+      button:SetPos(190, 50)
 
       local ok_button = loveframes.Create("button", notification)
       ok_button:SetWidth(40)
       ok_button:SetHeight(20)
-      ok_button:SetY(120)
+      ok_button:SetY(170)
       ok_button:CenterX()
       ok_button:SetText("Okay")
       ok_button.OnClick = function()
