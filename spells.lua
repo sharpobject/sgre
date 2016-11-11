@@ -6305,7 +6305,7 @@ Limit Break
     return
   end
   local f_idx = player:first_empty_field_slot()
-  local d_idx = #player.nth_deck_idx(8)
+  local d_idx = player:nth_deck_idx(8)
   if not f_idx or d_idx < 1 then
     return
   end
@@ -7708,7 +7708,7 @@ end,
   Sita's Delivery
 ]]
 [200482] = function(player)
-  local idx5, idx7, idx9 = player.nth_deck_idx(5), player.nth_deck_idx(7), player.nth_deck_idx(9)
+  local idx5, idx7, idx9 = player:nth_deck_idx(5), player:nth_deck_idx(7), player:nth_deck_idx(9)
   for _,deck_idx in ipairs({idx5,idx7}) do
     if player.deck[deck_idx] and pred.V(player.deck[deck_idx]) then
       local field_idx = player:first_empty_field_slot()

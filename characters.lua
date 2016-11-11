@@ -3119,7 +3119,7 @@ end,
     return
   end
   local buff = GlobalBuff(player)
-  local idx1, idx3 = player.nth_deck_idx(1), player.nth_deck_idx(3)
+  local idx1, idx3 = player:nth_deck_idx(1), player:nth_deck_idx(3)
   if player.deck[idx1] then
     buff.deck[player][idx1] = {size={"-", 1}}
     if player.deck[idx3] then
