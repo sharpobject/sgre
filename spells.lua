@@ -9467,10 +9467,10 @@ end,
   local pred_defend = function(card)
     for _, id in pairs(card.skills) do
       if skill_id_to_type[id] == "defend" then
-        return false
+        return true
       end
     end
-    return true
+    return false
   end
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_defend)) do
     buff.field[player][idx] = "_ _ -3"
