@@ -9807,7 +9807,7 @@ end,
   if idx then
     local o = Card(opponent.field[idx].id)
     local mag = abs(o.size - opponent.field[idx].size)
-    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+    OneBuff(opponent, idx, {size={"=", o.size}, atk={"-", mag}, sta={"-", mag}}):apply()
   end
 end,
 
