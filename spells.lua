@@ -9395,12 +9395,15 @@ end,
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred.lady)) do
     local c = player.field[idx]
+	local new_size = c.size
     local mag = {}
-    if c.size >= 3 then
+    if new_size >= 3 then
       mag.atk = {"+", 1}
       mag.size = {"-", 1}
-    elseif c.size <= 3 then
-      mag.sta = {"+", c.size}
+	  new_size = new_size - 1
+	end
+    if new_size <= 3 then
+      mag.sta = {"+", new_size}
     end
     buff[idx] = mag
   end
