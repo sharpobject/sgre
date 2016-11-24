@@ -6624,6 +6624,7 @@ end,
     buff[idx] = {size={"=", mag}}
   end
   buff:apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Lady Marie Lunen
@@ -6883,6 +6884,7 @@ end,
 [1661] = function(player, my_idx, my_card, skill_idx)
   local mag = 7 - my_card.upgrade_lvl
   OneBuff(player, my_idx, {atk={"+", my_card.size - mag}, sta={"+", my_card.size - mag}, size={"=", mag}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- 2nd Princess Hanobelle
@@ -6890,6 +6892,7 @@ end,
 [1662] = function(player, my_idx, my_card, skill_idx)
   local mag = my_card.upgrade_lvl
   OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- DTD (Muspelheim)
