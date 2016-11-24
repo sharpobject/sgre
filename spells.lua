@@ -9378,7 +9378,7 @@ end,
     mag = mag + (pred.follower(player.deck[i]) and 1 or 0)
   end
   local pred_size = function(c) return c.size < mag end
-  local idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  local idx = opponent:field_idxs_with_preds(pred.spell, pred_size)[1]
   if idx then
     OneImpact(opponent, idx):apply()
     opponent:field_to_exile(idx)
