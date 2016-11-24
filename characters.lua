@@ -2940,7 +2940,7 @@ end,
     local id = 300193 -- GS Fighter
     player:to_grave(Card(id))
     player:to_bottom_deck(Card(id))
-    if not player[5] then
+    if not player.hand[5] then
       player:to_hand(Card(id))
     end
     local mag = min(#player:field_idxs_with_preds(pred.gs), 3)
