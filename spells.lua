@@ -9648,9 +9648,9 @@ end,
     player:field_to_top_deck(my_idx)
   else
     player.shuffles = opponent.shuffles
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
-      OneBuff(player, idx, {def={"-", player.shuffles}}):apply()
+      OneBuff(opponent, idx, {def={"-", player.shuffles}}):apply()
     end
   end
 end,
