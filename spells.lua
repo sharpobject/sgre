@@ -9527,8 +9527,8 @@ end,
     local mag_def = 0
     local mag_sta = 0
     for i = 1, 5 do
-      if pred.inter(pred.exists, pred.follower)(player.field[i]) and player.field[i].sta > mag_sta then
-        mag_sta = player.field[i].sta
+      if pred.inter(pred.exists, pred.follower)(player.field[i]) and player.field[i].def > mag_def then
+        mag_def = player.field[i].def
       end
       if pred.inter(pred.exists, pred.follower)(opponent.field[i]) and opponent.field[i].sta > mag_sta then
         mag_sta = opponent.field[i].sta
