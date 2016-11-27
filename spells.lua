@@ -9467,10 +9467,10 @@ end,
   local pred_defend = function(card)
     for _, id in pairs(card.skills) do
       if skill_id_to_type[id] == "defend" then
-        return false
+        return true
       end
     end
-    return true
+    return false
   end
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred_defend)) do
     buff.field[player][idx] = "_ _ -3"
@@ -9527,8 +9527,8 @@ end,
     local mag_def = 0
     local mag_sta = 0
     for i = 1, 5 do
-      if pred.inter(pred.exists, pred.follower)(player.field[i]) and player.field[i].sta > mag_sta then
-        mag_sta = player.field[i].sta
+      if pred.inter(pred.exists, pred.follower)(player.field[i]) and player.field[i].def > mag_def then
+        mag_def = player.field[i].def
       end
       if pred.inter(pred.exists, pred.follower)(opponent.field[i]) and opponent.field[i].sta > mag_sta then
         mag_sta = opponent.field[i].sta
@@ -9807,7 +9807,7 @@ end,
   if idx then
     local o = Card(opponent.field[idx].id)
     local mag = abs(o.size - opponent.field[idx].size)
-    OneBuff(opponent, idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+    OneBuff(opponent, idx, {size={"=", o.size}, atk={"-", mag}, sta={"-", mag}}):apply()
   end
 end,
 
