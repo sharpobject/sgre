@@ -457,8 +457,8 @@ function Connection:try_login(msg)
     data.cafe = {}
     modified_file(data)
   end
-  if #data.decks < 10 then
-    for i=1,10 do
+  if #data.decks < 20 then
+    for i=1,20 do
       data.decks[i] = data.decks[i] or {}
     end
     modified_file(data)
