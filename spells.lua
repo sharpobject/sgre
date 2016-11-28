@@ -9524,14 +9524,14 @@ end,
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     local mag_atk = floor(player.field[idx].atk / 2)
-    local mag_def = 0
-    local mag_sta = 0
-    for i = 1, 5 do
-      if pred.inter(pred.exists, pred.follower)(player.field[i]) and player.field[i].def > mag_def then
-        mag_def = player.field[i].def
-      end
-      if pred.inter(pred.exists, pred.follower)(opponent.field[i]) and opponent.field[i].sta > mag_sta then
-        mag_sta = opponent.field[i].sta
+    local mag_def = player.field[idx].def
+    local mag_sta = player.field[idx].sta
+    for _,p in ipairs({player, opponent}) do
+      for i = 1, 5 do
+        if p.field[i] and pred.follower(p.field[i]) then
+          mag_def = max(mag_def, p.field[i].def)
+          mag_sta = max(mag_sta, p.field[i].sta)
+        end
       end
     end
     OneBuff(player, idx, {atk={"=", mag_atk}, def={"=", mag_def}, sta={"=", mag_sta}}):apply()
