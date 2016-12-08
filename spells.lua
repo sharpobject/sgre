@@ -5334,9 +5334,12 @@ You get LIFE - half the card's DEF
 ]]
 [200356] = function(player, opponent)
   local idx = opponent:field_idxs_with_preds(function(card)
-      return pred.follower(card) and card.def + card.size == 5 end)[1]
+      return card.size + (pred.follower(card) and card.def or 0) == 5 end)[1]
   if idx then
-    opponent:field_to_grave(idx)
+    local card = opponent.field[idx]
+    local life = pred.follower(card) and ceil(card.def/2) or 0
+    OneBuff(player,0,{life={"-",life}}):apply()
+    opponent:destroy(idx)
   end
 end,
 
