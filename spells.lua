@@ -2535,7 +2535,7 @@ end,
       opponent:field_to_exile(idx)
     end
   end
-  local targets = player:field_idxs_with_preds(pred.follower)
+  local targets = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i=1,2 do
     if targets[i] then
@@ -4141,8 +4141,8 @@ end,
 
 -- really quick service
 [200287] = function(player, opponent, my_idx, my_card)
-  local hand_idxs = opponent:hand_idxs_with_preds(pred.follower)
-  local field_idxs = opponent:field_idxs_with_preds(pred.follower)
+  local hand_idxs = shuffle(opponent:hand_idxs_with_preds(pred.follower))
+  local field_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   for i=1,min(2, #hand_idxs, #field_idxs) do
     opponent.field[field_idxs[i]], opponent.hand[hand_idxs[i]] =
         opponent.hand[hand_idxs[i]], opponent.field[field_idxs[i]]
@@ -5172,7 +5172,7 @@ STA - total DEF of all enemy Followers / 2 rounded up + 1
   for _,idx in ipairs(idxs) do
     mag = mag + opponent.field[idx].def
   end
-  idxs = player:field_idxs_with_preds(pred.follower, pred.faction.D)
+  idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.faction.D))
   local buff = OnePlayerBuff(player)
   for i=1,min(2,#idxs) do
     buff[idxs[i]] = {atk={"+",mag},sta={"-",ceil(mag/2)-1}}
@@ -5896,8 +5896,8 @@ end,
 Personal Relationship
 ]]
 [200385] = function(player, opponent)
-  local player_idxs = player:field_idxs_with_preds(pred.follower, pred.V)
-  local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+  local player_idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.V))
+  local op_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   for i=1,min(2,#player_idxs) do
     buff.field[player][player_idxs[i]] = {atk={"+",2},sta={"+",2}}
@@ -5971,8 +5971,8 @@ end,
 Myo Clan's Aid
 ]]
 [200389] = function(player, opponent)
-  local player_idxs = player:field_idxs_with_preds(pred.follower, pred.A)
-  local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+  local player_idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.A))
+  local op_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   for i=1,min(2,#player_idxs) do
     buff.field[player][player_idxs[i]] = {atk={"+",2},sta={"+",2}}
@@ -6057,8 +6057,8 @@ end,
 No Gain
 ]]
 [200393] = function(player, opponent)
-  local player_idxs = player:field_idxs_with_preds(pred.follower, pred.C)
-  local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+  local player_idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.C))
+  local op_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   for i=1,min(2,#player_idxs) do
     buff.field[player][player_idxs[i]] = {atk={"+",2},sta={"+",2}}
@@ -6155,8 +6155,8 @@ end,
 Iri's Enjoyment
 ]]
 [200397] = function(player, opponent)
-  local player_idxs = player:field_idxs_with_preds(pred.follower, pred.D)
-  local op_idxs = opponent:field_idxs_with_preds(pred.follower)
+  local player_idxs = shuffle(player:field_idxs_with_preds(pred.follower, pred.D))
+  local op_idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = GlobalBuff(player)
   for i=1,min(2,#player_idxs) do
     buff.field[player][player_idxs[i]] = {atk={"+",2},sta={"+",2}}
@@ -6263,7 +6263,7 @@ Spirit Encounter
   if not pred.V(player.character) then
     return
   end
-  local idxs = opponent:field_idxs_with_preds(pred.follower)
+  local idxs = shuffle(opponent:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(opponent)
   for i=1,min(2,#idxs) do
     buff[idxs[i]] = {atk={"-",2}}
@@ -8267,7 +8267,7 @@ end,
     end
   else
     local buff = OnePlayerBuff(player)
-    local idxs = player:field_idxs_with_preds(pred.follower)
+    local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
     for i = 1, 2 do
       if idxs[i] then
         buff[idxs[i]] = {atk={"-", 2}, sta={"-", 2}}
