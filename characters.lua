@@ -3374,7 +3374,7 @@ end,
 
 -- White Whale Crevasse
 [100250] = function(player)
-  local idx = player:first_empty_field_slot()
+  local idx = uniformly(player:empty_field_slots())
   if not player:field_idxs_with_preds(pred.spell)[1] and idx then
     player.field[idx] = Card(200630) -- White Whale Rush
     OneImpact(player, idx):apply()
