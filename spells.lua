@@ -9886,5 +9886,171 @@ end,
   player:field_to_exile(my_idx)
 end,
 
+--[[ Tennis Experience ]]
+[200631] = function(pl, op, my_idx)
+  op:field_buff_n_random_followers_with_preds(5, "_ _ +2", pred.follower)
+  pl.field[my_idx].active = false
+end,
+
+--[[ Sleep Club Clubroom ]]
+[200632] = function(pl, op)
+  local idx = uniformly(pl:field_idxs_with_preds())
+  if idx then
+    OneImpact(pl, idx):apply()
+    pl.field[idx].active = false
+  end
+  local mag = #pl:field_idxs_with_preds() * #pl:field_idxs_with_preds(pred.neg(pred.active))
+  op:field_buff_n_random_followers_with_preds(1, {sta={"-", mag}}, pred.follower)
+end,
+
+--[[ Declaration of War ]]
+[200633] = function(pl, op)
+  local mag = min(#op.grave, 5)
+  local mag2 = 0
+  for i = 1, min(#op.grave, 5) do
+    if pred.spell(op.grave[1]) then
+      mag2 = mag2 + 1
+    end
+    op:grave_to_exile(1)
+  end
+  mag = mag + mag2
+  for i = 1, min(#op.grave, mag2) do
+    op:grave_to_exile(1)
+  end
+  mag = ceil(mag / 2)
+  pl:field_buff_n_random_followers_with_preds(2, {atk={"+", mag}, sta={"+", mag}}, pred.follower)
+end,
+
+--[[ Maid's Psychological War ]]
+[200634] = function(pl)
+  for i = 1, #pl:field_idxs_with_preds(pred.maid) do
+    pl:field_buff_n_random_followers_with_preds(1, "+1 +1 _", pred.follower)
+  end
+end,
+
+--[[ Curiosity ]]
+[200635] = function(pl, op)
+  local mag = 0
+  for i = 1, min(#op.grave, 3) do
+    if pred.follower(op.grave[#op.grave]) then
+      mag = mag + 1
+    end
+    table.insert(pl.grave, 1, table.remove(op.grave, #op.grave))
+  end
+  op:field_buff_n_random_followers_with_preds(1, {def={"-", mag}}, pred.follower)
+end,
+
+--[[ Broken Heart ]]
+[200636] = function(pl, op, my_idx, my_card)
+  if my_card.size >= 3 then
+    local pl_idx = pl:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
+    local op_idx = op:first_empty_field_slot()
+    if pl_idx and op_idx then
+      OneImpact(pl, pl_idx):apply()
+      pl.field[pl_idx], op.field[op_idx] = nil, pl.field[pl_idx]
+      op.field[op_idx].active = false
+      OneBuff(pl, my_idx, "_ _ _ =1"):apply()
+      my_card.active = false
+    end
+  elseif my_card.size == 1 then
+    local mag = 5 - #op:field_idxs_with_preds(pred.A, pred.follower)
+    if mag < 5 then
+      op:field_buff_n_random_followers_with_preds(5, {atk={"-", mag}, def={"-", mag}, sta={"-", mag}})
+    end
+  end
+end,
+
+--[[ Opening the Gates ]]
+[200637] = function(pl, op)
+  local pred_skills = function(card) return #card:squished_skills() == 3 end
+  if #op:field_idxs_with_preds(pred.follower, pred_skills) > 0 then
+    local idx = uniformly(op:field_idxs_with_preds(pred.follower))
+    if idx then
+      OneImpact(op, idx):apply()
+      op.field[idx]:remove_skill(2)
+    end
+  end
+end,
+
+--[[ Dangerous Meeting ]]
+[200638] = function(pl, op)
+  local idxs = {}
+  for i = 1, min(#op.deck, 2) do
+    local idx1 = op:first_empty_field_slot()
+    local idx2 = op:deck_idxs_with_preds(pred.spell)[1]
+    if idx1 and idx2 then
+      op:deck_to_field(idx2)
+      table.insert(idxs, idx1)
+    end
+  end
+  local impact = Impact(pl)
+  for _, idx in ipairs(idxs) do
+    impact[pl][idx] = true
+  end
+  impact:apply()
+  for _, idx in ipairs(idxs) do
+    op:field_to_top_deck(idx)
+  end
+end,
+
+--[[ Double Dress Up ]]
+[200639] = function(pl)
+  local buff = OnePlayerBuff(pl)
+  local idxs = pl:field_idxs_with_preds(pred.follower)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {size={"=", floor(pl.field[idx].size / 2)}}
+  end
+  buff:apply()
+  for _, idx in ipairs(idxs) do
+    pl.field[idx]:gain_skill(uniformly({1610, 1203, 1698}))
+  end
+end,
+
+--[[ Gather Information ]]
+[200640] = function(pl, op)
+  local pred_same = function(card) return card.faction == pl.character.faction end
+  local mag = #pl:field_idxs_with_preds(pred_same, pred.follower)
+  local buff = GlobalBuff(pl)
+  buff.field[pl][0] = {life={"+", mag}}
+  buff.field[op][0] = {life={"-", ceil(mag / 2)}}
+  buff:apply()
+end,
+
+--[[ Electromaster ]]
+[200641] = function(pl, op)
+  local idxs = {}
+  for _, p in ipairs({pl, op}) do
+    for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
+      table.insert(idxs, {p, idx})
+    end
+  end
+  local idx = uniformly(idxs)
+  if idx then
+    OneImpact(idx[1], idx[2]):apply()
+    idx[1].field[idx[2]]:gain_skill(1514)
+  end
+end,
+
+--[[ Tour ]]
+[200642] = function(pl, op, my_idx)
+  local idx = pl:first_empty_field_slot()
+  if idx and pl.grave[1] then
+    pl.field[idx] = Card(pl.grave[1].id)
+    OneImpact(pl, idx):apply()
+  end
+  local idx = pl:first_empty_hand_slot()
+  if idx and pl.deck[1] then
+    pl.hand[idx] = Card(pl.deck[1].id)
+    local mag = floor(pl.hand[idx].size / 2)
+    pl:field_buff_n_random_followers_with_preds(2, {atk={"+", mag}, sta={"+", mag}})
+  end
+  pl:field_to_exile(my_idx)
+end,
+
+--[[ Coin Factory ]]
+[200643] = function(pl)
+
+end,
+
 }
 setmetatable(spell_func, {__index = function()return function() end end})

@@ -675,13 +675,17 @@ function Player:deck_cards_with_preds(...)
   return map(function(h) return self.deck[h] end, self:deck_idxs_with_preds(...))
 end
 
-function Player:field_buff_n_random_followers_with_preds(n, b, ...)
-  local idxs = shuffle(self:field_idxs_with_preds(pred.follower, ...))
+function Player:field_buff_n_random_cards_with_preds(n, b, ...)
+  local idxs = shuffle(self:field_idxs_with_preds(...))
   local buff = OnePlayerBuff(self)
   for i = 1, min(n, #idxs) do
     buff[idxs[i]] = b
   end
   buff:apply()
+end
+
+function Player:field_buff_n_random_followers_with_preds(n, b, ...)
+  self:field_buff_n_random_cards_with_preds(n, b, pred.follower, ...)
 end
 
 function Player:squish_hand()
