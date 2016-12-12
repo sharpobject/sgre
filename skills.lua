@@ -6845,7 +6845,7 @@ end,
 -- You activated my trap card!
 [1657] = function(player)
   local sk_id = 1658
-  local pred_skill = function(c) 
+  local pred_skill = function(c)
     return c.skills[1] == sk_id or c.skills[2] == sk_id or c.skills[3] == sk_id
   end
   local impact = Impact(player)
@@ -7027,7 +7027,7 @@ end,
     end
   end
 end,
-    
+
 
 -- Flower Cinia
 -- Hang in there!
@@ -7094,7 +7094,7 @@ end,
       end
     end
   end
-end,  
+end,
 
 -- Flower Cinia
 -- Magical Tuning!
@@ -7190,6 +7190,221 @@ end,
     local orig = Card(my_card.id)
     local mag = abs(orig.size - my_card.size)
     OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}, size={"=", orig.size}}):apply()
+  end
+end,
+
+-- Asmis Hara, Lady Rivelta Answer, Knight Guard Canaria, Witch Exchange Student Parfunte
+-- Counterattack Preparations!
+[1685] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  local buff = GlobalBuff(pl)
+  buff.field[pl][my_idx] = {}
+  if op_card then
+    buff.field[pl.opponent][op_idx] = {def={"-", min(abs(my_card.atk - op_card.atk), 5)}}
+  end
+  buff:apply()
+  pl.field[my_idx]:remove_skill(skill_idx)
+end,
+
+-- Library Club Secretary Young
+-- Witness of the Truth
+[1686] = function(pl, my_idx, my_card, skill_idx)
+  local idxs = {}
+  for _, p in ipairs({pl, pl.opponent}) do
+    for _, idx in ipairs(p:field_idxs_with_preds()) do
+      table.insert(idxs, {p, idx})
+    end
+  end
+  local idx = uniformly(idxs)
+  if idx then
+    OneImpact(idx[1], idx[2]):apply()
+    idx[1].field[idx[2]].active = false
+    local mag = idx[1].field[idx[2]].size
+      * (#pl:field_idxs_with_preds(pred.neg(pred.active)) + #pl.opponent:field_idxs_with_preds(pred.neg(pred.active)))
+    OneBuff(pl, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+end,
+
+-- Celine Hastur
+-- Dream's Revival
+[1687] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card and my_card.def + my_card.sta <= op_card.atk then
+    OneImpact(pl, my_idx):apply()
+    pl:field_to_grave(my_idx)
+    local idx = pl:deck_idxs_with_preds(pred.follower)[1]
+    if idx then
+      local mag = pl.deck[idx].sta
+      OneBuff(pl.opponent, op_idx, {atk={"+", mag}}):apply()
+    else
+      OneImpact(pl.opponent, op_idx):apply()
+    end
+    pl.opponent.field[op_idx], pl.field[my_idx] = nil, pl.opponent.field[op_idx]
+  end
+end,
+
+-- Guard Maid
+-- Maid Unity!
+[1688] = function(pl, my_idx, my_card, skill_idx)
+  local idxs = pl:field_idxs_with_preds(pred.maid, pred.follower)
+  local buff = OnePlayerBuff(pl)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {atk={"+", #idxs}, sta={"+", #idxs}}
+  end
+  buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Guard Maid
+-- Maid Will!
+[1689] = function(pl, my_idx, my_card, skill_idx)
+  local idxs = pl:field_idxs_with_preds(pred.maid, pred.follower)
+  local buff = OnePlayerBuff(pl)
+  for _, idx in ipairs(idxs) do
+    buff[idx] = {def={"+", #idxs - 1}, sta={"+", #idxs - 1}}
+  end
+  buff:apply()
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Insomniac Lady
+-- Curse of Insomnia
+[1690] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if pl.grave[1] then
+    local mag = pred.follower(pl.grave[#pl.grave]) and "-2 _ -1" or "_ -1 -2"
+    pl:grave_to_exile(#pl.grave)
+    if op_card then
+      OneBuff(pl.opponent, op_idx, mag):apply()
+    end
+  end
+end,
+
+-- Insomniac Lady
+-- Hysteria
+[1691] = function(pl, my_idx, my_card)
+  local pred_diff = function(card) return card ~= my_card end
+  local idx = uniformly(pl:field_idxs_with_preds(pred.follower, pred_diff))
+  if idx then
+    local buff = OnePlayerBuff(pl)
+    buff[idx] = "_ _ -1"
+    buff[my_idx] = "_ _ +3"
+    buff:apply()
+  end
+end,
+
+-- Seeker Irene
+-- Lend Power!
+[1692] = function(pl, my_idx, my_card, skill_idx)
+  OneImpact(pl, my_idx):apply()
+  local check = #my_card:squished_skills()
+  my_card:gain_skill(my_card:squished_skills()[2])
+  if #my_card:squished_skills() ~= check then
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Crux Knight Pipit
+-- Improve Tactics!
+[1693] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  OneBuff(pl, my_idx, op_card and op_card.atk > my_card.atk and "+2 +1 +2" or "+1 _ +1"):apply()
+end,
+
+-- Crescent Woodbridge
+-- Vision
+[1694] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card and op_card.atk >= my_card.def + my_card.sta then
+    OneBuff(pl.opponent, op_idx, "-1 _ -2"):apply()
+    op_card.skills = {1076}
+  end
+end,
+
+-- Troublemakers Shion Rion
+-- Depressed...
+[1695] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local pred_size = function(card) return card.size == op_card.size end
+    local mag = #pl.opponent:grave_idxs_with_preds(pred_size)
+    OneBuff(pl.opponent, op_idx, {atk={"-", mag}, sta={"-", mag}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Troublemakers Shion Rion
+-- Gloomy...
+[1696] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    local pred_size = function(card) return card.size == op_card.size end
+    local mag = #pl:grave_idxs_with_preds(pred_size)
+    OneBuff(pl, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- To The Grave
+[1697] = function(pl, my_idx)
+  OneImpact(pl, my_idx):apply()
+  pl:field_to_grave(my_idx)
+end,
+
+-- Results of Training
+[1698] = function(pl, my_idx)
+  OneBuff(pl, my_idx, "+1 +1 +1"):apply()
+end,
+
+-- Coin Outcast
+-- Coin Curse
+[1699] = function(pl, my_idx, my_card, skill_idx)
+  local pred_sta = function(card) return card.sta >= 2 end
+  local idx = uniformly(pl:hand_idxs_with_preds(pred.follower, pred_sta))
+  if idx then
+    local buff = GlobalBuff(pl)
+    buff.hand[pl][idx] = "=1 _ =1"
+    buff.field[pl][my_idx] = {atk={"+", abs(pl.hand[idx].atk - 1)}, sta={"+", abs(pl.hand[idx].sta - 1)}}
+    buff:apply()
+  else
+    OneImpact(pl, my_idx):apply()
+  end
+  if pl.won_flip then
+    my_card:remove_skill_until_refresh(skill_idx)
+  else
+    my_card:remove_skill(skill_idx)
+  end
+end,
+
+-- Elleon and Sita
+-- Soul Trance
+[1700] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card and op_card.def + op_card.sta <= my_card.atk then
+    OneBuff(pl, my_idx, "+1 +1 +1"):apply()
+  end
+end,
+
+-- May and Cinia
+-- Magma Mutant
+[1701] = function(pl, my_idx, my_card, skill_idx)
+  local pred_low = function(card) return card.atk + card.sta <= 15 end
+  local idx = uniformly(pl:field_idxs_with_preds(pred.follower, pred_low))
+  if idx then
+    local buff = OnePlayerBuff(pl)
+    buff[my_idx] = {}
+    buff[idx] = "=8 _ =8"
+    buff:apply()
+  else
+    OneImpact(pl, my_idx):apply()
+  end
+  my_card:remove_skill_until_refresh(skill_idx)
+end,
+
+-- Tinia and Luthica
+-- Magic scroll
+[1702] = function(pl, my_idx, my_card, skill_idx)
+  OneBuff(pl, my_idx, "+3 _ +2"):apply()
+  my_card:remove_skill(skill_idx)
+end,
+
+-- Audry and Iri
+-- Vampire Attack
+[1703] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
+  if op_card then
+    OneBuff(pl, my_idx, {sta={"+", ceil((my_card.atk - op_card.def) / 2)}}):apply()
   end
 end,
 
