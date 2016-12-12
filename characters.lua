@@ -3808,7 +3808,9 @@ end,
   local idx = pl:field_idxs_with_most_and_preds(pred.sta, pred.follower)[1]
   if idx then
     OneBuff(pl, idx, pred.V(pl.field[idx]) and "+2 +1 -1" or "_ +1 -1"):apply()
-    pl.field[idx].active = false
+    if pl.field[idx] then
+      pl.field[idx].active = false
+    end
   end
 end,
 
