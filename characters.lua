@@ -3659,9 +3659,11 @@ end,
   local my_idx = uniformly(player:field_idxs_with_preds(pred.follower, pred.V))
   local buff = GlobalBuff(player)
   if my_idx then
-    local mag = min(3, floor(player.field[my_idx].size / 2))
-    buff.field[player][my_idx] = {size={"+", 1}, atk={"+", mag}, sta={"+", mag}}
-  local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    OneBuff(player, my_idx, {size={"+", 1}}):apply()
+    local new_size = player.field[my_idx].size
+    local mag = min(3, floor(new_size / 2))
+    buff.field[player][my_idx] = {atk={"+", mag}, sta={"+", mag}}
+    local op_idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if op_idx then
       buff.field[opponent][op_idx] = {sta={"-", mag}}
     end
