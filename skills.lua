@@ -3747,7 +3747,7 @@ end,
   end
 end,
 
--- idk
+-- Misfortune
 -- Crux Knight Oclette
 [1354] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
@@ -4454,7 +4454,7 @@ end,
   if other_card and other_card.sta >= Card(other_card.id).sta and
       other_card.skills[1] ~= 1354 and other_card.skills[2] ~= 1354 and other_card.skills[3] ~= 1354 then
     OneImpact(player.opponent, other_idx):apply()
-    other_card:gain_skill(1354)
+    other_card:gain_skill(1426)
   end
 end,
 
@@ -4538,6 +4538,12 @@ end,
   if other_card and pred.skill(other_card) then
     OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
   end
+end,
+
+-- Misfortune
+-- Aletheian G-NUSA
+[1426] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
 end,
 
 -- Library Club Snowty
