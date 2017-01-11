@@ -6811,9 +6811,7 @@ end,
 [1653] = function(player, my_idx, my_card)
   if my_card.size <= 2 then
     OneBuff(player, my_idx, "_ _ _ +1"):apply()
-    if player:first_empty_hand_slot() then
-      player:field_to_top_deck(my_idx)
-    end
+    player:field_to_top_deck(my_idx)
   end
 end,
 
