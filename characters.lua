@@ -518,7 +518,7 @@ end,
 --Team Manager Vernika
 [100019] = function(player)
   local hand_size = #player.hand
-  local buff_size = ceil(hand_size/2)
+  local buff_size = floor(hand_size/2)
   if hand_size < 4 then
     local buff = GlobalBuff(player)
     for i=1,hand_size do
@@ -1562,7 +1562,7 @@ end,
     end
   else
     local target = uniformly(followers)
-    local amt = floor(nskills/2)
+    local amt = ceil(nskills/2)
     OneBuff(player, target, {atk={"+",amt},sta={"+",amt}}):apply()
   end
 end,
@@ -6133,7 +6133,7 @@ end,
   local size1 = player.hand[1] and player.hand[1].size or 0
   local size2 = player.hand[2] and player.hand[2].size or 0
   local idx = opponent:field_idxs_with_preds(pred.follower,
-      function(card) return card.size <= floor((size1 + size2) / 2) end)[1]
+      function(card) return card.size <= ceil((size1 + size2) / 2) end)[1]
   if idx then
     OneBuff(opponent, idx, {atk={"-", 2}, def={"-", 2}, sta={"-", 2}}):apply()
   end
@@ -7657,7 +7657,7 @@ end,
   local deck_idx = player:deck_idxs_with_preds(pred.follower)[1]
   local field_idx = player:first_empty_field_slot()
   if deck_idx and field_idx then
-    local mag = floor(player.deck[deck_idx].size / 2)
+    local mag = ceil(player.deck[deck_idx].size / 2)
     player:deck_to_field(deck_idx, field_idx)
     OneBuff(player, field_idx, {size={"=", mag}}):apply()
   end
