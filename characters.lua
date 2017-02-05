@@ -699,7 +699,7 @@ end,
 [100031] = function(player)
   local hand_idx = player:hand_idxs_with_preds(pred.D)[1]
   if hand_idx then
-    local sz = player.hand[hand_idx].size
+    local sz = ceil(player.hand[hand_idx].size/2)
     player:hand_to_grave(hand_idx)
     local target = uniformly(player.opponent:field_idxs_with_preds(pred.follower))
     if target then
@@ -4777,7 +4777,7 @@ end,
 
 -- Aka Flina
 [110121] = function(player, opponent)
-  local mag = min(ceil(abs(player.character.life - opponent.character.life)), 5)
+  local mag = min(ceil(abs(player.character.life - opponent.character.life)/2), 5)
   local idx = uniformly(player:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(player, idx, {atk={"+", mag}, sta={"+", mag}}):apply()
