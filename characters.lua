@@ -479,7 +479,7 @@ end,
     return
   end
   local buff_size = 0
-  if player.field[4] then
+  if player.field[4] and pred.follower(player.field[4]) then
     buff_size = ceil((player.field[followers[1]].size + player.field[4].size)/2)
   else
     buff_size = ceil(player.field[followers[1]].size/2)
@@ -6147,7 +6147,7 @@ end,
     return
   end
   local buff_size = 0
-  if player.field[4] then
+  if player.field[4] and pred.follower(player.field[4]) then
     buff_size = ceil((player.field[followers[1]].size + player.field[4].size)/2)
   else
     buff_size = ceil(player.field[followers[1]].size/2)
