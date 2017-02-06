@@ -7961,7 +7961,7 @@ end,
     mag = mag + (pred.follower(player.deck[i]) and 1 or 0)
   end
   local mag_atk = ceil(mag / 2)
-  local mag_sta = mag_atk == 2 and 1 or 0
+  local mag_sta = mag_atk + (mag_atk == 2 and 1 or 0)
   local idxs = shuffle(player:field_idxs_with_preds(pred.follower))
   local buff = OnePlayerBuff(player)
   for i = 1, 2 do
