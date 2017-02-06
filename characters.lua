@@ -852,7 +852,7 @@ end,
         local card = player.field[target]
         player.field[target] = nil
         player.field[i] = card
-        OneBuff(player, i, {atk={"+",i}}):apply()
+        OneBuff(player, i, {atk={"+",i},sta={"+",floor(i/2)}}):apply()
         return
       end
     end
@@ -860,7 +860,7 @@ end,
     local card = player.field[target]
     player.field[target] = nil
     player.field[slot] = card
-    OneBuff(player, slot, {atk={"+",slot}}):apply()
+    OneBuff(player, slot, {atk={"+",slot},sta={"+",floor(slot/2)}}):apply()
   end
 end,
 
