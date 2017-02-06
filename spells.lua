@@ -8400,8 +8400,12 @@ end,
     buff.field[player][idx] = {size={"=", 2}}
     mag = mag + 1
   end
-  for _, idx in ipairs(player:hand_idxs_with_preds()) do
+  for _, idx in ipairs(player:hand_idxs_with_preds(pred.follower)) do
     buff.hand[player][idx] = {size={"=", 1}}
+  end
+  for _, idx in ipairs(player:hand_idxs_with_preds(pred.spell)) do
+    buff.hand[player][idx] = {size={"=", 2}}
+    mag = mag + 1
   end
   for _, idx in ipairs(opponent:field_idxs_with_preds()) do
     buff.field[opponent][idx] = {size={"=", 2}}
