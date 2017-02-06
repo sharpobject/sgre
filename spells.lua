@@ -8572,7 +8572,7 @@ end,
     player:field_to_grave(idx)
   end
   if idx then
-    OneBuff(player, idx, {atk={"+", mag}, def={"+", ceil(mag / 2)}, sta={"+", mag}}):apply()
+    OneBuff(player, idx, {size={"+", ceil(mag / 2)}, atk={"+", mag}, def={"+", ceil(mag / 2)}, sta={"+", mag}}):apply()
   end
 end,
 
