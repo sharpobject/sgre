@@ -1928,10 +1928,13 @@ end,
   while player.hand[1] do
     player:hand_to_grave(1)
   end
-  local target = opponent:field_idxs_with_most_and_preds(pred.add(pred.atk,pred.sta), pred.follower)[1]
-  if target then
-    OneBuff(opponent, target, {atk={"-",ceil(1.5*ncards)},sta={"-",ceil(1.5*ncards)}}):apply()
+  local targets = opponent:field_idxs_with_most_and_preds(pred.add(pred.atk, pred.sta), pred.follower)
+  local buff = OnePlayerBuff(opponent)
+  for _,idx in ipairs(targets) do
+    local card = opponent.field[idx]
+    buff[idx] = {atk={"-",ceil(1.5*ncards)},sta={"-",ceil(1.5*ncards)}}
   end
+  buff:apply()
 end,
 
 -- dark convocation
