@@ -916,7 +916,7 @@ end,
     end
     local target = opponent:field_idxs_with_preds(pred.follower)[1]
     if target then
-      buff.field[opponent][target] = {sta={"-",math.floor(reduced_amount / 2)}}
+      buff.field[opponent][target] = {sta={"-",math.ceil(reduced_amount / 2)}}
     end
     buff:apply()
   end
@@ -1893,7 +1893,7 @@ end,
       player:hand_to_top_deck(1)
     end
     ]]
-    OneBuff(player, 0, {life={"+",ceil(ncards*1.5)}}):apply()
+    OneBuff(player, 0, {life={"+",floor(ncards*1.5)}}):apply()
   end
 end,
 
@@ -7127,16 +7127,16 @@ Relapse
   end
   local card = player.field[idx]
   local buff = OnePlayerBuff(player)
-  local mag_size = ceil(card.size / 2)
-  local mag_atk = ceil(card.atk / 2)
-  local mag_def = ceil(card.def / 2)
-  local mag_sta = ceil(card.sta / 2)
+  local mag_size = max(floor(card.size / 2), 1)
+  local mag_atk = floor(card.atk / 2)
+  local mag_def = floor(card.def / 2)
+  local mag_sta = floor(card.sta / 2)
   buff[idx] = {size={"=", mag_size}, atk={"=", mag_atk}, def={"=", mag_def}, sta={"=", mag_sta}}
   idx = player:first_empty_field_slot()
   if idx then
     player.field[idx] = Card(card.id)
     player.field[idx].active = true
-    local mag_size2 = max(floor(card.size / 2), 1)
+    local mag_size2 = ceil(card.size / 2)
     local mag_atk2 = floor(card.atk / 2)
     local mag_def2 = floor(card.def / 2)
     local mag_sta2 = floor(card.sta / 2)
@@ -8789,7 +8789,7 @@ end,
   if idx then
     local mag = ceil(opponent.field[idx].sta / 2)
     OneBuff(opponent, idx, {sta={"=", mag}}):apply()
-    if opponent.field[idx].def <= 3 then
+    if opponent.field[idx].def < 3 then
       OneBuff(opponent, idx, {sta={"+", 3}}):apply()
     end
   end
