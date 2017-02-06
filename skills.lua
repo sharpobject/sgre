@@ -6536,7 +6536,7 @@ end,
 -- Rice Cake's Power
 [1612] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    local mag = abs(Card(other_card.id).atk - other_card.atk)
+    local mag = min(5,abs(Card(other_card.id).atk - other_card.atk))
     OneBuff(player, my_idx, {atk={"+", mag}}):apply()
   end
 end,
@@ -6575,8 +6575,8 @@ end,
 -- Moonlight Addition!
 [1616] = function(player, my_idx, my_card)
   local orig = Card(my_card.id)
-  local mag = abs(orig.def - my_card.def)
-  OneBuff(player, my_idx, {atk={"+", mag}, def={"=", orig.def}, sta={"+", mag}}):apply()
+  local mag = abs(orig.size - my_card.size)
+  OneBuff(player, my_idx, {size={"=", orig.size}, def={"+", mag}, sta={"+", mag}}):apply()
 end,
 
 -- Chuseok Linus
