@@ -4848,8 +4848,8 @@ a random Follower in the enemy Field gets ATK/DEF/SIZE halved (rounding up).
     local op_idx = uniformly(op_idxs)
     if op_idx then
       local op_card = opponent.field[op_idx]
-      OneBuff(opponent, op_idx, {atk={"=",floor(op_card.atk / 2)},def={"=",floor(op_card.def / 2)},
-        sta={"=",floor(op_card.sta / 2)}}):apply()
+      OneBuff(opponent, op_idx, {atk={"=",ceil(op_card.atk / 2)},def={"=",ceil(op_card.def / 2)},
+        size={"=",ceil(op_card.size / 2)}}):apply()
     end
   end
 end,
