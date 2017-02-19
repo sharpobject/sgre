@@ -2727,18 +2727,22 @@ end,
 
 -- dark witch seven, brilliant idea!
 [1256] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local grave_target_idxs = shuffle(player:grave_idxs_with_preds({pred.D}))
+  local grave_target_idxs = shuffle(player:grave_idxs_with_preds(pred.D))
   if #grave_target_idxs > 0 then
-    local opp_target_idxs = shuffle(player.opponent:get_follower_idxs())
-    local buff = OnePlayerBuff(player.opponent)
     for i=1,2 do
-      local grave_target_idx = uniformly(player:grave_idxs_with_preds({pred.D}))
+      local grave_target_idx = uniformly(grave_target_idxs)
       if grave_target_idx then
         player:grave_to_exile(grave_target_idx)
       end
     end
-    for i=1,math.min(2,#opp_target_idxs) do
-      buff[opp_target_idxs[i]] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    local opp_target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower,
+        function(card) return card ~= other_card end))
+    local buff = OnePlayerBuff(player.opponent)
+    if other_card then
+      buff[other_idx] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    end
+    if opp_target_idx then
+      buff[opp_target_idx] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
     end
     buff:apply()
   end
