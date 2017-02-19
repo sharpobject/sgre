@@ -4028,7 +4028,7 @@ end,
     player.hand[idx] = nil
   end
   player:squish_hand()
-  local targets = opponent:field_idxs_with_preds()
+  local targets = shuffle(opponent:field_idxs_with_preds())
   for i=1,min(#cards, #targets) do
     opponent.field[targets[i]].active = false
   end
