@@ -2585,7 +2585,7 @@ end,
   end
 end,
 
--- seeker alameda, sanctuary call!
+-- seeker adalia, sanctuary call!
 [1247] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local target = player:deck_idxs_with_preds(pred.sanctuary, pred.spell)[1]
   local slot = player:first_empty_field_slot()
@@ -2600,7 +2600,7 @@ end,
   OneBuff(player, my_idx, {atk={"+",#player:field_idxs_with_preds(pred.sanctuary)}}):apply()
 end,
 
--- seeker adalia, sanctuary return!
+-- seeker alameda, sanctuary return!
 [1249] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local targets = player:field_idxs_with_preds(pred.sanctuary)
   for _,idx in ipairs(targets) do
