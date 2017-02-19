@@ -3807,7 +3807,7 @@ end,
   if #player:field_idxs_with_preds(pred.follower, pred.student_council) > 0 and
       #player.hand > 0 then
     local sz = player.hand[1].size
-    player:hand_to_grave(1)
+    player:hand_to_bottom_deck(1)
     local target = opponent:field_idxs_with_preds(function(card) return card.size == sz end)[1]
     if target then
       opponent:field_to_grave(target)
@@ -3855,7 +3855,7 @@ end,
   if #ladies > 0 and target then
     local sz = opponent.field[target].size
     local buff = OnePlayerBuff(player)
-    opponent:field_to_grave(target)
+    opponent:field_to_bottom_deck(target)
     for _,idx in ipairs(ladies) do
       buff[idx] = {sta={"+",sz}}
     end

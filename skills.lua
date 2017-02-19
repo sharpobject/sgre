@@ -2571,7 +2571,7 @@ end,
         local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
         if hand_target then
           local amt = player.opponent.hand[hand_target].size
-          player.opponent:hand_to_grave(hand_target)
+          player.opponent:hand_to_bottom_deck(hand_target)
           OneBuff(player.opponent, other_idx, {sta={"-",amt}}):apply()
         end
       end
