@@ -9804,6 +9804,7 @@ end,
 [200625] = function(player)
   local idx = player:field_idxs_with_preds(pred.neg(pred.active))[1]
   if idx then
+    player.field[idx].active = true
     OneBuff(player, idx, pred.follower(player.field[idx]) and "+3 _ +3" or "_ _ _"):apply()
   end
 end,
