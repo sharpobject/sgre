@@ -2690,7 +2690,7 @@ end,
 -- edelfelt of the wing, phase shift!
 [1254] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
-    local slot = player:first_empty_field_slot()
+    local slot = player:last_empty_field_slot()
     if slot then
       local new_card = Card(300363)
       player:field_to_exile(my_idx)

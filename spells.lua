@@ -9701,13 +9701,14 @@ end,
 
 --[[ Request ]]
 [200620] = function(player, opponent, my_idx, my_card)
-  local idx = opponent:last_empty_field_slot()
+  local idx = opponent:first_empty_field_slot()
   if idx then
     if my_card.size >= 2 then
       OneBuff(player, my_idx, {size={"=",1}}):apply()
       player.field[my_idx], opponent.field[idx] = nil, my_card
       my_card.active = false
     else
+      idx = opponent:last_empty_field_slot()
       local idx2 = opponent:hand_idxs_with_preds(pred.follower)[1]
       if idx2 then
         opponent.field[idx] = table.remove(opponent.hand, idx2)
