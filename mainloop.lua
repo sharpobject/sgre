@@ -443,7 +443,7 @@ function main_modal_notice(text, to_ret)
 
     local frame = loveframes.Create("frame")
     frame:SetName("Notice~")
-    frame:SetSize(300, 90)
+    frame:SetSize(300, 100)
     frame:ShowCloseButton(false)
     frame:SetDraggable(false)
     frame:Center()
@@ -454,7 +454,7 @@ function main_modal_notice(text, to_ret)
     frames.modal_notice.text = text1
 
     local okbutton = loveframes.Create("button", frame)
-    okbutton:SetPos(5, 60)
+    okbutton:SetPos(5, 70)
     okbutton:SetWidth(290)
     frames.modal_notice.ok_button = okbutton
   end

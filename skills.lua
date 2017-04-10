@@ -463,10 +463,10 @@ end,
 
 -- fated rival seven, brilliant idea
 [1036] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local grave_target_idxs = shuffle(player:grave_idxs_with_preds(pred.A))
+  local grave_target_idxs = player:grave_idxs_with_preds(pred.A)
   if #grave_target_idxs > 0 then
     for i=1,2 do
-      local grave_target_idx = uniformly(grave_target_idxs)
+      local grave_target_idx = grave_target_idxs[i]
       if grave_target_idx then
         player:grave_to_exile(grave_target_idx)
       end
