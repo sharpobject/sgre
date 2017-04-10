@@ -72927,7 +72927,7 @@
     "1613": "\u25b6Attack: This card gets its DEF changed to its original value. This card gets ATK/STA increased by the change in DEF.",
     "1614": "\u25b6Attack: The defender gets DEF -1. This card gets ATK increased by the difference between the defender's original DEF and current DEF.",
     "1615": "\u25b6Attack: The following effect is applied a number of times equal to this card's Upgrade Level. \"A random Follower on the enemy Field gets STA -1.\"",
-    "1616": "\u25b6Defend: This card gets its DEF changed to its original value. This card gets DEF/STA increased by the change in DEF.",
+    "1616": "\u25b6Defend: This card gets its SIZE changed to its original value. This card gets DEF/STA increased by the change in SIZE.",
     "1617": "\u25b6Defend: This card gets its ATK changed to its original value. The attacker gets ATK decreased by half the change in ATK (rounding down), and this card gets STA increased by the same amount.",
     "1618": "\u25b6Defend: The attacker gets ATK decreased by the difference between this card's original DEF and current DEF. This card gets DEF +1.",
     "1619": "\u25b6Defend: This card gets STA increased by the difference between the attacker's original ATK and current ATK.",

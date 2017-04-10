@@ -293,7 +293,9 @@ function Player:grave_to_top_deck(n)
 end
 
 function Player:grave_to_field(n)
-  self.field[self:first_empty_field_slot()]=table.remove(self.grave,n)
+  local slot = self:first_empty_field_slot()
+  self.field[slot]=table.remove(self.grave,n)
+  self.field[slot].active = true
 end
 
 function Player:field_to_exile(n)
@@ -371,6 +373,7 @@ function Player:deck_to_field(n, slot)
   end
   local card = table.remove(self.deck, n)
   self.field[slot] = card
+  card.active = true
   assert(self.field[slot] == card, "deck_to_field()")
 end
 
@@ -381,6 +384,7 @@ end
 function Player:hand_to_field(n)
   local card = table.remove(self.hand, n)
   self.field[self:first_empty_field_slot()] = card
+  card.active = true
 end
 
 function Player:field_to_hand(n)

@@ -2727,10 +2727,10 @@ end,
 
 -- dark witch seven, brilliant idea!
 [1256] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local grave_target_idxs = shuffle(player:grave_idxs_with_preds(pred.D))
+  local grave_target_idxs = player:grave_idxs_with_preds(pred.D)
   if #grave_target_idxs > 0 then
     for i=1,2 do
-      local grave_target_idx = uniformly(grave_target_idxs)
+      local grave_target_idx = grave_target_idxs[i]
       if grave_target_idx then
         player:grave_to_exile(grave_target_idx)
       end
@@ -6893,11 +6893,11 @@ end,
   if other_card then
     local orig = Card(other_card.id)
     for i = 1,3 do
-	  local ith_skill = other_card.skills[i]
-	  if ith_skill == orig.skills[1] or ith_skill == orig.skills[2] or ith_skill == orig.skills[3] then
-	    other_card:remove_skill(i)
-	    break
-	  end
+    local ith_skill = other_card.skills[i]
+    if ith_skill == orig.skills[1] or ith_skill == orig.skills[2] or ith_skill == orig.skills[3] then
+      other_card:remove_skill(i)
+      break
+    end
     end
   end
 end,
@@ -6937,9 +6937,9 @@ end,
       end
     end
     OneBuff(player.opponent, other_idx, mag):apply()
-	if check then
+    if check then
       my_card:remove_skill_until_refresh(skill_idx)
-	end
+    end
   end
 end,
 

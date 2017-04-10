@@ -1931,7 +1931,6 @@ end,
   local targets = opponent:field_idxs_with_most_and_preds(pred.add(pred.atk, pred.sta), pred.follower)
   local buff = OnePlayerBuff(opponent)
   for _,idx in ipairs(targets) do
-    local card = opponent.field[idx]
     buff[idx] = {atk={"-",ceil(1.5*ncards)},sta={"-",ceil(1.5*ncards)}}
   end
   buff:apply()
@@ -9405,13 +9404,13 @@ end,
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred.lady)) do
     local c = player.field[idx]
-	local new_size = c.size
+    local new_size = c.size
     local mag = {}
     if new_size >= 3 then
       mag.atk = {"+", 1}
       mag.size = {"-", 1}
-	  new_size = new_size - 1
-	end
+      new_size = new_size - 1
+    end
     if new_size <= 3 then
       mag.sta = {"+", new_size}
     end
