@@ -6889,7 +6889,7 @@ end,
 
 -- Eisenwane
 -- Nevermore
-[1660] = function(player, my_idx, my_card, skill_idx, other_card)
+[1660] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
     local orig = Card(other_card.id)
     for i = 1,3 do
