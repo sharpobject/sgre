@@ -2940,7 +2940,7 @@ end,
     local id = 300193 -- GS Fighter
     player:to_grave(Card(id))
     player:to_bottom_deck(Card(id))
-    if not player[5] then
+    if not player.hand[5] then
       player:to_hand(Card(id))
     end
     local mag = min(#player:field_idxs_with_preds(pred.gs), 3)
@@ -3289,11 +3289,10 @@ end,
   buff:apply()
   if player.character.life <= opponent.character.life then
     local buff = GlobalBuff(player)
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
-      buff.field[player][idx] = "_ _ +1"
+      buff.field[opponent][idx] = "_ -1 -2"
     end
-    buff.field[opponent][0] = {life={"-", 1}}
     buff:apply()
   end
 end,
@@ -3309,10 +3308,11 @@ end,
     buff.field[player][idx] = "+1 _ +1"
   end
   if player.character.life <= opponent.character.life then
-    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
+    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
     if idx then
-      buff.field[opponent][idx] = "_ -1 -2"
+      buff.field[player][idx] = "_ _ +1"
     end
+    buff.field[opponent][0] = {life={"-", 1}}
   end
   buff:apply()
 end,

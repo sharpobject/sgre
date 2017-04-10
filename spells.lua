@@ -8400,8 +8400,12 @@ end,
     buff.field[player][idx] = {size={"=", 2}}
     mag = mag + 1
   end
-  for _, idx in ipairs(player:hand_idxs_with_preds()) do
+  for _, idx in ipairs(player:hand_idxs_with_preds(pred.follower)) do
     buff.hand[player][idx] = {size={"=", 1}}
+  end
+  for _, idx in ipairs(player:hand_idxs_with_preds(pred.spell)) do
+    buff.hand[player][idx] = {size={"=", 2}}
+    mag = mag + 1
   end
   for _, idx in ipairs(opponent:field_idxs_with_preds()) do
     buff.field[opponent][idx] = {size={"=", 2}}
@@ -9378,7 +9382,7 @@ end,
     mag = mag + (pred.follower(player.deck[i]) and 1 or 0)
   end
   local pred_size = function(c) return c.size < mag end
-  local idx = uniformly(opponent:field_idxs_with_preds(pred.spell))
+  local idx = opponent:field_idxs_with_preds(pred.spell, pred_size)[1]
   if idx then
     OneImpact(opponent, idx):apply()
     opponent:field_to_exile(idx)
@@ -9395,12 +9399,15 @@ end,
   local buff = OnePlayerBuff(player)
   for _, idx in ipairs(player:field_idxs_with_preds(pred.follower, pred.lady)) do
     local c = player.field[idx]
+	local new_size = c.size
     local mag = {}
-    if c.size >= 3 then
+    if new_size >= 3 then
       mag.atk = {"+", 1}
       mag.size = {"-", 1}
-    elseif c.size <= 3 then
-      mag.sta = {"+", c.size}
+	  new_size = new_size - 1
+	end
+    if new_size <= 3 then
+      mag.sta = {"+", new_size}
     end
     buff[idx] = mag
   end
@@ -9646,9 +9653,9 @@ end,
     player:field_to_top_deck(my_idx)
   else
     player.shuffles = opponent.shuffles
-    local idx = uniformly(player:field_idxs_with_preds(pred.follower))
+    local idx = uniformly(opponent:field_idxs_with_preds(pred.follower))
     if idx then
-      OneBuff(player, idx, {def={"-", player.shuffles}}):apply()
+      OneBuff(opponent, idx, {def={"-", player.shuffles}}):apply()
     end
   end
 end,

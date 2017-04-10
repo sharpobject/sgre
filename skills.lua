@@ -2727,18 +2727,22 @@ end,
 
 -- dark witch seven, brilliant idea!
 [1256] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
-  local grave_target_idxs = shuffle(player:grave_idxs_with_preds({pred.D}))
+  local grave_target_idxs = shuffle(player:grave_idxs_with_preds(pred.D))
   if #grave_target_idxs > 0 then
-    local opp_target_idxs = shuffle(player.opponent:get_follower_idxs())
-    local buff = OnePlayerBuff(player.opponent)
     for i=1,2 do
-      local grave_target_idx = uniformly(player:grave_idxs_with_preds({pred.D}))
+      local grave_target_idx = uniformly(grave_target_idxs)
       if grave_target_idx then
         player:grave_to_exile(grave_target_idx)
       end
     end
-    for i=1,math.min(2,#opp_target_idxs) do
-      buff[opp_target_idxs[i]] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    local opp_target_idx = uniformly(player.opponent:field_idxs_with_preds(pred.follower,
+        function(card) return card ~= other_card end))
+    local buff = OnePlayerBuff(player.opponent)
+    if other_card then
+      buff[other_idx] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
+    end
+    if opp_target_idx then
+      buff[opp_target_idx] = {atk={"-",1}, def={"-",1}, sta={"-",2}}
     end
     buff:apply()
   end
@@ -6536,7 +6540,7 @@ end,
 -- Rice Cake's Power
 [1612] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card then
-    local mag = abs(Card(other_card.id).atk - other_card.atk)
+    local mag = min(5,abs(Card(other_card.id).atk - other_card.atk))
     OneBuff(player, my_idx, {atk={"+", mag}}):apply()
   end
 end,
@@ -6575,8 +6579,8 @@ end,
 -- Moonlight Addition!
 [1616] = function(player, my_idx, my_card)
   local orig = Card(my_card.id)
-  local mag = abs(orig.def - my_card.def)
-  OneBuff(player, my_idx, {atk={"+", mag}, def={"=", orig.def}, sta={"+", mag}}):apply()
+  local mag = abs(orig.size - my_card.size)
+  OneBuff(player, my_idx, {size={"=", orig.size}, def={"+", mag}, sta={"+", mag}}):apply()
 end,
 
 -- Chuseok Linus
@@ -6624,6 +6628,7 @@ end,
     buff[idx] = {size={"=", mag}}
   end
   buff:apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- Lady Marie Lunen
@@ -6879,10 +6884,26 @@ end,
 end,
 
 -- Eisenwane
+-- Nevermore
+[1660] = function(player, my_idx, my_card, skill_idx, other_card)
+  if other_card then
+    local orig = Card(other_card.id)
+    for i = 1,3 do
+	  local ith_skill = other_card.skills[i]
+	  if ith_skill == orig.skills[1] or ith_skill == orig.skills[2] or ith_skill == orig.skills[3] then
+	    other_card:remove_skill(i)
+	    break
+	  end
+    end
+  end
+end,
+
+-- Eisenwane
 -- Awakening
 [1661] = function(player, my_idx, my_card, skill_idx)
   local mag = 7 - my_card.upgrade_lvl
   OneBuff(player, my_idx, {atk={"+", my_card.size - mag}, sta={"+", my_card.size - mag}, size={"=", mag}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- 2nd Princess Hanobelle
@@ -6890,6 +6911,7 @@ end,
 [1662] = function(player, my_idx, my_card, skill_idx)
   local mag = my_card.upgrade_lvl
   OneBuff(player, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
+  my_card:remove_skill(skill_idx)
 end,
 
 -- DTD (Muspelheim)
