@@ -1006,6 +1006,7 @@ function main_craft()
           frames.craft.spawn_craft_frame(stack[#stack])
           stack[#stack] = nil
         end
+        frames.craft.update_list()
       end
 
     end
@@ -1133,7 +1134,7 @@ function main_craft()
       for i=lbound,lbound+15 do
         if not coll[i] then return end
         local k,v = coll[i][1],coll[i][2]
-        card_list:AddItem(card_list_button(k, false, v, function()
+        card_list:AddItem(card_list_button(k, false, user_data.collection[k] or 0, function()
           frames.craft.spawn_craft_frame(k)
         end))
       end
