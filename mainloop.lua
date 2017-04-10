@@ -332,7 +332,7 @@ function main_register(email, password)
               {main_login, {frames.register.email_input:GetText(),
                 frames.register.password_input:GetText()}}}}
           else
-            from_register = {main_modal_notice, {"Registration failed :(",
+            from_register = {main_modal_notice, {"Registration failed :(\n" .. resp.why,
               {main_register, {frames.register.email_input:GetText(),
                 frames.register.password_input:GetText()}}}}
           end

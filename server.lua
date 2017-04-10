@@ -177,15 +177,23 @@ end
 
 function try_register(msg)
   local email, username, password = msg.email, msg.username, msg.password
-  if (not check_username(username)) or
-      (not check_email(email)) or
-      (not check_password(password)) or
-      users.username_to_uid[username] then
-    return false
+
+  local ok, why = check_username(username)
+  if not ok then return false, why end
+
+  ok, why = check_email(email)
+  if not ok then return false, why end
+
+  ok, why = check_password(password)
+  if not ok then return false, why end
+
+  if users.username_to_uid[username] then
+    return false, "That username is taken."
   end
+
   local uid = sha1(email)
   if users.uid_to_email[uid] then
-    return false
+    return false, "That email is already registered."
   end
   local path = "db/"..uid:sub(1,2).."/"..uid:sub(3)
   local password_to_save = "ass"
@@ -319,8 +327,8 @@ function Connection:J(jmsg)
   end
   if self.state == "connected" then
     if message.type == "register" then
-      local res = try_register(message)
-      self:send({type="register_result", success=res})
+      local res, why = try_register(message)
+      self:send({type="register_result", success=res, why=why})
     elseif message.type == "login" then
       self:try_login(message)
     else
