@@ -2571,7 +2571,7 @@ end,
         local hand_target = player.opponent:hand_idxs_with_preds(pred.spell)[1]
         if hand_target then
           local amt = player.opponent.hand[hand_target].size
-          player.opponent:hand_to_grave(hand_target)
+          player.opponent:hand_to_bottom_deck(hand_target)
           OneBuff(player.opponent, other_idx, {sta={"-",amt}}):apply()
         end
       end
@@ -2585,7 +2585,7 @@ end,
   end
 end,
 
--- seeker alameda, sanctuary call!
+-- seeker adalia, sanctuary call!
 [1247] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local target = player:deck_idxs_with_preds(pred.sanctuary, pred.spell)[1]
   local slot = player:first_empty_field_slot()
@@ -2600,7 +2600,7 @@ end,
   OneBuff(player, my_idx, {atk={"+",#player:field_idxs_with_preds(pred.sanctuary)}}):apply()
 end,
 
--- seeker adalia, sanctuary return!
+-- seeker alameda, sanctuary return!
 [1249] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   local targets = player:field_idxs_with_preds(pred.sanctuary)
   for _,idx in ipairs(targets) do
@@ -2690,7 +2690,7 @@ end,
 -- edelfelt of the wing, phase shift!
 [1254] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   if other_card and other_card.atk > my_card.def + my_card.sta then
-    local slot = player:first_empty_field_slot()
+    local slot = player:last_empty_field_slot()
     if slot then
       local new_card = Card(300363)
       player:field_to_exile(my_idx)
@@ -3751,7 +3751,7 @@ end,
   end
 end,
 
--- idk
+-- Misfortune
 -- Crux Knight Oclette
 [1354] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
   OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
@@ -4458,7 +4458,7 @@ end,
   if other_card and other_card.sta >= Card(other_card.id).sta and
       other_card.skills[1] ~= 1354 and other_card.skills[2] ~= 1354 and other_card.skills[3] ~= 1354 then
     OneImpact(player.opponent, other_idx):apply()
-    other_card:gain_skill(1354)
+    other_card:gain_skill(1426)
   end
 end,
 
@@ -4542,6 +4542,12 @@ end,
   if other_card and pred.skill(other_card) then
     OneBuff(player, my_idx, {sta={"+",other_card.atk}}):apply()
   end
+end,
+
+-- Misfortune
+-- Aletheian G-NUSA
+[1426] = function(player, my_idx, my_card, skill_idx, other_idx, other_card)
+  OneBuff(player, my_idx, {atk={"-", 1}, sta={"-", 1}}):apply()
 end,
 
 -- Library Club Snowty
@@ -6810,9 +6816,7 @@ end,
 [1653] = function(player, my_idx, my_card)
   if my_card.size <= 2 then
     OneBuff(player, my_idx, "_ _ _ +1"):apply()
-    if player:first_empty_hand_slot() then
-      player:field_to_top_deck(my_idx)
-    end
+    player:field_to_top_deck(my_idx)
   end
 end,
 
