@@ -5,8 +5,11 @@ function check_username(s)
     return false, "Username must be a string"
   elseif s:len() > 12 or s:len() < 3 then
     return false, "Username must be 3-12 characters"
-  elseif s:match("[a-zA-Z0-9]+"):len() ~= s:len() then
-    return false, "Username can only contain letters and numbers"
+  else
+    local match = s:match("[a-zA-Z0-9]+")
+    if match == nil or match:len() ~= s:len() then
+      return false, "Username can only contain letters and numbers"
+    end
   end
   return true
 end
