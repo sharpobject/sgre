@@ -9069,7 +9069,7 @@ end,
   end
   local op_idxs = opponent:field_idxs_with_preds(pred.follower)
   for _, idx in ipairs(op_idxs) do
-    impact[player][idx] = true
+    impact[opponent][idx] = true
   end
   impact:apply()
   local remove_atk_skills = function(card)
