@@ -9406,6 +9406,7 @@ end,
   end
   buff:apply()
   my_card.active = false
+  player.send_spell_to_grave = false
 end,
 
 --[[ Azure Cross's Power ]]
