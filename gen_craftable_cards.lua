@@ -65,6 +65,7 @@ local dungeon_mats = {
   210047, -- Dimensional Fragment (ep14)
   210048, -- Kana's Fragment (ep15)
   210054, -- Mystery Flower (ep16)
+  210056, -- whatever (ex5)
 }
 local materials = {s1_fight, s2_fight, s3_fight, ore, dungeon_mats}
 local reachable_cards = {}
