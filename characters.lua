@@ -8240,7 +8240,7 @@ end,
 
 -- Celine Hastur
 [120037] = function(pl, op)
-  local idx = op:field_idxs_with_preds(pred.follower)[1]
+  local idx = uniformly(op:field_idxs_with_preds(pred.follower))
   if idx then
     OneBuff(op, idx, "-2 _ +2"):apply()
     op.field[idx].active = false
