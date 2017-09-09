@@ -3636,7 +3636,7 @@ end,
     if mag >= 6 then
       local buff = GlobalBuff(pl)
       for _, idx in ipairs(pl:deck_idxs_with_preds(pred.follower)) do
-	buff.deck[pl][idx] = "_ +1 +2"
+	buff.deck[pl][idx] = "_ +1 +1"
       end
       buff:apply()
     end
