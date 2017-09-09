@@ -7533,7 +7533,7 @@ end,
   local idxs = op:field_idxs_with_preds(pred.follower, pred_size)
   local count = #pl:empty_field_slots()
   for i = 1, min(count, #idxs) do
-    impact[op][i] = true
+    impact[op][idxs[i]] = true
   end
   impact:apply()
   for i = 1, min(count, #idxs) do
