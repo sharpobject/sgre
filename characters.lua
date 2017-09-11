@@ -7663,6 +7663,12 @@ end,
     local mag2 = floor((op.field[idx].atk - mag) / 2)
     OneBuff(op, idx, {atk={"=", mag}, sta={"+", mag2}}):apply()
   end
+  if pl.game.turn == 1 then
+    local s_idx = uniformly(op:hand_idxs_with_preds(pred.spell))
+    if s_idx then
+      op:hand_to_grave(s_idx)
+    end
+  end
 end,
 
 -- Gold Lion Nold
