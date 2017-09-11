@@ -130,24 +130,6 @@ local clarice = function(stats, skill)
   end
 end
 
-local rihanna = function(top, bottom)
-  return function(player)
-    local target = uniformly(player:field_idxs_with_preds(pred.follower))
-    local slot = uniformly(player:empty_field_slots())
-    if target and slot then
-      local card = player.field[target]
-      player.field[target] = nil
-      player.field[slot] = card
-      if slot <= 3 then
-        OneBuff(player, slot, top):apply()
-      end
-      if slot >= 3 then
-        OneBuff(player, slot, bottom):apply()
-      end
-    end
-  end
-end
-
 local council_vp_tieria = function(group_pred, faction_pred)
   return function(player)
     local target = uniformly(player:field_idxs_with_preds(group_pred, pred.follower))
@@ -1374,7 +1356,7 @@ end,
   end
 end,
 
--- dean rihanna
+-- dean rianna
 [100096] = function(player)
   local top = {sta={"+",3}}
   local bottom = {atk={"+",2}}
@@ -1387,16 +1369,32 @@ end,
     if slot <= 3 then
       OneBuff(player, slot, top):apply()
     end
-    if slot >= 3 then
+    if slot >= 2 then
       OneBuff(player, slot, bottom):apply()
     end
   end
 end,
 
--- dress rihanna
-[100097] = rihanna({atk={"+",1},sta={"+",2}},{atk={"+",2},sta={"+",1}}),
+-- dress rianna
+[100097] = function(player)
+  local top = {atk={"+",1}, sta={"+",2}}
+  local bottom = {atk={"+",2}, sta={"+",1}}
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  local slot = uniformly(player:empty_field_slots())
+  if target and slot then
+    local card = player.field[target]
+    player.field[target] = nil
+    player.field[slot] = card
+    if slot <= 3 then
+      OneBuff(player, slot, top):apply()
+    end
+    if slot >= 2 then
+      OneBuff(player, slot, bottom):apply()
+    end
+  end
+end,
 
--- swimwear rihanna
+-- swimwear rianna
 [100098] = function(player, opponent, my_card)
   local target = uniformly(opponent:field_idxs_with_preds(pred.follower))
   local slot = uniformly(opponent:empty_field_slots())
@@ -1407,16 +1405,32 @@ end,
     if slot <= 3 then
       OneBuff(opponent, slot, {atk={"-",1},sta={"-",2}}):apply()
     end
-    if slot >= 3 and opponent.field[slot] then
+    if slot >= 2 and opponent.field[slot] then
       OneBuff(opponent, slot, {atk={"-",2},sta={"-",1}}):apply()
     end
   end
 end,
 
--- waitress rihanna
-[100099] = rihanna({sta={"+",4}},{size={"-",1},atk={"+",1}}),
+-- waitress rianna
+[100099] = function(player)
+  local top = {sta={"+",4}}
+  local bottom = {size={"-",1}, atk={"+",1}}
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  local slot = uniformly(player:empty_field_slots())
+  if target and slot then
+    local card = player.field[target]
+    player.field[target] = nil
+    player.field[slot] = card
+    if slot <= 3 then
+      OneBuff(player, slot, top):apply()
+    end
+    if slot >= 2 then
+      OneBuff(player, slot, bottom):apply()
+    end
+  end
+end,
 
--- persuasive rihanna
+-- persuasive rianna
 [100100] = function(player, opponent, my_card)
   local target = uniformly(player:field_idxs_with_preds(pred.follower))
   local slot = uniformly(player:empty_field_slots())
@@ -1447,8 +1461,24 @@ end,
   end
 end,
 
--- wedding dress rihanna
-[100101] = rihanna({sta={"+",3}},{atk={"+",2}}),
+-- wedding dress rianna
+[100101] = function(player)
+  local top = {sta={"+",3}}
+  local bottom = {atk={"+",2}}
+  local target = uniformly(player:field_idxs_with_preds(pred.follower))
+  local slot = uniformly(player:empty_field_slots())
+  if target and slot then
+    local card = player.field[target]
+    player.field[target] = nil
+    player.field[slot] = card
+    if slot <= 3 then
+      OneBuff(player, slot, top):apply()
+    end
+    if slot >= 3 then
+      OneBuff(player, slot, bottom):apply()
+    end
+  end
+end,
 
 -- hanbok sita
 [100102] = hanbok_sita,

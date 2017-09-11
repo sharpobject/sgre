@@ -4028,9 +4028,12 @@ end,
   end
   player:squish_hand()
   local targets = shuffle(opponent:field_idxs_with_preds())
+  local impact = Impact(player)
   for i=1,min(#cards, #targets) do
     opponent.field[targets[i]].active = false
+    impact[opponent][i] = true
   end
+  impact:apply()
 end,
 
 -- rookie's appearance
