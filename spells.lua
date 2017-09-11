@@ -9893,6 +9893,7 @@ end,
 [200631] = function(pl, op, my_idx)
   op:field_buff_n_random_followers_with_preds(5, "_ _ +2", pred.follower)
   pl.field[my_idx].active = false
+  pl.send_spell_to_grave = false
 end,
 
 --[[ Sleep Club Clubroom ]]
