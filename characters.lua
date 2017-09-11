@@ -3756,11 +3756,10 @@ end,
 [100256] = function(pl, op)
   local idx = uniformly(op:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = {atk={"-", 0}, def={"-", 0}, sta={"-", 0}}
-    for i = 1, pl:field_idxs_with_preds(pred.A)[1] and 2 or 1 do
-      local stat = uniformly({"atk", "def", "sta"})
-      mag[stat][2] = mag[stat][2] + 1
-    end
+    local magA = pl:field_idxs_with_preds(pred.A)[1] and 1 or 0
+    local mag = {atk={"-", magA}, def={"-", magA}, sta={"-", magA}}
+    local stat = uniformly({"atk", "def", "sta"})
+    mag[stat][2] = mag[stat][2] + 1
     OneBuff(op, idx, mag):apply()
   end
 end,
