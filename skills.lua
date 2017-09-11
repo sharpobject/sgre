@@ -7331,7 +7331,10 @@ end,
 -- Crux Knight Pipit
 -- Improve Tactics!
 [1693] = function(pl, my_idx, my_card, skill_idx, op_idx, op_card)
-  OneBuff(pl, my_idx, op_card and op_card.atk > my_card.atk and "+2 +1 +2" or "+1 _ +1"):apply()
+  OneBuff(pl, my_idx, "+1 _ +1"):apply()
+  if op_card and op_card.atk > my_card.atk then
+    OneBuff(pl, my_idx, "+1 +1 +1"):apply()
+  end
 end,
 
 -- Crescent Woodbridge
