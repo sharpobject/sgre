@@ -9917,10 +9917,11 @@ end,
     end
     op:grave_to_exile(1)
   end
-  mag = mag + mag2
-  for i = 1, min(#op.grave, mag2) do
+  mag2 = min(#op.grave, mag2)
+  for i = 1, mag2 do
     op:grave_to_exile(1)
   end
+  mag = mag + mag2
   mag = ceil(mag / 2)
   pl:field_buff_n_random_followers_with_preds(2, {atk={"+", mag}, sta={"+", mag}}, pred.follower)
 end,
