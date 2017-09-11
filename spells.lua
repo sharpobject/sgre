@@ -9991,7 +9991,7 @@ end,
   end
   local impact = Impact(pl)
   for _, idx in ipairs(idxs) do
-    impact[pl][idx] = true
+    impact[pl.opponent][idx] = true
   end
   impact:apply()
   for _, idx in ipairs(idxs) do
