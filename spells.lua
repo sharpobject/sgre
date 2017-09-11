@@ -9948,7 +9948,7 @@ end,
 --[[ Broken Heart ]]
 [200636] = function(pl, op, my_idx, my_card)
   if my_card.size >= 3 then
-    local pl_idx = pl:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
+    local pl_idx = pl:field_idxs_with_least_and_preds(pred.size, pred.follower, pred.A)[1]
     local op_idx = op:first_empty_field_slot()
     if pl_idx and op_idx then
       OneImpact(pl, pl_idx):apply()
@@ -9956,6 +9956,7 @@ end,
       op.field[op_idx].active = false
       OneBuff(pl, my_idx, "_ _ _ =1"):apply()
       my_card.active = false
+      pl.send_spell_to_grave = false
     end
   elseif my_card.size == 1 then
     local mag = 5 - #op:field_idxs_with_preds(pred.A, pred.follower)
