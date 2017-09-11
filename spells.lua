@@ -10024,16 +10024,18 @@ end,
 
 --[[ Electromaster ]]
 [200641] = function(pl, op)
-  local idxs = {}
-  for _, p in ipairs({pl, op}) do
-    for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
-      table.insert(idxs, {p, idx})
+  if #pl:field_idxs_with_preds(pred.follower) > 0 then
+    local idxs = {}
+    for _, p in ipairs({pl, op}) do
+      for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
+        table.insert(idxs, {p, idx})
+      end
     end
-  end
-  local idx = uniformly(idxs)
-  if idx then
-    OneImpact(idx[1], idx[2]):apply()
-    idx[1].field[idx[2]]:gain_skill(1514)
+    local idx = uniformly(idxs)
+    if idx then
+      OneImpact(idx[1], idx[2]):apply()
+      idx[1].field[idx[2]]:gain_skill(1514)
+    end
   end
 end,
 
