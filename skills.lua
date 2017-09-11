@@ -7248,6 +7248,7 @@ end,
       * (#pl:field_idxs_with_preds(pred.neg(pred.active)) + #pl.opponent:field_idxs_with_preds(pred.neg(pred.active)))
     OneBuff(pl, my_idx, {atk={"+", mag}, sta={"+", mag}}):apply()
   end
+  pl.field[my_idx]:remove_skill(skill_idx)
 end,
 
 -- Celine Hastur
