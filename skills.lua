@@ -7514,6 +7514,7 @@ end,
     end
   end
   OneBuff(player, my_idx, {atk={"+",mag},def={"+",mag},sta={"+",mag}}):apply()
+  my_card:remove_skill(skill_idx)
 end
 }
 
