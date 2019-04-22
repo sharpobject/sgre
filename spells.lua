@@ -9893,6 +9893,7 @@ end,
 [200631] = function(pl, op, my_idx)
   op:field_buff_n_random_followers_with_preds(5, "_ _ +2", pred.follower)
   pl.field[my_idx].active = false
+  pl.send_spell_to_grave = false
 end,
 
 --[[ Sleep Club Clubroom ]]
@@ -9916,10 +9917,11 @@ end,
     end
     op:grave_to_exile(1)
   end
-  mag = mag + mag2
-  for i = 1, min(#op.grave, mag2) do
+  mag2 = min(#op.grave, mag2)
+  for i = 1, mag2 do
     op:grave_to_exile(1)
   end
+  mag = mag + mag2
   mag = ceil(mag / 2)
   pl:field_buff_n_random_followers_with_preds(2, {atk={"+", mag}, sta={"+", mag}}, pred.follower)
 end,
@@ -9946,7 +9948,7 @@ end,
 --[[ Broken Heart ]]
 [200636] = function(pl, op, my_idx, my_card)
   if my_card.size >= 3 then
-    local pl_idx = pl:field_idxs_with_least_and_preds(pred.size, pred.follower)[1]
+    local pl_idx = pl:field_idxs_with_least_and_preds(pred.size, pred.follower, pred.A)[1]
     local op_idx = op:first_empty_field_slot()
     if pl_idx and op_idx then
       OneImpact(pl, pl_idx):apply()
@@ -9954,6 +9956,7 @@ end,
       op.field[op_idx].active = false
       OneBuff(pl, my_idx, "_ _ _ =1"):apply()
       my_card.active = false
+      pl.send_spell_to_grave = false
     end
   elseif my_card.size == 1 then
     local mag = 5 - #op:field_idxs_with_preds(pred.A, pred.follower)
@@ -9988,7 +9991,7 @@ end,
   end
   local impact = Impact(pl)
   for _, idx in ipairs(idxs) do
-    impact[pl][idx] = true
+    impact[pl.opponent][idx] = true
   end
   impact:apply()
   for _, idx in ipairs(idxs) do
@@ -10021,16 +10024,18 @@ end,
 
 --[[ Electromaster ]]
 [200641] = function(pl, op)
-  local idxs = {}
-  for _, p in ipairs({pl, op}) do
-    for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
-      table.insert(idxs, {p, idx})
+  if #pl:field_idxs_with_preds(pred.follower) > 0 then
+    local idxs = {}
+    for _, p in ipairs({pl, op}) do
+      for _, idx in ipairs(p:field_idxs_with_preds(pred.follower)) do
+        table.insert(idxs, {p, idx})
+      end
     end
-  end
-  local idx = uniformly(idxs)
-  if idx then
-    OneImpact(idx[1], idx[2]):apply()
-    idx[1].field[idx[2]]:gain_skill(1514)
+    local idx = uniformly(idxs)
+    if idx then
+      OneImpact(idx[1], idx[2]):apply()
+      idx[1].field[idx[2]]:gain_skill(1514)
+    end
   end
 end,
 

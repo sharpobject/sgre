@@ -3666,7 +3666,7 @@ end,
     if mag >= 6 then
       local buff = GlobalBuff(pl)
       for _, idx in ipairs(pl:deck_idxs_with_preds(pred.follower)) do
-	buff.deck[pl][idx] = "_ +1 +2"
+	buff.deck[pl][idx] = "_ +1 +1"
       end
       buff:apply()
     end
@@ -3756,11 +3756,10 @@ end,
 [100256] = function(pl, op)
   local idx = uniformly(op:field_idxs_with_preds(pred.follower))
   if idx then
-    local mag = {atk={"-", 0}, def={"-", 0}, sta={"-", 0}}
-    for i = 1, pl:field_idxs_with_preds(pred.A)[1] and 2 or 1 do
-      local stat = uniformly({"atk", "def", "sta"})
-      mag[stat][2] = mag[stat][2] + 1
-    end
+    local magA = pl:field_idxs_with_preds(pred.A)[1] and 1 or 0
+    local mag = {atk={"-", magA}, def={"-", magA}, sta={"-", magA}}
+    local stat = uniformly({"atk", "def", "sta"})
+    mag[stat][2] = mag[stat][2] + 1
     OneBuff(op, idx, mag):apply()
   end
 end,
@@ -7563,7 +7562,7 @@ end,
   local idxs = op:field_idxs_with_preds(pred.follower, pred_size)
   local count = #pl:empty_field_slots()
   for i = 1, min(count, #idxs) do
-    impact[op][i] = true
+    impact[op][idxs[i]] = true
   end
   impact:apply()
   for i = 1, min(count, #idxs) do
@@ -7663,6 +7662,12 @@ end,
     local mag = ceil(op.field[idx].atk / 2)
     local mag2 = floor((op.field[idx].atk - mag) / 2)
     OneBuff(op, idx, {atk={"=", mag}, sta={"+", mag2}}):apply()
+  end
+  if pl.game.turn == 1 then
+    local s_idx = uniformly(op:hand_idxs_with_preds(pred.spell))
+    if s_idx then
+      op:hand_to_grave(s_idx)
+    end
   end
 end,
 
